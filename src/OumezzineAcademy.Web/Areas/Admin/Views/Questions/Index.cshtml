@@ -1,0 +1,83 @@
+@model AdminQuestionListViewModel
+@{ ViewData["Title"] = "Questions"; }
+<div class="admin-page content-admin-page">
+<nav class="admin-breadcrumb" aria-label="Fil d’Ariane">
+<a asp-controller="Courses" asp-action="Index">Cours</a>
+<span>›</span>
+<span>@Model.CourseTitle</span>
+<span>›</span>
+<span>@Model.ChapterTitle</span>
+<span>›</span>
+<a asp-controller="Quizzes" asp-action="Index" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId">Quiz</a>
+<span>›</span>
+<strong>@Model.QuizTitle</strong>
+</nav>
+<div class="admin-heading content-heading">
+<div>
+<p class="eyebrow">QUESTIONS</p>
+<h1>@Model.QuizTitle</h1>
+<p>Gérez les questions de ce quiz.</p>
+</div>
+<div class="content-heading-actions">
+<a class="btn-ghost" asp-controller="Quizzes" asp-action="Index" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId">Retour aux quiz</a>
+<a class="btn-main" asp-action="Create" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId" asp-route-quizId="@Model.QuizId">+ Ajouter une question</a>
+</div>
+</div>
+<section class="content-course-summary">
+<div class="content-course-info">
+<h2>@Model.QuizTitle</h2>
+<div class="content-statuses">
+<span>FR : @await Html.PartialAsync("_AdminStatusBadge", Model.FrenchStatus)</span>
+<span>EN : @await Html.PartialAsync("_AdminStatusBadge", Model.EnglishStatus)</span>
+</div>
+</div>
+<div class="content-stats">
+<div>
+<strong>@Model.Questions.Count</strong>
+<span>Questions</span>
+</div>
+</div>
+</section>@if (TempData["Success"] is not null) { <div class="admin-alert success">@TempData["Success"]</div> }<div class="content-table-wrap">
+<table class="admin-table content-table">
+<thead>
+<tr>
+<th>Ordre</th>
+<th>Question</th>
+<th>FR</th>
+<th>EN</th>
+<th>Réponses</th>
+<th>Bonne réponse</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>@foreach (var item in Model.Questions) { <tr>
+<td>
+<span class="order-badge">@item.Order.ToString("00")</span>
+</td>
+<td>
+<strong class="content-title">@item.Text</strong>
+</td>
+<td>@await Html.PartialAsync("_AdminStatusBadge", item.FrenchStatus)</td>
+<td>@await Html.PartialAsync("_AdminStatusBadge", item.EnglishStatus)</td>
+<td>@item.AnswersCount réponse(s)</td>
+<td>@(item.HasCorrectAnswer ? "Configurée" : "Non configurée")</td>
+<td>
+<div class="content-actions">
+<a class="edit-action" asp-action="Edit" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId" asp-route-quizId="@Model.QuizId" asp-route-id="@item.Id">Modifier</a>
+<form asp-action="Move" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId" asp-route-quizId="@Model.QuizId" asp-route-id="@item.Id" asp-route-direction="-1" method="post">
+<button class="icon-action" type="submit" disabled="@item.IsFirst" aria-label="Monter">↑</button>
+</form>
+<form asp-action="Move" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId" asp-route-quizId="@Model.QuizId" asp-route-id="@item.Id" asp-route-direction="1" method="post">
+<button class="icon-action" type="submit" disabled="@item.IsLast" aria-label="Descendre">↓</button>
+</form>
+<form asp-action="Delete" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId" asp-route-quizId="@Model.QuizId" asp-route-id="@item.Id" method="post">
+<button class="icon-action danger" type="submit" aria-label="Supprimer cette question" data-confirm-delete data-confirm-item="@item.Text" data-confirm-message="supprimer cette question et ses réponses associées">×</button>
+</form>
+</div>
+</td>
+</tr> }</tbody>
+</table>
+</div>@if (Model.Questions.Count == 0) { <div class="content-empty">
+<h2>Aucune question dans ce quiz.</h2>
+<a class="btn-main" asp-action="Create" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId" asp-route-quizId="@Model.QuizId">+ Ajouter une question</a>
+</div> }</div>

@@ -1,0 +1,47 @@
+@model LessonEditViewModel
+@{
+    var isEdit = Model.Id != Guid.Empty;
+    var action = isEdit ? "Edit" : "Create";
+}
+<form class="admin-form lesson-form lesson-concept-form" asp-area="Admin" asp-controller="Lessons" asp-action="@action" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" data-photo-upload-url="@(isEdit ? Url.Action("UploadImage", "Lessons", new { area = "Admin", id = Model.Id }) : null)">
+    <input asp-for="Id" type="hidden" /><input asp-for="CourseId" type="hidden" /><input asp-for="ChapterId" type="hidden" />
+    @await Html.PartialAsync("_AdminValidationSummary")
+    @if (!isEdit) { <input type="hidden" name="continueEditing" value="true" /> }
+    <p class="lesson-photo-status" data-photo-status role="status" aria-live="polite" hidden></p>
+    <p class="lesson-photo-help">@(isEdit ? "Dans le contenu, utilisez « Insérer une photo » pour ajouter une ou plusieurs images à la langue choisie. JPG, PNG ou WEBP, 5 Mo par photo." : "Enregistrez cette nouvelle leçon pour continuer sa rédaction et insérer plusieurs photos dans le contenu. L’image choisie ci-dessous sera ajoutée à la version française.")</p>
+    <div class="lesson-form-columns">
+        <div class="lesson-form-main">
+            <section class="lesson-form-card">
+                <div class="lesson-section-title"><span class="section-icon">@await Html.PartialAsync("_AdminIcon", "settings")</span><div><h2>Informations générales</h2><p>Définissez la position et la durée de cette leçon dans le chapitre.</p></div></div>
+                <div class="lesson-common-grid"><div><label>Chapitre actuel</label><div class="readonly-field">@Model.ChapterTitle</div><small>Le chapitre est imposé par l’URL.</small></div><div><label asp-for="Order">Ordre</label><input asp-for="Order" type="number" min="1" /><small>Détermine la position dans le chapitre.</small></div><div><label asp-for="DurationMinutes">Durée estimée</label><div class="input-suffix"><input asp-for="DurationMinutes" type="number" min="0" /><span>minutes</span></div><small>Optionnel. Exemple : 12.</small></div></div>
+            </section>
+
+            <section class="lesson-form-card lesson-media-card">
+                <div class="lesson-section-title"><span class="section-icon">@await Html.PartialAsync("_AdminIcon", "image")</span><div><h2>Médias de la leçon</h2><p>Ajoutez des médias pour enrichir votre leçon.</p></div></div>
+                <div class="lesson-upload-layout">
+                    <label class="lesson-upload-zone" for="lessonImageUpload"><span>@await Html.PartialAsync("_AdminIcon", "image")</span><strong>Glissez une image ici</strong><b>ou cliquez pour sélectionner</b><small>JPG, PNG, WEBP • 5 Mo max</small></label>
+                    <input id="lessonImageUpload" asp-for="LessonImage" class="lesson-file-input" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" data-lesson-image-input />
+                    <div class="lesson-media-list" data-lesson-media-list><p class="lesson-media-empty">Aucune image sélectionnée.</p></div>
+                </div>
+                <div class="lesson-media-fields"><div><label asp-for="French.VideoUrl">Vidéo <span class="field-optional">Optionnel</span></label><input asp-for="French.VideoUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." data-preview-video="fr" /><small>URL YouTube, Vimeo ou autre.</small></div><div><label asp-for="French.DocumentUrl">Document <span class="field-optional">Optionnel</span></label><input asp-for="French.DocumentUrl" type="url" placeholder="https://..." data-preview-document="fr" /><small>PDF, DOC, etc. (lien public).</small></div></div>
+            </section>
+
+            <section class="lesson-form-card">
+                <div class="lesson-section-title"><span class="section-icon">@await Html.PartialAsync("_AdminIcon", "language")</span><div><h2>Traductions</h2><p>Rédigez chaque version linguistique indépendamment.</p></div></div>
+                <div class="lesson-tabs" role="tablist" aria-label="Traductions de la leçon"><button type="button" class="lesson-tab active" role="tab" aria-selected="true" aria-controls="lesson-fr" data-lesson-tab="lesson-fr">Français <span class="status-badge status-@Model.French.PublicationStatus.ToString().ToLowerInvariant()">@Model.French.PublicationStatus</span></button><button type="button" class="lesson-tab" role="tab" aria-selected="false" aria-controls="lesson-en" data-lesson-tab="lesson-en">English <span class="status-badge @(string.IsNullOrWhiteSpace(Model.English.Title) ? "status-missing" : "status-" + Model.English.PublicationStatus.ToString().ToLowerInvariant())">@(string.IsNullOrWhiteSpace(Model.English.Title) ? "Missing" : Model.English.PublicationStatus.ToString())</span></button></div>
+                <div id="lesson-fr" class="lesson-tab-panel active" role="tabpanel">@await Html.PartialAsync("_LessonTranslationFields", (Model.French, "French", "Français"))</div>
+                <div id="lesson-en" class="lesson-tab-panel" role="tabpanel" hidden>@await Html.PartialAsync("_LessonTranslationFields", (Model.English, "English", "English"))</div>
+            </section>
+            <section class="lesson-form-card lesson-seo-card"><div class="lesson-section-title"><span class="section-icon">@await Html.PartialAsync("_AdminIcon", "search")</span><div><h2>SEO</h2><p>Configurez les métadonnées séparément du contenu pédagogique.</p></div></div><div class="lesson-seo-tabs" role="tablist" aria-label="SEO de la leçon"><button type="button" class="is-active" role="tab" aria-selected="true" data-seo-tab="seo-fr">Français</button><button type="button" role="tab" aria-selected="false" data-seo-tab="seo-en">English</button></div><div id="seo-fr" class="lesson-seo-panel" role="tabpanel">@await Html.PartialAsync("_LessonSeoFields", (Model.French, "French", "Français"))</div><div id="seo-en" class="lesson-seo-panel" role="tabpanel" hidden>@await Html.PartialAsync("_LessonSeoFields", (Model.English, "English", "English"))</div></section>
+        </div>
+        <aside class="lesson-form-aside">
+            <section class="lesson-live-preview" data-lesson-preview>
+                <div class="lesson-section-title"><span class="section-icon">@await Html.PartialAsync("_AdminIcon", "preview")</span><div><h2>Aperçu de la leçon</h2><p>Voici un aperçu du rendu de votre leçon.</p></div></div>
+                <div class="lesson-preview-tabs"><button type="button" class="is-active" data-preview-language="fr">Français</button><button type="button" data-preview-language="en">English</button></div>
+                <div class="lesson-preview-content"><span class="lesson-preview-label">LEÇON</span><h3 data-preview-title>@(Model.French.Title ?? "Titre de la leçon")</h3><p data-preview-summary>@(Model.French.Summary ?? "Le résumé apparaîtra ici.")</p><div class="preview-pills"><span data-preview-duration>@(Model.DurationMinutes.HasValue ? $"{Model.DurationMinutes} min" : "—")</span><span data-preview-video-pill class="@(string.IsNullOrWhiteSpace(Model.French.VideoUrl) ? "" : "preview-active")">@await Html.PartialAsync("_AdminIcon", "video") Vidéo</span><span data-preview-document-pill class="@(string.IsNullOrWhiteSpace(Model.French.DocumentUrl) ? "" : "preview-active")">@await Html.PartialAsync("_AdminIcon", "document") Document</span></div><img class="lesson-preview-image" data-preview-image alt="Aperçu de l’image de la leçon" hidden><div class="lesson-preview-html" data-preview-html></div></div>
+            </section>
+            <section class="lesson-advice-card"><div class="lesson-advice-heading"><span>@await Html.PartialAsync("_AdminIcon", "info")</span><h2>Conseils</h2></div><ul><li>Utilisez un titre clair et concis.</li><li>Ajoutez une vidéo si nécessaire.</li><li>Le contenu sera nettoyé automatiquement.</li><li>Ajoutez les images via les médias de la leçon.</li><li>Pensez au SEO pour améliorer la visibilité.</li></ul></section>
+        </aside>
+    </div>
+    <div class="lesson-action-bar"><a class="btn-ghost" asp-area="Admin" asp-controller="Lessons" asp-action="Index" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId">@await Html.PartialAsync("_AdminIcon", "arrow-left") Annuler</a><button class="btn-main" type="submit">@await Html.PartialAsync("_AdminIcon", "save") @(isEdit ? "Enregistrer les modifications" : "Enregistrer la leçon")</button></div>
+</form>

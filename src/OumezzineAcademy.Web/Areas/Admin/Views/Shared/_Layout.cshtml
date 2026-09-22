@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+@inject OumezzineAcademy.Web.Services.ILocalizedUrlService LocalizedUrls
+@{
+    var publicHome = LocalizedUrls.GetPublicNavigation().Home;
+    var isAdmin = User.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var area = ViewContext.RouteData.Values["area"]?.ToString() ?? "";
+    bool IsAdminSectionActive(params string[] controllers) => area.Equals("Admin", StringComparison.OrdinalIgnoreCase) && controllers.Contains(controller, StringComparer.OrdinalIgnoreCase);
+    var dashboardActive = IsAdminSectionActive("Dashboard");
+    var coursesActive = IsAdminSectionActive("Courses", "Chapters", "Lessons", "Quizzes", "Questions", "Answers");
+    var categoriesActive = IsAdminSectionActive("Categories");
+    var learningPathsActive = IsAdminSectionActive("LearningPaths", "LearningPathCategories", "LearningPathCourses");
+}
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>@ViewData["Title"] - Oumezzine Academy Admin</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Head", required: false)
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-shell" aria-label="Navigation administration">
+            <a class="brand" href="@publicHome"><span>Oumezzine Academy</span></a>
+            <span class="badge-soft">Administration</span>
+            @if (isAdmin)
+            {
+                <div class="admin-nav">
+                    <a class="@(dashboardActive ? "is-active" : null)" aria-current="@(dashboardActive ? "page" : null)" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                    <a class="@(coursesActive ? "is-active" : null)" aria-current="@(coursesActive ? "page" : null)" asp-area="Admin" asp-controller="Courses" asp-action="Index">Cours</a>
+                    <a class="@(categoriesActive ? "is-active" : null)" aria-current="@(categoriesActive ? "page" : null)" asp-area="Admin" asp-controller="Categories" asp-action="Index">Catégories</a>
+                    <a class="@(learningPathsActive ? "is-active" : null)" aria-current="@(learningPathsActive ? "page" : null)" asp-area="Admin" asp-controller="LearningPaths" asp-action="Index">Parcours</a>
+                    <a class="admin-external-link" href="@publicHome">Voir le site</a>
+                    <form asp-area="Admin" asp-controller="Auth" asp-action="Logout" method="post">
+                        <button type="submit">Déconnexion</button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <a class="admin-public-link" href="@publicHome">Voir le site</a>
+            }
+        </nav>
+    </header>
+    <main>@RenderBody()</main>
+    <dialog class="admin-delete-dialog" data-admin-delete-dialog aria-modal="true" aria-labelledby="admin-delete-title" aria-describedby="admin-delete-message">
+        <form method="dialog" class="admin-delete-dialog-card">
+            <span class="admin-delete-dialog-icon" aria-hidden="true">!</span>
+            <h2 id="admin-delete-title">Confirmer l’action</h2>
+            <p id="admin-delete-message"></p>
+            <div class="admin-delete-dialog-actions">
+                <button type="submit" value="cancel" class="btn-ghost" data-delete-cancel>Annuler</button>
+                <button type="button" class="admin-delete-confirm-button" data-delete-confirm>Confirmer</button>
+            </div>
+        </form>
+    </dialog>
+    <script src="~/js/admin-delete-confirm.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,68 @@
+@model OumezzineAcademy.Models.Catalog.CourseDetailViewModel
+@using System.Text.Json
+@using System.Globalization
+@{
+    ViewData["Title"] = Model.Title;
+    var seoTitle = string.IsNullOrWhiteSpace(Model.MetaTitle) ? $"{Model.Title} | Oumezzine Academy" : Model.MetaTitle;
+    var seoDescription = string.IsNullOrWhiteSpace(Model.MetaDescription) ? Model.Summary : Model.MetaDescription;
+    ViewData["Seo"] = new OumezzineAcademy.Models.Catalog.SeoViewModel(seoTitle!, seoDescription ?? Model.Title, null, Model.Thumbnail, "article");
+    var jsonLdImage = string.IsNullOrWhiteSpace(Model.Thumbnail) ? null : Uri.TryCreate(Model.Thumbnail, UriKind.Absolute, out var courseImage) ? new UriBuilder(courseImage) { Scheme = Uri.UriSchemeHttps, Port = -1 }.Uri.ToString() : new Uri(new Uri($"https://{Context.Request.Host}/"), Model.Thumbnail.TrimStart('~', '/')).ToString();
+    var jsonLd = JsonSerializer.Serialize(new { @context = "https://schema.org", @type = "Course", name = Model.Title, description = seoDescription, url = $"https://{Context.Request.Host}{Context.Request.Path}", inLanguage = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, provider = new { @type = "Organization", name = "Oumezzine Academy" }, image = jsonLdImage }, new JsonSerializerOptions { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull });
+    var visualKey = $"{Model.Title} {Model.Slug} {Model.CategoryTitle}".ToLowerInvariant();
+    var visualMark = visualKey.Contains("docker") ? "Docker" : visualKey.Contains("react") ? "React" : visualKey.Contains("javascript") ? "JS" : visualKey.Contains("html") ? "HTML / CSS" : visualKey.Contains("git") ? "Git" : visualKey.Contains("efcore") ? "EF Core" : visualKey.Contains("sql") ? "SQL" : visualKey.Contains("asp.net") || visualKey.Contains("aspnet") ? ".NET / MVC" : visualKey.Contains("api") ? "API / .NET" : visualKey.Contains("c#") || visualKey.Contains("csharp") ? "C#" : "Learn";
+    var visualSecondary = visualKey.Contains("docker") ? "Containers" : visualKey.Contains("react") ? "Components" : visualKey.Contains("javascript") ? "Web" : visualKey.Contains("sql") ? "Queries" : "Practical skills";
+    var currentLanguage = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    var homeRouteName = currentLanguage == "en" ? "en-home" : "fr-home";
+    var homeUrl = Url.RouteUrl(homeRouteName);
+    var categoryRouteName = currentLanguage == "en" ? "en-category-detail" : "fr-category-detail";
+    var categoryDetailsUrl = Url.RouteUrl(categoryRouteName, new { slug = Model.CategorySlug });
+    var hasCategoryLink = !string.IsNullOrWhiteSpace(Model.CategoryTitle) && !string.IsNullOrWhiteSpace(Model.CategorySlug) && !string.IsNullOrWhiteSpace(categoryDetailsUrl);
+}
+
+@{ var cspNonce = Context.Items["CspNonce"]?.ToString(); }
+@section Head { <script type="application/ld+json" nonce="@cspNonce">@Html.Raw(jsonLd)</script> }
+
+<div class="course-detail-breadcrumb page" aria-label="Breadcrumb">
+    <a href="@homeUrl">@L["Home"]</a><span aria-hidden="true">›</span>
+    <a asp-area="" asp-controller="Course" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">@L["Courses"]</a>
+    @if (hasCategoryLink) { <span aria-hidden="true">›</span><a href="@categoryDetailsUrl">@Model.CategoryTitle</a> }
+    <span aria-hidden="true">›</span><span aria-current="page">@Model.Title</span>
+</div>
+
+<section class="course-hero">
+    <div class="course-hero-copy">
+        <div class="badge-row">@if (hasCategoryLink) { <a class="badge-soft" href="@categoryDetailsUrl">@Model.CategoryTitle</a> }<span class="badge-soft">@Model.Level</span><span class="badge-soft badge-published"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> @L["CourseDetail_PublishedStatus"]</span></div>
+        <h1>@Model.Title</h1>
+        <p>@Model.Summary</p>
+        <div class="course-meta"><span><i class="bi bi-calendar3" aria-hidden="true"></i> @L["CourseDetail_Published"] @Model.CreatedOnUtc.ToString("dd-MM-yyyy")</span><span><i class="bi bi-collection" aria-hidden="true"></i> @Model.Contents.Count @L["CourseDetail_Chapters"]</span><span><i class="bi bi-file-earmark-text" aria-hidden="true"></i> @Model.LessonCount @L["CourseDetail_Lessons"]</span><span><i class="bi bi-patch-question" aria-hidden="true"></i> @Model.QuizCount @L["CourseDetail_Quizzes"]</span></div>
+        <div class="actions"><a class="btn-main" href="#curriculum"><i class="bi bi-play-circle-fill" aria-hidden="true"></i> @L["CourseDetail_Start"] <i class="bi bi-arrow-right" aria-hidden="true"></i></a><a class="btn-ghost" asp-area="" asp-controller="Course" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">@L["CourseDetail_BackToCourses"]</a></div>
+        @{ ViewData["ShareLabel"] = L["CourseDetail_Share"].Value; }<partial name="_ShareActions" />
+    </div>
+    <div class="course-hero-art" aria-label="Aperçu visuel du cours @Model.Title">
+        @if (!string.IsNullOrWhiteSpace(Model.Thumbnail))
+        { <div class="course-art-surface course-art-image"><img src="@Model.Thumbnail" alt="@Model.Title" /></div> }
+        else
+        { <div class="course-art-surface"><span class="course-art-badge">@Model.CategoryTitle</span><div class="dot-net">@visualMark</div><span class="code-mark">&lt;/&gt;</span><div class="art-stack"><span>@visualSecondary</span><span>@Model.Level</span></div><strong class="course-art-title">@Model.Title</strong></div> }
+        <div class="course-art-stats"><div><i class="bi bi-file-earmark-text" aria-hidden="true"></i><strong>@Model.LessonCount</strong><small>@L["CourseDetail_Lessons"]</small></div><div><i class="bi bi-trophy" aria-hidden="true"></i><strong>@Model.QuizCount</strong><small>@L["CourseDetail_Quizzes"]</small></div><div><i class="bi bi-clock" aria-hidden="true"></i><strong>@Model.DurationMinutes</strong><small>@L["CourseDetail_EstimatedMinutes"]</small></div></div>
+    </div>
+</section>
+
+<div class="course-detail-page page">
+    <div class="course-detail-layout">
+        <article class="course-main-column">
+            @if (!string.IsNullOrWhiteSpace(Model.Overview)) { <section class="content-panel course-about-card"><h2><i class="bi bi-book-half" aria-hidden="true"></i> @L["CourseDetail_About"]</h2><div class="rich-content">@Html.Raw(Model.Overview)</div>@if (hasCategoryLink) { <a class="text-link" href="@categoryDetailsUrl">@L["CourseDetail_ViewCategory"] <i class="bi bi-arrow-right" aria-hidden="true"></i></a> }</section> }
+            <div class="course-info-grid">
+                @if (!string.IsNullOrWhiteSpace(Model.WhatYouLearn)) { <section class="content-panel course-info-card"><h2><i class="bi bi-bullseye" aria-hidden="true"></i> @L["CourseDetail_Learn"]</h2><div class="rich-content checklist-content">@Html.Raw(Model.WhatYouLearn)</div></section> }
+                @if (!string.IsNullOrWhiteSpace(Model.Requirements)) { <section class="content-panel course-info-card"><h2><i class="bi bi-mortarboard-fill" aria-hidden="true"></i> @L["CourseDetail_Prerequisites"]</h2><div class="rich-content checklist-content">@Html.Raw(Model.Requirements)</div></section> }
+            </div>
+            <section id="curriculum" class="content-panel curriculum-panel"><div class="curriculum-heading"><div><h2><i class="bi bi-list-task" aria-hidden="true"></i> @L["CourseDetail_Program"]</h2><p>@L["CourseDetail_ProgramDescription"]</p></div></div>
+                @for (var chapterIndex = 0; chapterIndex < Model.Contents.Count; chapterIndex++) { var content = Model.Contents[chapterIndex]; <details class="course-chapter" @(chapterIndex == 0 ? "open" : "")><summary><span class="chapter-number">@(chapterIndex + 1)</span><span class="chapter-title">@content.Title</span><span class="chapter-count">@(content.Lessons.Count + content.Quizzes.Count) @L["CourseDetail_Items"] <i class="bi bi-chevron-down" aria-hidden="true"></i></span></summary>@if (!string.IsNullOrWhiteSpace(content.Summary)) { <div class="chapter-summary rich-content">@Html.Raw(content.Summary)</div> }@foreach (var lesson in content.Lessons) { <a class="curriculum-row lesson-row" asp-area="" asp-controller="Lesson" asp-action="Details" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" asp-route-slug="@lesson.Slug"><span class="row-icon lesson-icon"><i class="bi bi-play-btn" aria-hidden="true"></i></span><span class="row-copy"><strong>@lesson.Title</strong><small>@lesson.Summary</small></span><span class="badge-soft">@(lesson.DurationMinutes > 0 ? $"{lesson.DurationMinutes} {L["CourseDetail_Minutes"]}" : L["CourseDetail_Lesson"])</span></a> }@foreach (var quiz in content.Quizzes) { <a class="curriculum-row quiz-row" asp-area="" asp-controller="Quiz" asp-action="Attempt" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" asp-route-slug="@quiz.Slug"><span class="row-icon quiz-icon"><i class="bi bi-patch-question" aria-hidden="true"></i></span><span class="row-copy"><strong>@quiz.Title</strong><small>@quiz.Summary</small></span><span class="badge-soft">@quiz.QuestionCount @L["CourseDetail_Questions"]</span></a> }</details> }
+            </section>
+        </article>
+        <aside class="course-sidebar">
+            <div class="sidebar-card about-course-card"><div class="sidebar-stats"><div><i class="bi bi-file-earmark-text" aria-hidden="true"></i><strong>@Model.LessonCount</strong><small>@L["CourseDetail_Lessons"]</small></div><div><i class="bi bi-trophy" aria-hidden="true"></i><strong>@Model.QuizCount</strong><small>@L["CourseDetail_Quizzes"]</small></div><div><i class="bi bi-clock" aria-hidden="true"></i><strong>@Model.DurationMinutes</strong><small>@L["CourseDetail_EstimatedMinutes"]</small></div></div><div class="takeaway"><h3><i class="bi bi-lightbulb" aria-hidden="true"></i> @L["CourseDetail_Takeaway"]</h3><p>@L["CourseDetail_TakeawayText"] <strong>@Model.Level</strong>.</p></div></div>
+            <section class="sidebar-card launch-card"><div class="launch-art"><i class="bi bi-code-slash" aria-hidden="true"></i></div><h2>@L["CourseDetail_Ready"]</h2><p>@L["CourseDetail_ReadyText"]</p><a class="btn-main" href="#curriculum">@L["CourseDetail_StartNow"] <i class="bi bi-arrow-right" aria-hidden="true"></i></a><div class="launch-points"><span><i class="bi bi-check-circle-fill" aria-hidden="true"></i> @L["CourseDetail_Free"]</span><span><i class="bi bi-check-circle-fill" aria-hidden="true"></i> @L["CourseDetail_Accessible"]</span><span><i class="bi bi-check-circle-fill" aria-hidden="true"></i> @L["CourseDetail_SelfPaced"]</span></div></section>
+        </aside>
+    </div>
+    @if (Model.RelatedCourses.Any()) { <section><div class="section-head"><h2>@L["CourseDetail_Related"]</h2></div><div class="grid">@foreach (var course in Model.RelatedCourses) { <partial name="_CourseCard" model="course" /> }</div></section> }
+</div>

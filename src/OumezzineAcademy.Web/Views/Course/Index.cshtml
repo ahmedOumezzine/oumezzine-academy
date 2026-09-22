@@ -1,0 +1,63 @@
+@model OumezzineAcademy.Models.Catalog.CourseSearchViewModel
+@using OumezzineAcademy.Models.Catalog
+@{
+    ViewData["Seo"] = new SeoViewModel(L["Catalog_SeoTitle"].Value, L["Catalog_SeoDescription"].Value);
+}
+
+<section class="catalog-hero">
+    <div class="catalog-hero-copy">
+        <p class="eyebrow">@L["Catalog_Eyebrow"]</p>
+        <h1>@L["Catalog_Title"]</h1>
+        <p>@L["Catalog_Description"]</p>
+        <div class="catalog-benefits" aria-label="@L["Catalog_Eyebrow"]"><span><i class="bi bi-mortarboard-fill" aria-hidden="true"></i> @L["Catalog_Quality"]</span><span><i class="bi bi-people-fill" aria-hidden="true"></i> @L["Catalog_AllLevels"]</span><span><i class="bi bi-globe2" aria-hidden="true"></i> @L["Catalog_Accessible"]</span><span><i class="bi bi-signpost-split-fill" aria-hidden="true"></i> @L["Catalog_StructuredPaths"]</span></div>
+    </div>
+    <div class="catalog-visual" aria-hidden="true"><div class="catalog-cap"><i class="bi bi-mortarboard-fill"></i></div><div class="catalog-sheet"><span></span><span></span><span></span></div><div class="catalog-float"><i class="bi bi-book"></i><b>@L["Catalog_NewCourses"]</b></div><div class="catalog-float second"><i class="bi bi-bar-chart-fill"></i><b>@L["Catalog_SkillsForFuture"]</b></div></div>
+</section>
+
+<div class="catalog-page page">
+    <form class="catalog-filters" method="get">
+        <div class="catalog-search-field"><i class="bi bi-search" aria-hidden="true"></i><label class="sr-only" for="course-search">@L["Catalog_SearchLabel"]</label><input id="course-search" name="q" value="@Model.Q" placeholder="@L["Catalog_SearchLabel"]" /><small>@L["Catalog_SearchExample"]</small></div>
+        <div class="catalog-select"><label class="sr-only" for="course-category">@L["Catalog_AllCategories"]</label><select id="course-category" name="category"><option value="">@L["Catalog_AllCategories"]</option>@foreach (var category in Model.Categories) { <option value="@category.Slug" selected="@(Model.Category == category.Slug)">@category.Title</option> }</select></div>
+        <div class="catalog-select"><label class="sr-only" for="course-level">@L["Catalog_AllLevelsFilter"]</label><select id="course-level" name="level"><option value="">@L["Catalog_AllLevelsFilter"]</option>@foreach (var level in Enum.GetValues<StudyLevel>()) { <option value="@level" selected="@(Model.Level == level)">@level</option> }</select></div>
+        <div class="catalog-select"><label class="sr-only" for="course-sort">@L["Catalog_SortLabel"]</label><select id="course-sort" name="sort"><option value="recent" selected="@(Model.Sort == "recent")">@L["Catalog_Recent"]</option><option value="az" selected="@(Model.Sort == "az")">@L["Catalog_AZ"]</option><option value="level" selected="@(Model.Sort == "level")">@L["Catalog_Level"]</option></select></div>
+        <button class="btn-main catalog-submit" type="submit"><i class="bi bi-search" aria-hidden="true"></i> @L["Catalog_Search"]</button>
+        <input type="hidden" name="view" value="@Model.View" />
+    </form>
+
+    <div class="catalog-result-head">
+        <div><h2>@Model.TotalItems @L[Model.TotalItems == 1 ? "Catalog_OneResult" : "Catalog_ManyResults"]</h2><p><i class="bi bi-lightbulb-fill" aria-hidden="true"></i> @L["Catalog_ViewTip"]</p></div>
+        <div class="view-toggle" role="group" aria-label="@L["Catalog_ViewLabel"]">
+            <a class="@(Model.View == "grid" ? "active" : "")" asp-area="" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" asp-route-q="@Model.Q" asp-route-category="@Model.Category" asp-route-level="@Model.Level" asp-route-sort="@Model.Sort" asp-route-view="grid" aria-label="@L["Catalog_Grid"]"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i> @L["Catalog_Grid"]</a>
+            <a class="@(Model.View == "list" ? "active" : "")" asp-area="" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" asp-route-q="@Model.Q" asp-route-category="@Model.Category" asp-route-level="@Model.Level" asp-route-sort="@Model.Sort" asp-route-view="list" aria-label="@L["Catalog_List"]"><i class="bi bi-list-ul" aria-hidden="true"></i> @L["Catalog_List"]</a>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Q) || !string.IsNullOrWhiteSpace(Model.Category) || Model.Level.HasValue || Model.Sort != "recent")
+    {
+        <div class="catalog-chips">
+            @if (!string.IsNullOrWhiteSpace(Model.Q)) { <span class="badge-soft">@L["Catalog_FilterSearch"] @Model.Q</span> }
+            @if (!string.IsNullOrWhiteSpace(Model.Category)) { <span class="badge-soft">@L["Catalog_FilterCategory"] @(Model.Categories.FirstOrDefault(x => x.Slug == Model.Category)?.Title ?? Model.Category)</span> }
+            @if (Model.Level.HasValue) { <span class="badge-soft">@L["Catalog_FilterLevel"] @Model.Level</span> }
+            @if (Model.Sort != "recent") { <span class="badge-soft">@L["Catalog_FilterSort"] @L[Model.Sort == "az" ? "Catalog_AZ" : "Catalog_Level"]</span> }
+            <a class="catalog-reset" asp-area="" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName"><i class="bi bi-x-circle" aria-hidden="true"></i> @L["Catalog_Reset"]</a>
+        </div>
+    }
+
+    @if (!Model.Courses.Any())
+    {
+        <div class="empty catalog-empty"><p>@L["Catalog_Empty"]</p><a class="btn-ghost" asp-area="" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">@L["Catalog_Reset"]</a></div>
+    }
+    else
+    {
+        <div class="@(Model.View == "list" ? "list" : "grid catalog-grid")">
+            @foreach (var course in Model.Courses) { <partial name="_CourseCard" model="course" /> }
+        </div>
+    }
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="catalog-pagination" aria-label="Pagination">@for (var i = 1; i <= Model.TotalPages; i++) { <a class="@(i == Model.Page ? "active" : "")" asp-area="" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" asp-route-q="@Model.Q" asp-route-category="@Model.Category" asp-route-level="@Model.Level" asp-route-sort="@Model.Sort" asp-route-view="@Model.View" asp-route-page="@i">@i</a> }</nav>
+    }
+
+    <div class="catalog-share"><span>@L["Catalog_SharePrompt"]</span><partial name="_ShareActions" /></div>
+</div>

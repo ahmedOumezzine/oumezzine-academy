@@ -1,0 +1,57 @@
+@model AdminLearningPathsListViewModel
+@{ ViewData["Title"] = "Parcours"; }
+<div class="admin-page content-admin-page">
+<div class="admin-heading content-heading">
+<div>
+<p class="eyebrow">CATALOGUE</p>
+<h1>Parcours d’apprentissage</h1>
+<p>Organisez des itinéraires clairs avec vos cours existants.</p>
+</div>
+<div class="content-heading-actions">
+<a class="btn-ghost" asp-controller="LearningPathCategories" asp-action="Index">Catégories</a>
+<a class="btn-main" asp-action="Create">+ Créer un parcours</a>
+</div>
+</div>
+@if (TempData["Success"] is not null) { <div class="admin-alert success">@TempData["Success"]</div> } @if (TempData["Error"] is not null) { <div class="admin-alert error">@TempData["Error"]</div> }
+<div class="content-table-wrap">
+<table class="admin-table content-table">
+<thead>
+<tr>
+<th>Parcours</th>
+<th>Catégorie</th>
+<th>Niveau</th>
+<th>FR</th>
+<th>EN</th>
+<th>Cours</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+@foreach (var item in Model.Items) { <tr>
+<td>
+<strong class="content-title">@item.Title</strong>
+</td>
+<td>@item.CategoryTitle</td>
+<td>@item.Level</td>
+<td>@await Html.PartialAsync("_AdminStatusBadge", item.FrenchStatus)</td>
+<td>@await Html.PartialAsync("_AdminStatusBadge", item.EnglishStatus)</td>
+<td>@item.CourseCount</td>
+<td>
+<div class="content-actions">
+<a class="content-action-primary" asp-action="Courses" asp-route-id="@item.Id">Gérer les cours</a>
+<a class="edit-action" asp-action="Edit" asp-route-id="@item.Id">Modifier</a>
+<form asp-action="Delete" asp-route-id="@item.Id" method="post">
+<button class="icon-action danger" type="submit" aria-label="Supprimer le parcours @item.Title" data-confirm-delete data-confirm-item="@item.Title" data-confirm-message="supprimer ce parcours">×</button>
+</form>
+</div>
+</td>
+</tr> }
+</tbody>
+</table>
+</div>
+@if (Model.Items.Count == 0) { <div class="content-empty">
+<h2>Aucun parcours</h2>
+<p>Créez le premier itinéraire de votre catalogue.</p>
+<a class="btn-main" asp-action="Create">+ Créer un parcours</a>
+</div> }
+</div>

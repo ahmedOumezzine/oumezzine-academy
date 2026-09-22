@@ -1,0 +1,27 @@
+@model AdminCoursePublicationViewModel
+<div class="course-publication" role="group" aria-label="@Model.LanguageName : @Model.StatusLabel, @Model.VisibilityLabel">
+    <span class="course-publication-language">@Model.LanguageName</span>
+    <span class="status-badge @Model.StatusClass">@Model.StatusLabel</span>
+    <span class="course-visibility" data-course-visibility>
+        <button type="button" class="course-visibility-badge @(Model.Visibility.IsVisible ? "visibility-visible" : "visibility-hidden")"
+                aria-label="@Model.LanguageName : @Model.StatusLabel, @Model.VisibilityLabel"
+                aria-describedby="@Model.TooltipId">
+            @await Html.PartialAsync("_AdminIcon", Model.Visibility.IsVisible ? "eye" : "eye-off")
+            @Model.VisibilityLabel
+        </button>
+        <span id="@Model.TooltipId" class="course-visibility-tooltip" role="tooltip" hidden>
+            @if (Model.Visibility.IsVisible)
+            {
+                <span>Ce cours est visible sur le site public en @(Model.LanguageCode == "en" ? "anglais" : "français").</span>
+            }
+            else
+            {
+                <strong>Non visible en @(Model.LanguageCode == "en" ? "anglais" : "français") :</strong>
+                @foreach (var reason in Model.Visibility.Reasons)
+                {
+                    <span class="course-visibility-reason">@reason</span>
+                }
+            }
+        </span>
+    </span>
+</div>

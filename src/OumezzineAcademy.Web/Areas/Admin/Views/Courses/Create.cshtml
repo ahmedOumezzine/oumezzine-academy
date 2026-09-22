@@ -1,0 +1,20 @@
+@model CourseEditViewModel
+@{
+    ViewData["Title"] = Model.Id == Guid.Empty ? "Créer un cours" : "Modifier un cours";
+}
+
+<div class="admin-page course-edit-page">
+    <div class="admin-heading course-edit-heading">
+        <div>
+            <p class="eyebrow">CATALOGUE</p>
+            <h1>@ViewData["Title"]</h1>
+            <p>Organisez les informations, les traductions et la publication de ce cours.</p>
+        </div>
+        <a class="btn-ghost" asp-action="Index">@await Html.PartialAsync("_AdminIcon", "arrow-left") Retour au catalogue</a>
+    </div>
+    @await Html.PartialAsync("_CourseForm", Model)
+</div>
+
+@section Scripts {
+    <script src="~/js/course-form.js" asp-append-version="true"></script>
+}

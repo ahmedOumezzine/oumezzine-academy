@@ -1,0 +1,201 @@
+@model AdminDashboardViewModel
+@inject OumezzineAcademy.Web.Services.ILocalizedUrlService LocalizedUrls
+@{ ViewData["Title"] = "Tableau de bord"; var learningPathsUrl = LocalizedUrls.GetPublicNavigation().LearningPaths; }
+
+<div class="admin-page admin-dashboard-page">
+    <div class="admin-dashboard-hero">
+        <div>
+<p class="eyebrow">OUMEZZINE ACADEMY</p>
+<h1>Tableau de bord</h1>
+<p>Vue d’ensemble de votre catalogue et de ses publications.</p>
+</div>
+        <a class="btn-main" asp-area="Admin" asp-controller="Courses" asp-action="Create">@await Html.PartialAsync("_AdminIcon", "add") Nouveau cours</a>
+    </div>
+    <section class="admin-kpi-grid" aria-label="Statistiques du catalogue">
+        <div class="admin-kpi-card">
+<span class="admin-kpi-icon kpi-blue">@await Html.PartialAsync("_AdminIcon", "course")</span>
+<div class="admin-kpi-copy"><strong>@Model.CoursesTotal</strong>
+<span>Cours total</span></div>
+</div>
+        <div class="admin-kpi-card">
+<span class="admin-kpi-icon kpi-mint">@await Html.PartialAsync("_AdminIcon", "category")</span>
+<div class="admin-kpi-copy"><strong>@Model.CategoriesTotal</strong>
+<span>Catégories</span></div>
+</div>
+        <div class="admin-kpi-card">
+<span class="admin-kpi-icon kpi-blue">@await Html.PartialAsync("_AdminIcon", "published")</span>
+<div class="admin-kpi-copy"><strong>@Model.FrenchPublishedCourses</strong>
+<span>FR publiés</span></div>
+</div>
+        <div class="admin-kpi-card">
+<span class="admin-kpi-icon kpi-purple">@await Html.PartialAsync("_AdminIcon", "globe-check")</span>
+<div class="admin-kpi-copy"><strong>@Model.EnglishPublishedCourses</strong>
+<span>EN publiés</span></div>
+</div>
+        <div class="admin-kpi-card">
+<span class="admin-kpi-icon kpi-orange">@await Html.PartialAsync("_AdminIcon", "draft")</span>
+<div class="admin-kpi-copy"><strong>@Model.EnglishDraftCourses</strong>
+<span>EN draft</span></div>
+</div>
+        <div class="admin-kpi-card">
+<span class="admin-kpi-icon kpi-red">@await Html.PartialAsync("_AdminIcon", "warning")</span>
+<div class="admin-kpi-copy"><strong>@Model.EnglishMissingCourses</strong>
+<span>EN missing</span></div>
+</div>
+        <div class="admin-kpi-card">
+<span class="admin-kpi-icon kpi-mint">@await Html.PartialAsync("_AdminIcon", "lesson")</span>
+<div class="admin-kpi-copy"><strong>@Model.LessonsTotal</strong>
+<span class="dashboard-row-copy">Leçons</span></div>
+</div>
+        <div class="admin-kpi-card">
+<span class="admin-kpi-icon kpi-purple">@await Html.PartialAsync("_AdminIcon", "quiz")</span>
+<div class="admin-kpi-copy"><strong>@Model.QuizzesTotal</strong>
+<span class="dashboard-row-copy">Quiz</span></div>
+</div>
+        <div class="admin-kpi-card">
+<span class="admin-kpi-icon kpi-teal">@await Html.PartialAsync("_AdminIcon", "path")</span>
+<div class="admin-kpi-copy"><strong>@Model.LearningPathsTotal</strong>
+<span class="dashboard-row-copy">Parcours</span></div>
+</div>
+    </section>
+    <div class="admin-dashboard-grid dashboard-grid-top">
+        <section class="admin-dashboard-card">
+            <div class="dashboard-card-heading">
+<div>
+<h2>@await Html.PartialAsync("_AdminIcon", "add") Actions rapides</h2>
+<p>Accédez rapidement aux principales fonctionnalités.</p>
+</div>
+</div>
+            <div class="quick-action-grid">
+                <a class="quick-action quick-action-primary" asp-area="Admin" asp-controller="Courses" asp-action="Create">
+<span class="quick-action-icon">@await Html.PartialAsync("_AdminIcon", "add")</span>
+<span class="dashboard-row-copy">
+<strong>Nouveau cours</strong>
+<small>Créer un nouveau cours</small>
+</span>
+</a>
+                <a class="quick-action" asp-area="Admin" asp-controller="Categories" asp-action="Create">
+<span class="quick-action-icon">@await Html.PartialAsync("_AdminIcon", "folder")</span>
+<span class="dashboard-row-copy">
+<strong>Nouvelle catégorie</strong>
+<small>Organiser le catalogue</small>
+</span>
+</a>
+                <a class="quick-action" asp-area="Admin" asp-controller="Courses" asp-action="Index">
+<span class="quick-action-icon">@await Html.PartialAsync("_AdminIcon", "course")</span>
+<span class="dashboard-row-copy">
+<strong>Gérer les cours</strong>
+<small>Voir, modifier, publier</small>
+</span>
+</a>
+                <a class="quick-action" asp-area="Admin" asp-controller="Categories" asp-action="Index">
+<span class="quick-action-icon">@await Html.PartialAsync("_AdminIcon", "settings")</span>
+<span class="dashboard-row-copy">
+<strong>Gérer les catégories</strong>
+<small>Modifier et organiser</small>
+</span>
+</a>
+            </div>
+        </section>
+        <section class="admin-dashboard-card">
+            <div class="dashboard-card-heading dashboard-heading-with-link">
+<div>
+<h2>@await Html.PartialAsync("_AdminIcon", "warning") À surveiller</h2>
+<p>Éléments nécessitant votre attention.</p>
+</div>
+<a href="@Url.Action("Index", "Courses", new { area = "Admin" })">Voir tout</a>
+</div>
+            <div class="attention-list admin-compact-list">
+                <a class="admin-compact-row" href="@Url.Action("Index", "Courses", new { area = "Admin" })">
+<span class="watch-item-icon attention-red">@await Html.PartialAsync("_AdminIcon", "warning")</span>
+<span class="dashboard-row-copy">
+<strong>Cours sans traduction EN</strong>
+<small>Ces cours n’ont pas encore de version anglaise.</small>
+</span>
+<b>@Model.EnglishMissingCourses</b>
+<span class="watch-chevron">@await Html.PartialAsync("_AdminIcon", "chevron-right")</span>
+</a>
+                <a class="admin-compact-row" href="@Url.Action("Index", "Courses", new { area = "Admin" })">
+<span class="watch-item-icon attention-orange">@await Html.PartialAsync("_AdminIcon", "draft")</span>
+<span class="dashboard-row-copy">
+<strong>Cours en brouillon (EN)</strong>
+<small>Cours en cours de rédaction en anglais.</small>
+</span>
+<b>@Model.EnglishDraftCourses</b>
+<span class="watch-chevron">@await Html.PartialAsync("_AdminIcon", "chevron-right")</span>
+</a>
+                <a class="admin-compact-row" href="@Url.Action("Index", "Courses", new { area = "Admin" })">
+<span class="watch-item-icon attention-purple">@await Html.PartialAsync("_AdminIcon", "image")</span>
+<span class="dashboard-row-copy">
+<strong>Cours sans image de couverture</strong>
+<small>Ces cours n’ont pas de thumbnail.</small>
+</span>
+<b>@Model.CoursesWithoutThumbnail</b>
+<span class="watch-chevron">@await Html.PartialAsync("_AdminIcon", "chevron-right")</span>
+</a>
+                <a class="admin-compact-row" href="@Url.Action("Index", "Courses", new { area = "Admin" })">
+<span class="watch-item-icon attention-orange">@await Html.PartialAsync("_AdminIcon", "lesson")</span>
+<span class="dashboard-row-copy">
+<strong>Leçons en brouillon</strong>
+<small>Leçons créées mais non publiées.</small>
+</span>
+<b>@Model.DraftLessons</b>
+<span class="watch-chevron">@await Html.PartialAsync("_AdminIcon", "chevron-right")</span>
+</a>
+            </div>
+        </section>
+    </div>
+    <div class="admin-dashboard-grid dashboard-grid-bottom">
+        <section class="admin-dashboard-card activity-card">
+            <div class="dashboard-card-heading dashboard-heading-with-link">
+<div>
+<h2>@await Html.PartialAsync("_AdminIcon", "clock") Activité récente</h2>
+<p>Les derniers éléments créés ou modifiés.</p>
+</div>
+<a href="@Url.Action("Index", "Courses", new { area = "Admin" })">Voir le catalogue</a>
+</div>
+            <div class="activity-list admin-compact-list">
+                @if (Model.RecentItems.Count == 0) { <p class="dashboard-empty">Aucune activité récente.</p> }
+                @foreach (var item in Model.RecentItems)
+                { <a class="admin-compact-row" href="@item.Url">
+<span class="recent-item-icon">@await Html.PartialAsync("_AdminIcon", item.IconKey)</span>
+<span class="dashboard-row-copy">
+<strong>@item.Type « @item.Title »</strong>
+<small>@item.Action</small>
+</span>
+<time datetime="@item.DateUtc.ToString("O")">@item.DateUtc.ToLocalTime().ToString("dd/MM/yyyy")</time>
+<span class="watch-chevron">@await Html.PartialAsync("_AdminIcon", "chevron-right")</span>
+</a> }
+            </div>
+        </section>
+        <section class="admin-dashboard-card content-card">
+            <div class="dashboard-card-heading">
+<div>
+<h2>@await Html.PartialAsync("_AdminIcon", "course") Contenu pédagogique</h2>
+<p>Répartition de votre contenu.</p>
+</div>
+</div>
+            <a class="content-metric admin-compact-row" href="@Url.Action("Index", "Courses", new { area = "Admin" })">
+<span class="content-metric-icon kpi-mint">@await Html.PartialAsync("_AdminIcon", "lesson")</span>
+<span class="dashboard-row-copy">Leçons</span>
+<b>@Model.LessonsTotal</b>
+<span class="watch-chevron">@await Html.PartialAsync("_AdminIcon", "chevron-right")</span>
+</a>
+            <a class="content-metric admin-compact-row" href="@Url.Action("Index", "Courses", new { area = "Admin" })">
+<span class="content-metric-icon kpi-blue">@await Html.PartialAsync("_AdminIcon", "quiz")</span>
+<span class="dashboard-row-copy">Quiz</span>
+<b>@Model.QuizzesTotal</b>
+<span class="watch-chevron">@await Html.PartialAsync("_AdminIcon", "chevron-right")</span>
+</a>
+            <a class="content-metric admin-compact-row" href="@learningPathsUrl">
+<span class="content-metric-icon kpi-teal">@await Html.PartialAsync("_AdminIcon", "path")</span>
+<span class="dashboard-row-copy">Parcours</span>
+<b>@Model.LearningPathsTotal</b>
+<span class="watch-chevron">@await Html.PartialAsync("_AdminIcon", "chevron-right")</span>
+</a>
+            <div class="catalog-positive">@await Html.PartialAsync("_AdminIcon", "published")<strong>Votre catalogue avance bien</strong>
+<small>@(Model.LessonsTotal + Model.QuizzesTotal) éléments pédagogiques disponibles.</small>
+</div>
+        </section>
+    </div>
+</div>

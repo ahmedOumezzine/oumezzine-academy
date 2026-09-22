@@ -1,0 +1,32 @@
+@model OumezzineAcademy.Models.Catalog.CategoryDetailViewModel
+@using OumezzineAcademy.Models.Catalog
+@{
+    ViewData["Seo"] = new SeoViewModel(string.IsNullOrWhiteSpace(Model.MetaTitle) ? $"{Model.Title} | Oumezzine Academy" : Model.MetaTitle!, Model.MetaDescription ?? Model.Summary ?? Model.Title);
+}
+
+<div class="page">
+    <div class="page-title">
+        <span class="badge-soft">@Model.CourseCount @L["Category_Courses"]</span>
+        <h1>@Model.Title</h1>
+        <p>@Model.Summary</p>
+        <p class="card-text">@L["Category_DetailText"]</p>
+        @{
+            ViewData["ShareLabel"] = L["Category_Share"].Value;
+        }
+        <partial name="_ShareActions" />
+    </div>
+
+    @if (!Model.Courses.Any())
+    {
+        <div class="empty">@L["Category_Empty"]</div>
+    }
+    else
+    {
+        <div class="grid">
+            @foreach (var course in Model.Courses)
+            {
+                <partial name="_CourseCard" model="course" />
+            }
+        </div>
+    }
+</div>

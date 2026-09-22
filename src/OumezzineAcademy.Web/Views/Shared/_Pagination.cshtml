@@ -1,0 +1,51 @@
+
+<div class="row mt-2 justify-content-between">
+    <div class="col-md-auto me-auto">
+        <p>
+            @L["Showing"] @((Model.PageIndex - 1) * Model.PageSize + 1)
+            @L["To"] @(Math.Min(Model.PageIndex * Model.PageSize, Model.TotalItems))
+            @L["Of"] @Model.TotalItems
+        </p>
+    </div>
+    <div class="col-md-auto ms-auto">
+        <ul class="pagination">
+            @if (Model.PageIndex > 1)
+            {
+                <li class="page-item">
+                    <a href="#" class="page-link pagination-link" data-page="@(@Model.PageIndex - 1)">@L["Previous"]</a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled"><span class="page-link">@L["Previous"]</span></li>
+            }
+
+            @for (var i = 1; i <= Model.TotalPages; i++)
+            {
+                if (i == Model.PageIndex)
+                {
+                    <li class="page-item active">
+                        <span class="page-link">@i</span>
+                    </li>
+                }
+                else
+                {
+                    <li class="page-item">
+                        <a href="#" class="page-link pagination-link" data-page="@i">@i</a>
+                    </li>
+                }
+            }
+
+            @if (Model.PageIndex < Model.TotalPages)
+            {
+                <li class="page-item">
+                    <a href="#" class="page-link pagination-link" data-page="@(@Model.PageIndex + 1)">@L["Next"]</a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled"><span class="page-link">@L["Next"]</span></li>
+            }
+        </ul>
+    </div>
+</div>

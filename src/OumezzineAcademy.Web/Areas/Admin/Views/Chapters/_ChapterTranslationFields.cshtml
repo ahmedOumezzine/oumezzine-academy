@@ -1,0 +1,7 @@
+@model (ChapterTranslationInput Input, string Prefix, string Language)
+<div class="lesson-translation-fields" data-translation-panel="@Model.Prefix">
+    <label for="@Model.Prefix-Title">@(Model.Language == "Français" ? "Titre" : "Title")</label><input id="@Model.Prefix-Title" name="@(Model.Prefix).Title" value="@Model.Input.Title" />
+    <label for="@Model.Prefix-Summary">@(Model.Language == "Français" ? "Contenu du chapitre" : "Chapter content")</label>
+    <div class="lesson-editor" data-editor-wrapper><textarea id="@Model.Prefix-Summary" name="@(Model.Prefix).Summary" rows="10" data-rich-text-editor data-editor-textarea data-content-language="@(Model.Prefix == "French" ? "fr" : "en")" aria-label="Contenu du chapitre — @Model.Language" placeholder="Commencez à rédiger le contenu du chapitre…">@Model.Input.Summary</textarea><span class="editor-word-count" data-word-count="@Model.Prefix">0 mots</span><p class="field-error" data-editor-error role="status" hidden>L’éditeur n’a pas pu être chargé.</p></div>
+    <label for="@Model.Prefix-PublicationStatus">@(Model.Language == "Français" ? "Statut" : "Status")</label><select id="@Model.Prefix-PublicationStatus" name="@(Model.Prefix).PublicationStatus" asp-items="Html.GetEnumSelectList<StudyStatus>()"></select>
+</div>

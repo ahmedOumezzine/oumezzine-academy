@@ -1,0 +1,76 @@
+@using OumezzineAcademy.Models.Catalog
+@using System.Globalization
+@using OumezzineAcademy.Resources
+@inject Microsoft.Extensions.Localization.IStringLocalizer<SharedResource> L
+@inject OumezzineAcademy.Web.Services.ILocalizedUrlService LocalizedUrls
+@{
+    var seo = ViewData["Seo"] as SeoViewModel
+        ?? new SeoViewModel($"{ViewData["Title"] ?? "Oumezzine Academy"} - Oumezzine Academy", L["Common_LearningSpace"].Value);
+    var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    var localizedUrls = await LocalizedUrls.ResolveAsync(Context);
+    var navigation = LocalizedUrls.GetPublicNavigation();
+}
+<!DOCTYPE html>
+<html lang="@language">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="~/images/brand/icon.png" />
+    <link rel="apple-touch-icon" href="~/images/brand/icon.png" />
+    <partial name="_SeoMeta" model="seo" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Head", required: false)
+</head>
+<body>
+    <div class="site-nav-progress" aria-hidden="true"></div>
+    @{ var currentController = ViewContext.RouteData.Values["controller"]?.ToString(); }
+    <header class="site-header">
+        <nav class="nav-shell" aria-label="@L["Common_Navigation"]">
+            <a class="brand" href="@navigation.Home" aria-label="@L["Accessibility_HomeBrand"]"><picture><source type="image/webp" srcset="@(Url.Content("~/images/brand/logo-primary-400-v1.webp")) 400w, @(Url.Content("~/images/brand/logo-primary-600-v1.webp")) 600w" sizes="(max-width: 600px) 150px, 190px" /><img class="brand-logo" src="~/images/brand/logo-primary.png" width="2172" height="724" alt="Oumezzine Academy" /></picture></a>
+            <button class="nav-toggle" type="button" aria-controls="mainNav" aria-expanded="false" aria-label="@L["Common_OpenMenu"]">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-links" id="mainNav">
+                <a class="@(currentController == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" href="@navigation.Home">@L["Home"]</a>
+                <a class="@(currentController == "Course" ? "active" : "")" href="@navigation.Courses">@L["Courses"]</a>
+                <a class="@(currentController == "Category" ? "active" : "")" href="@navigation.Categories">@L["Categories"]</a>
+                <a class="@(currentController == "LearningPath" ? "active" : "")" href="@navigation.LearningPaths">@L["LearningPaths"]</a>
+                <a class="@(currentController == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "About" ? "active" : "")" href="@navigation.About">@L["About"]</a>
+            </div>
+            <div class="header-actions">
+                <div class="language-switcher" aria-label="@L["Common_LanguageSelector"]">
+                    @if (localizedUrls.French is not null) { <a class="@(language == "fr" ? "active" : "")" href="@localizedUrls.French">FR</a> }
+                    @if (localizedUrls.English is not null) { <a class="@(language == "en" ? "active" : "")" href="@localizedUrls.English">EN</a> }
+                </div>
+                <a class="header-cta" href="@navigation.Courses">@L["Start"] <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-shell">
+            <div class="footer-brand">
+                <a class="brand brand-light" href="@navigation.Home"><picture><source type="image/webp" srcset="@(Url.Content("~/images/brand/logo-dark-400-v1.webp")) 400w, @(Url.Content("~/images/brand/logo-dark-600-v1.webp")) 600w" sizes="(max-width: 600px) 170px, 205px" /><img class="brand-logo brand-logo-dark" src="~/images/brand/logo-dark.png" width="2508" height="627" loading="lazy" alt="Oumezzine Academy" /></picture></a>
+                <p>@L["Footer_Description"]</p>
+            </div>
+            <div class="footer-links">
+                <div><strong>@L["Footer_Navigation"]</strong><a href="@navigation.Home">@L["Home"]</a><a href="@navigation.Courses">@L["Courses"]</a><a href="@navigation.Categories">@L["Categories"]</a><a href="@navigation.LearningPaths">@L["LearningPaths"]</a></div>
+                <div><strong>@L["Footer_Resources"]</strong><a href="@navigation.Categories">@L["Categories"]</a><a href="@navigation.LearningPaths">@L["LearningPaths"]</a></div>
+                <div><strong>Oumezzine Academy</strong><a href="@navigation.About">@L["Footer_About"]</a><a href="@navigation.Home">@L["Home"]</a></div>
+            </div>
+        </div>
+        <div class="footer-bottom"><span>&copy; @DateTime.UtcNow.Year Oumezzine Academy</span><span>@L["Footer_Description"]</span></div>
+    </footer>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/site-navigation-progress.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

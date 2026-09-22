@@ -1,0 +1,67 @@
+@model CourseEditViewModel
+@{
+    var isEdit = Model.Id != Guid.Empty;
+    var action = isEdit ? "Edit" : "Create";
+    var hasThumbnail = isEdit && !string.IsNullOrWhiteSpace(Model.ThumbnailUrl);
+}
+
+<form class="course-form" asp-area="Admin" asp-controller="Courses" asp-action="@action" method="post" enctype="multipart/form-data">
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="ThumbnailUrl" type="hidden" />
+    @await Html.PartialAsync("_AdminValidationSummary")
+
+    <div class="course-form-grid">
+        <div class="course-form-main">
+            <section class="course-form-card">
+                <div class="course-section-title"><span class="section-icon">@await Html.PartialAsync("_AdminIcon", "settings")</span><div><h2>Informations générales</h2><p>Définissez le domaine et le niveau de ce cours.</p></div></div>
+                <div class="course-fields-grid">
+                    <div><label asp-for="CategoryId">Catégorie</label><select asp-for="CategoryId"><option value="">Sélectionner une catégorie</option>@foreach (var category in Model.Categories) { <option value="@category.Id">@category.DisplayName</option> }</select><span asp-validation-for="CategoryId" class="field-error"></span></div>
+                    <div><label asp-for="Level">Niveau</label><select asp-for="Level" asp-items="Html.GetEnumSelectList<StudyLevel>()"></select></div>
+                </div>
+            </section>
+
+            <section class="course-form-card course-media-card">
+                <div class="course-section-title"><span class="section-icon">@await Html.PartialAsync("_AdminIcon", "image")</span><div><h2>Image de couverture</h2><p>Une image claire aide à identifier le cours dans le catalogue.</p></div></div>
+                <div class="course-media-layout">
+                    <div class="course-thumbnail-preview" data-thumbnail-empty="@(hasThumbnail ? "false" : "true")">
+                        <img id="course-thumbnail-preview" class="@(hasThumbnail ? "" : "is-hidden")" src="@(hasThumbnail ? Model.ThumbnailUrl : null)" alt="@(hasThumbnail ? "Aperçu de la couverture du cours" : "")" />
+                        <span class="course-thumbnail-placeholder" aria-hidden="true">@await Html.PartialAsync("_AdminIcon", "image")</span>
+                    </div>
+                    <div class="course-upload-panel">
+                        <label class="course-upload-zone" for="Thumbnail"><span class="course-upload-icon">@await Html.PartialAsync("_AdminIcon", "add")</span><strong>Choisir une image</strong><small>JPG, PNG ou WEBP, 5 Mo maximum</small></label>
+                        <input asp-for="Thumbnail" class="course-file-input" accept=".jpg,.jpeg,.png,.webp" data-thumbnail-input />
+                        <p class="course-file-name" data-thumbnail-name>@(hasThumbnail ? "Image actuelle conservée" : "Aucune nouvelle image sélectionnée")</p>
+                        @if (hasThumbnail)
+                        {
+                            <button class="course-delete-thumbnail" type="submit" formaction="@Url.Action("DeleteThumbnail", "Courses", new { area = "Admin", id = Model.Id })" formmethod="post" data-delete-thumbnail data-confirm-delete data-confirm-item="l’image de ce cours" data-confirm-message="supprimer cette image">@await Html.PartialAsync("_AdminIcon", "close") Supprimer l’image</button>
+                        }
+                    </div>
+                </div>
+                <span asp-validation-for="Thumbnail" class="field-error"></span>
+            </section>
+
+            <section class="course-form-card">
+                <div class="course-section-title"><span class="section-icon">@await Html.PartialAsync("_AdminIcon", "learning-path")</span><div><h2>Prérequis</h2><p>Associez les cours à connaître avant de commencer celui-ci.</p></div></div>
+                <div class="course-prerequisites" data-prerequisites>
+                    <input class="course-prerequisite-search" type="search" placeholder="Rechercher un cours prérequis..." aria-label="Rechercher un prérequis" data-prerequisite-search />
+                    <div class="course-prerequisite-list">
+                        @foreach (var course in Model.AvailablePrerequisites.Where(item => item.Id != Model.Id))
+                        {
+                            var selected = Model.PrerequisiteCourseIds.Contains(course.Id);
+                            <label class="course-prerequisite-item" data-prerequisite-item><input type="checkbox" name="PrerequisiteCourseIds" value="@course.Id" checked="@(selected ? "checked" : null)" data-prerequisite-checkbox /><span>@course.Title</span></label>
+                        }
+                    </div>
+                    <span asp-validation-for="PrerequisiteCourseIds" class="field-error"></span>
+                </div>
+            </section>
+
+            <section class="course-form-card">
+                <div class="course-section-title"><span class="section-icon">@await Html.PartialAsync("_AdminIcon", "language")</span><div><h2>Contenu localisé</h2><p>Rédigez chaque version indépendamment et choisissez son statut.</p></div></div>
+                <div class="course-tabs" role="tablist" aria-label="Traductions du cours"><button type="button" class="course-tab is-active" role="tab" aria-selected="true" aria-controls="course-fr" data-course-tab="course-fr">Français <span class="status-badge status-@Model.French.PublicationStatus.ToString().ToLowerInvariant()">@Model.French.PublicationStatus</span></button><button type="button" class="course-tab" role="tab" aria-selected="false" aria-controls="course-en" data-course-tab="course-en">English <span class="status-badge @(string.IsNullOrWhiteSpace(Model.English.Title) ? "status-missing" : "status-" + Model.English.PublicationStatus.ToString().ToLowerInvariant())">@(string.IsNullOrWhiteSpace(Model.English.Title) ? "Missing" : Model.English.PublicationStatus.ToString())</span></button></div>
+                <div id="course-fr" class="course-tab-panel is-active" role="tabpanel">@await Html.PartialAsync("_CourseTranslationFields", (Model.French, "French", "Français"))</div>
+                <div id="course-en" class="course-tab-panel" role="tabpanel" hidden>@await Html.PartialAsync("_CourseTranslationFields", (Model.English, "English", "English"))</div>
+            </section>
+        </div>
+    </div>
+    <div class="course-action-bar"><a class="btn-ghost" asp-action="Index">Annuler</a><button class="btn-main" type="submit">@await Html.PartialAsync("_AdminIcon", "save") @(isEdit ? "Enregistrer les modifications" : "Créer le cours")</button></div>
+</form>

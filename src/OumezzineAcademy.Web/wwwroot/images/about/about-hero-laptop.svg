@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" role="img" aria-labelledby="title desc">
+  <title id="title">Oumezzine Academy learning dashboard</title>
+  <desc id="desc">Laptop with a course dashboard, graduation cap and a small plant</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#dbeafe"/><stop offset="1" stop-color="#dff7f2"/></linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#eff6ff"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#0f172a" flood-opacity=".15"/></filter>
+  </defs>
+  <ellipse cx="302" cy="365" rx="220" ry="24" fill="#2563eb" opacity=".1"/>
+  <circle cx="300" cy="195" r="164" fill="url(#bg)"/>
+  <g filter="url(#shadow)" transform="rotate(-5 320 230)">
+    <rect x="147" y="96" width="316" height="218" rx="18" fill="#1e293b"/>
+    <rect x="158" y="107" width="294" height="194" rx="10" fill="url(#screen)"/>
+    <rect x="175" y="124" width="260" height="20" rx="6" fill="#dbeafe"/>
+    <circle cx="187" cy="134" r="4" fill="#2563eb"/><circle cx="201" cy="134" r="4" fill="#8b5cf6"/>
+    <rect x="176" y="158" width="93" height="126" rx="9" fill="#eff6ff"/>
+    <rect x="281" y="158" width="145" height="55" rx="9" fill="#fff" stroke="#dbeafe"/>
+    <rect x="294" y="171" width="62" height="8" rx="4" fill="#2563eb" opacity=".8"/><rect x="294" y="186" width="112" height="6" rx="3" fill="#cbd5e1"/>
+    <rect x="281" y="223" width="68" height="61" rx="8" fill="#fff" stroke="#e2e8f0"/><rect x="358" y="223" width="68" height="61" rx="8" fill="#fff" stroke="#e2e8f0"/>
+    <circle cx="222" cy="187" r="20" fill="#dbeafe"/><path d="M211 187h22m-11-11v22" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+    <rect x="190" y="218" width="65" height="7" rx="3.5" fill="#94a3b8"/><rect x="190" y="233" width="54" height="6" rx="3" fill="#cbd5e1"/><rect x="190" y="250" width="65" height="6" rx="3" fill="#cbd5e1"/>
+    <path d="M128 314h354l44 28c7 5 4 14-6 14H94c-10 0-13-9-6-14l40-28z" fill="#64748b"/>
+    <path d="M151 319h306l24 18H126z" fill="#94a3b8"/><rect x="274" y="324" width="68" height="7" rx="3.5" fill="#cbd5e1"/>
+  </g>
+  <g transform="translate(362 62)"><path d="M0 19 46 0l47 19-47 19L0 19z" fill="#2563eb"/><path d="M19 28v20c18 15 38 15 56 0V28L46 39 19 28z" fill="#1d4ed8"/><path d="M91 19v31" stroke="#0f172a" stroke-width="3"/><circle cx="91" cy="53" r="5" fill="#f59e0b"/></g>
+  <g transform="translate(46 258)"><path d="M24 74h80l-9 39H34z" fill="#fff"/><path d="M24 74h80l-4 13H28z" fill="#e2e8f0"/><path d="M63 73C35 54 35 28 40 13c18 8 32 28 23 60z" fill="#14b8a6"/><path d="M66 74c8-30 25-43 42-46 2 21-10 41-42 46z" fill="#0f766e"/><path d="M63 73c-5-24 2-48 17-59 11 19 8 42-17 59z" fill="#2dd4bf"/><path d="M18 114h94l10 11H8z" fill="#2563eb"/></g>
+</svg>

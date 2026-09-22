@@ -1,0 +1,12 @@
+@model (LessonTranslationInput Input, string Prefix, string Language)
+<div class="lesson-translation-fields" data-translation-panel="@Model.Prefix">
+    <div class="lesson-top-fields"><div><label for="@Model.Prefix-Title">@(Model.Language == "Français" ? "Titre" : "Title") <span class="required-mark">*</span></label><input id="@Model.Prefix-Title" name="@(Model.Prefix).Title" value="@Model.Input.Title" data-preview-field="@(Model.Prefix).Title" /><span class="field-error" asp-validation-for="Input.Title"></span></div><div><label for="@Model.Prefix-Slug">Slug <span class="required-mark">*</span> <button class="slug-generate" type="button" data-slug-from="@(Model.Prefix).Title" data-slug-target="@(Model.Prefix).Slug">Générer</button></label><input id="@Model.Prefix-Slug" name="@(Model.Prefix).Slug" value="@Model.Input.Slug" /></div></div>
+    <div class="lesson-summary-fields"><div><label for="@Model.Prefix-Summary">@(Model.Language == "Français" ? "Résumé" : "Summary")</label><textarea id="@Model.Prefix-Summary" name="@(Model.Prefix).Summary" rows="3" data-preview-field="@(Model.Prefix).Summary">@Model.Input.Summary</textarea></div></div>
+    <label for="@Model.Prefix-ContentHtml">Contenu de la leçon <span class="required-mark">*</span></label>
+    <div class="lesson-editor" data-editor-wrapper>
+        <textarea id="@Model.Prefix-ContentHtml" name="@(Model.Prefix).ContentHtml" rows="10" data-lesson-editor data-editor-textarea data-content-language="@(Model.Prefix == "French" ? "fr" : "en")" aria-label="Contenu de la leçon — @Model.Language" placeholder="Commencez à rédiger le contenu de la leçon…">@Model.Input.ContentHtml</textarea>
+        <span class="editor-word-count" data-word-count="@Model.Prefix">0 mots</span>
+        <p class="field-error" data-editor-error role="status" hidden>L’éditeur n’a pas pu être chargé. Votre contenu reste disponible dans le champ HTML.</p>
+    </div>
+    <div class="lesson-publication-field"><label for="@Model.Prefix-PublicationStatus">Publication</label><select id="@Model.Prefix-PublicationStatus" name="@(Model.Prefix).PublicationStatus">@foreach (var status in Enum.GetValues<StudyStatus>()) { <option value="@status" selected="@(status == Model.Input.PublicationStatus ? "selected" : null)">@status</option> }</select><small>Draft : non visible publiquement. Published : visible sur le site pour cette langue.</small></div>
+</div>

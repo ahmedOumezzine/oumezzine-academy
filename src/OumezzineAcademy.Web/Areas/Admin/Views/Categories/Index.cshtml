@@ -1,0 +1,52 @@
+@model IReadOnlyList<AdminCategoryListItem>
+@{
+    ViewData["Title"] = "Catégories";
+}
+<div class="admin-page category-admin-page">
+    <div class="admin-heading">
+        <div>
+            <p class="eyebrow">CATALOGUE</p>
+            <h1>Catégories</h1>
+            <p>Organisez les domaines de votre catalogue.</p>
+        </div>
+        <a class="btn-main" asp-action="Create">+ Créer une catégorie</a>
+    </div>
+    @if (TempData["Success"] is not null) { <div class="admin-alert success">@TempData["Success"]</div> }
+    @if (TempData["Error"] is not null) { <div class="admin-alert error">@TempData["Error"]</div> }
+    @if (Model.Count == 0)
+    {
+        <section class="category-empty-card">
+            <span class="category-card-icon" aria-hidden="true">@await Html.PartialAsync("_AdminIcon", "grid")</span>
+            <h2>Aucune catégorie</h2>
+            <p>Créez votre première catégorie pour organiser le catalogue.</p>
+            <a class="btn-main" asp-action="Create">+ Créer une catégorie</a>
+        </section>
+    }
+    else
+    {
+        <div class="category-admin-grid">
+            @foreach (var item in Model)
+            {
+                <article class="category-admin-card">
+                    <div class="category-admin-card-header">
+                        <span class="category-card-icon" aria-hidden="true">@await Html.PartialAsync("_AdminIcon", "grid")</span>
+                        <span class="category-card-kicker">CATÉGORIE</span>
+                    </div>
+                    <section class="category-language-block">
+                        <div class="category-language-heading"><span>Titre français</span>@await Html.PartialAsync("_AdminStatusBadge", item.FrenchStatus)</div>
+                        <strong>@(string.IsNullOrWhiteSpace(item.FrenchTitle) ? "Non traduit" : item.FrenchTitle)</strong>
+                    </section>
+                    <section class="category-language-block category-language-en">
+                        <div class="category-language-heading"><span>Titre anglais</span>@await Html.PartialAsync("_AdminStatusBadge", item.EnglishStatus)</div>
+                        <strong>@(string.IsNullOrWhiteSpace(item.EnglishTitle) || item.EnglishTitle == "Missing" ? "Non traduit" : item.EnglishTitle)</strong>
+                    </section>
+                    <div class="category-admin-meta"><span class="category-count"><span aria-hidden="true">@await Html.PartialAsync("_AdminIcon", "book")</span>@item.CourseCount @(item.CourseCount == 1 ? "cours" : "cours")</span></div>
+                    <div class="category-admin-actions">
+                        <a class="category-edit-action" asp-action="Edit" asp-route-id="@item.Id">Modifier</a>
+                        <form asp-action="Delete" asp-route-id="@item.Id" method="post"><button class="category-delete-action" type="submit" data-confirm-delete data-confirm-item="@(string.IsNullOrWhiteSpace(item.FrenchTitle) ? item.EnglishTitle : item.FrenchTitle)" data-confirm-message="supprimer cette catégorie">Supprimer</button></form>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,25 @@
+@{
+    var label = ViewData["ShareLabel"] as string ?? L["Share"].Value;
+    var url = ViewData["ShareUrl"] as string ?? $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}{Context.Request.QueryString}";
+    var encodedUrl = Uri.EscapeDataString(url);
+    var encodedTitle = Uri.EscapeDataString(ViewData["Title"]?.ToString() ?? "Oumezzine Academy");
+}
+<div class="share-actions compact" data-share data-share-url="@url">
+    <button class="btn-ghost js-copy-url" type="button" aria-label="@L["Share_CopyLink"]">
+        <i class="bi bi-link-45deg" aria-hidden="true"></i>
+        @L["Share_CopyLink"]
+    </button>
+    <a class="btn-ghost" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=@encodedUrl">
+        <i class="bi bi-facebook" aria-hidden="true"></i>
+        @L["Share_Facebook"]
+    </a>
+    <a class="btn-ghost" target="_blank" rel="noopener" href="https://www.linkedin.com/sharing/share-offsite/?url=@encodedUrl">
+        <i class="bi bi-linkedin" aria-hidden="true"></i>
+        @L["Share_LinkedIn"]
+    </a>
+    <a class="btn-ghost" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?url=@encodedUrl&text=@encodedTitle">
+        <i class="bi bi-twitter-x" aria-hidden="true"></i>
+        @L["Share_X"]
+    </a>
+    <span class="share-label">@label</span>
+</div>

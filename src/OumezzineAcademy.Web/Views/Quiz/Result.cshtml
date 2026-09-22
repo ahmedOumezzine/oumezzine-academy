@@ -1,0 +1,49 @@
+@model OumezzineAcademy.Models.Catalog.QuizResultViewModel
+@using OumezzineAcademy.Models.Catalog
+@{
+    ViewData["Seo"] = new SeoViewModel($"{L["Quiz_Score"]} - {Model.QuizTitle}", L["Quiz_ResultSeoDescription"].Value, Robots: "noindex, follow");
+}
+
+<div class="page">
+    <div class="page-title">
+        <span class="badge-soft">@L["Quiz_Score"] @Model.Score / @Model.Total</span>
+        <h1>@Model.QuizTitle</h1>
+        <p>@L["Quiz_ResultDescription"]</p>
+        @{
+            ViewData["ShareLabel"] = L["Quiz_ResultShare"].Value;
+            var quizRouteName = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en" ? "en-quiz" : "fr-quiz";
+            var quizPath = Url.RouteUrl(quizRouteName, new { slug = Model.QuizSlug });
+            ViewData["ShareUrl"] = quizPath is null ? null : $"https://{Context.Request.Host}{quizPath}";
+        }
+        @if (ViewData["ShareUrl"] is not null) { <partial name="_ShareActions" /> }
+    </div>
+
+    <section class="content-panel">
+        <div class="score-panel">
+            <i class="bi bi-award" aria-hidden="true"></i>
+            <div>
+                <strong>@Model.Score @L["Quiz_CorrectAnswers"] @Model.Total</strong>
+                <span>@L["Quiz_Review"]</span>
+            </div>
+        </div>
+
+        @foreach (var question in Model.Questions)
+        {
+            <div class="result-card @(question.IsCorrect ? "ok" : "bad")">
+                <strong class="@(question.IsCorrect ? "result-ok" : "result-bad")">
+                    <i class="bi @(question.IsCorrect ? "bi-check-circle" : "bi-x-circle")" aria-hidden="true"></i>
+                    @(question.IsCorrect ? L["Quiz_Correct"] : L["Quiz_ReviewLabel"])
+                </strong>
+                <p>@question.Text</p>
+                <p class="card-text"><strong>@L["Quiz_YourAnswer"]</strong> @(question.SelectedAnswer ?? L["Quiz_NoAnswer"])</p>
+                <p class="correct-answer"><i class="bi bi-lightbulb" aria-hidden="true"></i> @L["Quiz_CorrectAnswer"] @question.CorrectAnswer</p>
+            </div>
+        }
+
+        <div class="actions">
+            <a class="btn-main" asp-area="" asp-controller="Course" asp-action="Details" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" asp-route-slug="@Model.CourseSlug">
+                <i class="bi bi-arrow-left-circle" aria-hidden="true"></i> @L["Quiz_BackToCourse"]
+            </a>
+        </div>
+    </section>
+</div>

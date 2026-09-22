@@ -1,0 +1,31 @@
+@model IReadOnlyList<OumezzineAcademy.Models.Catalog.CategoryCardViewModel>
+@using OumezzineAcademy.Models.Catalog
+@{
+    ViewData["Seo"] = new SeoViewModel("Catégories - Oumezzine Academy", "Parcourez les catégories de cours disponibles.");
+}
+
+<section class="category-hero">
+    <div class="category-hero-copy">
+        <p class="eyebrow">@L["Category_Eyebrow"]</p>
+        <h1>@L["Category_Title"]</h1>
+        <p>@L["Category_Description"]</p>
+        @{ ViewData["ShareLabel"] = L["Share"].Value; }<partial name="_ShareActions" />
+    </div>
+    <div class="category-hero-art" aria-hidden="true"><div class="category-document"><i class="bi bi-mortarboard-fill"></i><span></span><span></span></div><div class="category-art-bubble code"><i class="bi bi-code-slash"></i></div><div class="category-art-bubble database"><i class="bi bi-database"></i></div><div class="category-art-bubble settings"><i class="bi bi-gear"></i></div><div class="category-dash"></div></div>
+</section>
+
+<div class="category-page page">
+    <section class="category-grid" aria-label="@L["Category_ListLabel"]">
+        @foreach (var category in Model)
+        {
+            var key = category.Title.Contains("backend", StringComparison.OrdinalIgnoreCase) ? "backend" : category.Title.Contains("base", StringComparison.OrdinalIgnoreCase) || category.Title.Contains("données", StringComparison.OrdinalIgnoreCase) ? "database" : category.Title.Contains("frontend", StringComparison.OrdinalIgnoreCase) ? "frontend" : "default";
+            var description = string.IsNullOrWhiteSpace(category.Summary) ? key switch { "backend" => L["Category_BackendDescription"].Value, "database" => L["Category_DatabaseDescription"].Value, "frontend" => L["Category_FrontendDescription"].Value, _ => L["Category_DefaultDescription"].Value } : category.Summary;
+            <a class="category-card category-card-@key" asp-area="" asp-action="Details" asp-route-slug="@category.Slug">
+                <div class="category-card-visual"><i class="@(key == "backend" ? "bi bi-code-slash" : key == "database" ? "bi bi-database" : key == "frontend" ? "bi bi-display" : "bi bi-grid-3x3-gap")" aria-hidden="true"></i><span class="category-ghost-icon">@(key == "database" ? "◉" : key == "frontend" ? "▣" : "‹/›")</span></div>
+                <div class="category-card-body"><h2>@category.Title</h2><p>@description</p><div class="category-card-bottom"><span class="category-count"><i class="bi bi-book" aria-hidden="true"></i> @category.CourseCount @L["Category_Courses"]</span><span class="category-arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></span></div></div>
+            </a>
+        }
+    </section>
+
+    <section class="category-benefits"><div class="category-benefits-copy"><p class="eyebrow">@L["Category_BenefitsEyebrow"]</p><h2>@L["Category_BenefitsTitle"]</h2><p>@L["Category_BenefitsText"]</p></div><div class="category-benefits-grid"><div><i class="bi bi-bullseye" aria-hidden="true"></i><strong>@L["Category_Targeted"]</strong><span>@L["Category_TargetedText"]</span></div><div><i class="bi bi-bar-chart-line" aria-hidden="true"></i><strong>@L["Category_ClearProgress"]</strong><span>@L["Category_ClearProgressText"]</span></div><div><i class="bi bi-star" aria-hidden="true"></i><strong>@L["Category_Motivation"]</strong><span>@L["Category_MotivationText"]</span></div></div></section>
+</div>

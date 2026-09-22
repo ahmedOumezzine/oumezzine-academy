@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Home"><value>Home</value></data>
+  <data name="Courses"><value>Courses</value></data>
+  <data name="Categories"><value>Categories</value></data>
+  <data name="LearningPaths"><value>Learning paths</value></data>
+  <data name="About"><value>About</value></data>
+  <data name="Start"><value>Start learning</value></data>
+  <data name="LanguageFrench"><value>Français</value></data>
+  <data name="LanguageEnglish"><value>English</value></data>
+  <data name="Share"><value>Share</value></data>
+  <data name="CopyLink"><value>Copy link</value></data>
+  <data name="Previous"><value>Previous</value></data>
+  <data name="Next"><value>Next</value></data>
+  <data name="Showing"><value>Showing</value></data>
+  <data name="To"><value>to</value></data>
+  <data name="Of"><value>of</value></data>
+  <data name="Common_Back"><value>Back</value></data>
+  <data name="Common_ViewCourses"><value>View courses</value></data>
+  <data name="Error_Title"><value>Something went wrong.</value></data>
+  <data name="Error_Description"><value>The page could not be loaded. Return home or try again in a few moments.</value></data>
+  <data name="Error_RequestId"><value>Request ID:</value></data>
+  <data name="Home_Hero_Eyebrow"><value>LEARN TODAY. BUILD TOMORROW.</value></data>
+  <data name="Home_Hero_Title"><value>Learn web development, step by step.</value></data>
+  <data name="Home_Hero_Description"><value>Structured courses, focused lessons, practical quizzes and guided learning paths designed to turn learning into real progress.</value></data>
+  <data name="Home_Cta_Start"><value>Start learning</value></data>
+  <data name="Home_Cta_Paths"><value>Explore learning paths</value></data>
+  <data name="Home_HowItWorks"><value>How does it work?</value></data>
+  <data name="Home_HowItWorks_Description"><value>A simple and effective learning experience in four steps.</value></data>
+  <data name="Home_PopularCourses"><value>Courses to explore</value></data>
+  <data name="Home_AllCourses"><value>View all courses</value></data>
+  <data name="Home_PopularCourses_Description"><value>Discover practical courses to keep building your skills.</value></data>
+  <data name="Home_Why"><value>Why Oumezzine Academy?</value></data>
+  <data name="Home_FinalCta"><value>Ready to start learning?</value></data>
+  <data name="About_Hero_Eyebrow"><value>ABOUT OUMEZZINE ACADEMY</value></data>
+  <data name="About_SeoTitle"><value>About - Oumezzine Academy</value></data><data name="About_SeoDescription"><value>Discover Oumezzine Academy’s learning approach, structured courses, lessons, and guided learning paths.</value></data>
+  <data name="About_Title"><value>Learn better, progress with purpose.</value></data>
+  <data name="About_TitleLead"><value>Learn better,</value></data><data name="About_TitleAccent"><value>progress with purpose.</value></data><data name="About_BenefitCourses"><value>Quality courses</value></data><data name="About_BenefitPaths"><value>Guided learning paths</value></data><data name="About_BenefitProgress"><value>Real progress</value></data><data name="About_HeroImageAlt"><value>Laptop showing a learning dashboard</value></data>
+  <data name="About_Intro"><value>Oumezzine Academy is designed as a personal learning space: clear, structured, mobile-friendly, and focused on real progress rather than simply collecting content.</value></data>
+  <data name="About_Method"><value>OUR METHOD</value></data>
+  <data name="About_Steps"><value>HOW TO LEARN HERE</value></data>
+  <data name="About_Benefits"><value>WHY OUMEZZINE ACADEMY?</value></data>
+  <data name="Home_Free"><value>100% free</value></data>
+  <data name="Home_Anywhere"><value>Learn anywhere</value></data>
+  <data name="Home_NoPrerequisites"><value>No prerequisites</value></data>
+  <data name="Home_SelfPaced"><value>Learn at your own pace</value></data>
+  <data name="Home_NextStep"><value>Choose your next step.</value></data>
+  <data name="Home_StartWithGoal"><value>Start with a goal</value></data>
+  <data name="Home_DiscoverCatalog"><value>Explore the catalog</value></data>
+  <data name="Home_ExploreCourses"><value>Browse all courses</value></data>
+  <data name="Home_FollowPath"><value>Follow a learning path</value></data>
+  <data name="Home_ClearDirection"><value>Move forward with clear direction</value></data>
+  <data name="Home_WhyDescription"><value>An experience designed to help you succeed.</value></data>
+  <data name="Home_FinalCta_Eyebrow"><value>YOUR FUTURE STARTS TODAY</value></data>
+  <data name="Home_FinalCta_Description"><value>Join Oumezzine Academy and build your skills, one course at a time.</value></data>
+  <data name="Home_Dashboard_Aria"><value>Oumezzine Academy catalog preview</value></data>
+  <data name="Home_LearningSpace"><value>Your learning space</value></data>
+  <data name="Home_Courses"><value>Courses</value></data>
+  <data name="Home_Lessons"><value>Lessons</value></data>
+  <data name="Home_Paths"><value>Learning paths</value></data>
+  <data name="Home_StructuredContent"><value>Content always available</value></data>
+  <data name="Home_Skills"><value>Build practical skills</value></data>
+  <data name="Home_SkillsDescription"><value>Useful for your projects and career</value></data>
+  <data name="Home_Confidence"><value>Build confidence</value></data>
+  <data name="Home_Practice"><value>Through regular practice</value></data>
+  <data name="Home_StructuredPaths"><value>Structured learning paths</value></data>
+  <data name="Home_GuidedProgress"><value>Clear, guided progress</value></data>
+  <data name="Home_PopularDescription"><value>Discover practical courses to keep building your skills.</value></data>
+  <data name="Home_AllPaths"><value>View all learning paths</value></data>
+  <data name="Home_ChooseByGoal"><value>Choose by your goal</value></data>
+  <data name="Home_GoalDescription"><value>Courses and paths tailored to your ambitions.</value></data>
+  <data name="Home_Beginner"><value>I’m just getting started</value></data>
+  <data name="Home_BeginnerDescription"><value>Learn the foundations of web development with accessible, progressive courses.</value></data>
+  <data name="Home_BackendGoal"><value>I want to become a backend developer</value></data>
+  <data name="Home_BackendDescription"><value>Learn server-side technologies and database fundamentals.</value></data>
+  <data name="Home_FullStackGoal"><value>I want to become a full-stack developer</value></data>
+  <data name="Home_FullStackDescription"><value>Follow a complete path to master frontend and backend development.</value></data>
+  <data name="Home_RecommendedPaths"><value>Recommended learning paths</value></data>
+  <data name="Home_RecommendedDescription"><value>Guided routes to help you reach your goals faster.</value></data>
+  <data name="Home_DiscoverPath"><value>Discover the path</value></data>
+  <data name="Home_WhyDescription2"><value>An experience designed to help you succeed.</value></data>
+  <data name="Home_ProgressiveContent"><value>Organized content for steady learning.</value></data>
+  <data name="Home_ShortLessons"><value>Short lessons</value></data>
+  <data name="Home_ShortLessonsDescription"><value>Concise videos and explanations for maximum focus.</value></data>
+  <data name="Home_IntegratedQuizzes"><value>Built-in quizzes</value></data>
+  <data name="Home_IntegratedQuizzesDescription"><value>Test your knowledge at every step of the path.</value></data>
+  <data name="Home_VisibleProgress"><value>Visible progress</value></data>
+  <data name="Home_VisibleProgressDescription"><value>Track your progress and stay motivated as you learn.</value></data>
+  <data name="Home_StartNow"><value>Start learning now</value></data>
+  <data name="Home_NoCommitment"><value>No commitment</value></data>
+  <data name="Home_Stats_Courses"><value>Courses</value></data>
+  <data name="Home_Stats_Lessons"><value>Lessons</value></data>
+  <data name="Home_Stats_Paths"><value>Paths</value></data>
+  <data name="Home_HowTitle"><value>How does it work?</value></data>
+  <data name="Home_HowDescription"><value>Simple and effective learning in 4 steps.</value></data>
+  <data name="Home_StepChoose"><value>Choose a course</value></data>
+  <data name="Home_StepChooseDescription"><value>Browse our catalog and find a topic that interests you.</value></data>
+  <data name="Home_StepFollow"><value>Follow the lessons</value></data>
+  <data name="Home_StepFollowDescription"><value>Clear, concise content adapted to every level.</value></data>
+  <data name="Home_StepTest"><value>Test your knowledge</value></data>
+  <data name="Home_StepTestDescription"><value>Practical quizzes to validate your knowledge.</value></data>
+  <data name="Home_StepContinue"><value>Keep progressing</value></data>
+  <data name="Home_StepContinueDescription"><value>Track your progress and discover new horizons.</value></data>
+  <data name="Home_ValueLearn"><value>Learn at your pace</value></data>
+  <data name="Home_ValueLearnDescription"><value>Content always available</value></data>
+  <data name="Home_ValueSkills"><value>Build practical skills</value></data>
+  <data name="Home_ValueSkillsDescription"><value>Useful for your projects and career</value></data>
+  <data name="Home_ValueConfidence"><value>Gain confidence</value></data>
+  <data name="Home_ValueConfidenceDescription"><value>With regular practice</value></data>
+  <data name="Home_ValuePaths"><value>Structured paths</value></data>
+  <data name="Home_ValuePathsDescription"><value>Clear, guided progress</value></data>
+  <data name="Home_PopularTitle"><value>Courses to explore</value></data>
+  <data name="Home_PathCourses"><value>courses</value></data>
+  <data name="Home_GoalExploreCourses"><value>Explore courses</value></data>
+  <data name="Home_GoalViewPaths"><value>View paths</value></data>
+  <data name="Home_WhyTitle"><value>Why Oumezzine Academy?</value></data>
+  <data name="Home_FinalCta_Title"><value>Ready to start learning?</value></data>
+  <data name="Home_FinalCta_Start"><value>Start now</value></data>
+  <data name="Catalog_Eyebrow"><value>Learning catalog</value></data>
+  <data name="Catalog_Title"><value>Find the course that will help you progress.</value></data>
+  <data name="Catalog_SeoTitle"><value>Courses - Oumezzine Academy</value></data><data name="Catalog_SeoDescription"><value>Explore courses by topic, category, level, and recency to find the right next step.</value></data>
+  <data name="Catalog_Description"><value>Explore our course catalog and filter by category, level, and topic. Quality content to build your skills at your own pace.</value></data>
+  <data name="Catalog_Quality"><value>Quality courses</value></data>
+  <data name="Catalog_AllLevels"><value>For every level</value></data>
+  <data name="Catalog_Accessible"><value>Accessible anywhere</value></data>
+  <data name="Catalog_StructuredPaths"><value>Structured paths</value></data>
+  <data name="Catalog_NewCourses"><value>New courses regularly</value></data>
+  <data name="Catalog_SkillsForFuture"><value>Skills for your future</value></data>
+  <data name="Catalog_SearchLabel"><value>Search for a course</value></data>
+  <data name="Catalog_SearchExample"><value>Ex.: Angular, API, database...</value></data>
+  <data name="Catalog_AllCategories"><value>All categories</value></data>
+  <data name="Catalog_AllLevelsFilter"><value>All levels</value></data>
+  <data name="Catalog_SortLabel"><value>Sort</value></data>
+  <data name="Catalog_Recent"><value>Most recent</value></data>
+  <data name="Catalog_Level"><value>Level</value></data>
+  <data name="Catalog_Search"><value>Search</value></data>
+  <data name="Catalog_Grid"><value>Grid</value></data>
+  <data name="Catalog_List"><value>List</value></data>
+  <data name="Catalog_ViewLabel"><value>Course display</value></data>
+  <data name="Catalog_Empty"><value>No courses found. Try another category or remove a filter.</value></data>
+  <data name="Catalog_OneResult"><value>course found</value></data><data name="Catalog_ManyResults"><value>courses found</value></data>
+  <data name="Catalog_ViewTip"><value>Use the list to compare durations or the grid to browse the catalog visually.</value></data><data name="Catalog_Reset"><value>Reset filters</value></data><data name="Catalog_FilterSort"><value>Sort:</value></data>
+  <data name="Catalog_SharePrompt"><value>Was this search useful?</value></data>
+  <data name="Catalog_AZ"><value>A-Z</value></data><data name="Catalog_FilterSearch"><value>Search:</value></data><data name="Catalog_FilterCategory"><value>Category:</value></data><data name="Catalog_FilterLevel"><value>Level:</value></data>
+  <data name="CourseDetail_PublishedStatus"><value>Published</value></data><data name="CourseDetail_Minutes"><value>min</value></data><data name="CourseDetail_Published"><value>Published on</value></data><data name="CourseDetail_Chapters"><value>chapters</value></data><data name="CourseDetail_Lessons"><value>lessons</value></data><data name="CourseDetail_Quizzes"><value>quizzes</value></data>
+  <data name="About_Courses"><value>Courses</value></data><data name="About_CourseContent"><value>Structured content</value></data><data name="About_Lessons"><value>Lessons</value></data><data name="About_ShortClear"><value>Short and clear</value></data><data name="About_Quizzes"><value>Quizzes</value></data><data name="About_CheckKnowledge"><value>Check your knowledge</value></data><data name="About_LearningLikeYou"><value>Learning that fits you</value></data><data name="About_SmallSteps"><value>Small steps. Big progress.</value></data>
+  <data name="About_MethodTitle"><value>Learning designed for your success</value></data><data name="About_MethodDescription"><value>A simple, effective approach designed to help you make lasting progress.</value></data><data name="About_StructuredCourses"><value>Structured courses</value></data><data name="About_StructuredCoursesText"><value>Each course is divided into chapters and short lessons. This structure helps you understand where you are, what you have learned, and what comes next.</value></data><data name="About_UsefulQuizzes"><value>Useful quizzes</value></data><data name="About_UsefulQuizzesText"><value>Quizzes check understanding without revealing correct answers before submission. After grading, you see your choice, the correct answer, and questions to review.</value></data><data name="About_GuidedPaths"><value>Guided paths</value></data><data name="About_GuidedPathsText"><value>A path groups several courses in a recommended order. It is useful when you want to build a complete skill without spending time deciding what to do next.</value></data><data name="About_SimpleExperience"><value>A simple experience</value></data><data name="About_SimpleExperienceText"><value>The interface stays lightweight, readable, and responsive. Pages make it easy to review a course, resume a lesson, share a link, or check a concept from a phone.</value></data>
+  <data name="About_HowTitle"><value>From discovery to mastery in 4 steps</value></data><data name="About_HowDescription"><value>Simple, clear, effective progress toward your goals.</value></data><data name="About_Choose"><value>Choose</value></data><data name="About_ChooseText"><value>Explore the courses and paths that interest you.</value></data><data name="About_Learn"><value>Learn</value></data><data name="About_LearnText"><value>Follow lessons at your pace, with clear explanations.</value></data><data name="About_Test"><value>Test</value></data><data name="About_TestText"><value>Check your knowledge with quizzes and identify areas to review.</value></data><data name="About_Continue"><value>Continue</value></data><data name="About_ContinueText"><value>Keep progressing step by step and reach your goals.</value></data>
+  <data name="About_WhyTitle"><value>More than a platform, a true learning companion</value></data><data name="About_Clarity"><value>Clarity</value></data><data name="About_ClarityText"><value>Well-organized content and a clean interface that keeps you focused.</value></data><data name="About_Progress"><value>Progress</value></data><data name="About_ProgressText"><value>A structured method for tangible results at your own pace.</value></data><data name="About_Simplicity"><value>Simplicity</value></data><data name="About_SimplicityText"><value>A smooth experience across all your devices, designed for you.</value></data><data name="About_CtaTitle"><value>Ready to begin?</value></data><data name="About_CtaText"><value>Explore our courses, follow learning paths, and start progressing today.</value></data><data name="About_ExploreCourses"><value>Explore courses</value></data><data name="About_Future"><value>Your future starts here!</value></data>
+  <data name="CourseDetail_Start"><value>Start the course</value></data><data name="CourseDetail_BackToCourses"><value>Back to courses</value></data><data name="CourseDetail_Share"><value>Share the course</value></data><data name="CourseDetail_Learn"><value>What you will learn</value></data><data name="CourseDetail_Prerequisites"><value>Prerequisites</value></data><data name="CourseDetail_Category"><value>Category</value></data><data name="CourseDetail_ViewCategory"><value>View category</value></data>
+  <data name="CourseDetail_Program"><value>Curriculum</value></data><data name="CourseDetail_ProgramDescription"><value>Each chapter contains short lessons and quizzes. Select a lesson to open its details, read the full content, and continue to the related assessment.</value></data><data name="CourseDetail_Items"><value>items</value></data><data name="CourseDetail_Lesson"><value>Lesson</value></data><data name="CourseDetail_Questions"><value>question(s)</value></data>
+  <data name="CourseDetail_About"><value>About this course</value></data><data name="CourseDetail_EstimatedMinutes"><value>Estimated minutes</value></data><data name="CourseDetail_Takeaway"><value>Key takeaway</value></data><data name="CourseDetail_TakeawayText"><value>This course is marked at level. Move chapter by chapter, open lesson details, and use the quizzes to check your knowledge before continuing.</value></data><data name="CourseDetail_Ready"><value>Ready to get started?</value></data><data name="CourseDetail_ReadyText"><value>Build your skills and create practical projects with Oumezzine Academy.</value></data><data name="CourseDetail_StartNow"><value>Start now</value></data><data name="CourseDetail_Free"><value>100% free</value></data><data name="CourseDetail_Accessible"><value>Accessible anywhere</value></data><data name="CourseDetail_SelfPaced"><value>Learn at your own pace</value></data><data name="CourseDetail_Related"><value>Similar courses</value></data>
+  <data name="Category_Eyebrow"><value>Explore by domain</value></data><data name="Category_Title"><value>Course categories</value></data><data name="Category_Description"><value>Choose a domain and explore its courses. Each category shows the number of published courses to help you prioritize.</value></data><data name="Category_ListLabel"><value>Course categories</value></data><data name="Category_Courses"><value>courses</value></data><data name="Category_BenefitsEyebrow"><value>Why explore by category?</value></data><data name="Category_BenefitsTitle"><value>Find what interests you more easily</value></data><data name="Category_BenefitsText"><value>Categories help you discover focused courses adapted to your goals and level for more effective progress.</value></data><data name="Category_Targeted"><value>Targeted learning</value></data><data name="Category_TargetedText"><value>Courses organized by domain.</value></data><data name="Category_ClearProgress"><value>Clear progress</value></data><data name="Category_ClearProgressText"><value>Identify your next steps easily.</value></data><data name="Category_Motivation"><value>More motivation</value></data><data name="Category_MotivationText"><value>Learn what truly interests you.</value></data><data name="Category_DetailText"><value>This page only lists courses published in the category. It helps you build a focused learning session around one domain.</value></data><data name="Category_Empty"><value>No courses are published in this category.</value></data><data name="Category_Share"><value>Share the category</value></data>
+  <data name="Category_BackendDescription"><value>Discover server-side technologies, APIs, databases, and more.</value></data><data name="Category_DatabaseDescription"><value>Learn to work with, design, and optimize databases.</value></data><data name="Category_FrontendDescription"><value>Create modern, interactive interfaces with today’s web technologies.</value></data><data name="Category_DefaultDescription"><value>Explore courses in this domain and build your skills.</value></data>
+  <data name="Paths_Eyebrow"><value>Move forward with purpose</value></data><data name="Paths_Title"><value>Learning paths</value></data><data name="Paths_Description"><value>Course sequences that help you move forward with clear direction. Filter by category or level to find the route that fits your goal.</value></data><data name="Paths_Share"><value>Share the paths</value></data><data name="Paths_Learn"><value>Learn</value></data><data name="Paths_Progress"><value>Progress</value></data><data name="Paths_Goals"><value>Reach your goals</value></data><data name="Paths_Category"><value>Category</value></data><data name="Paths_AllCategories"><value>All categories</value></data><data name="Paths_AllLevels"><value>All levels</value></data><data name="Paths_Filter"><value>Filter</value></data><data name="Paths_NoResults"><value>No learning paths found. Try another category or level.</value></data><data name="Paths_ListLabel"><value>Learning paths</value></data><data name="Paths_Courses"><value>courses</value></data><data name="Paths_BenefitsEyebrow"><value>Why follow a path?</value></data><data name="Paths_BenefitsTitle"><value>Clear, structured progress</value></data><data name="Paths_BenefitsText"><value>Paths help you learn step by step through selected courses that bring you closer to your goals.</value></data><data name="Paths_ClearDirection"><value>Clear direction</value></data><data name="Paths_ClearDirectionText"><value>Courses organized around a goal.</value></data><data name="Paths_EffectiveProgress"><value>Effective progress</value></data><data name="Paths_EffectiveProgressText"><value>Move forward step by step at your pace.</value></data><data name="Paths_ConcreteSkills"><value>Practical skills</value></data><data name="Paths_ConcreteSkillsText"><value>Learn useful, up-to-date technologies.</value></data><data name="Paths_DetailText"><value>Follow the courses in the recommended order. Each step brings you closer to a more complete skill, with lessons and quizzes in the related courses.</value></data><data name="Paths_Start"><value>Start this path</value></data><data name="Paths_Back"><value>All paths</value></data><data name="Paths_ShareDetail"><value>Share the path</value></data><data name="Paths_Plan"><value>Path plan</value></data><data name="Paths_Steps"><value>Path steps</value></data><data name="Paths_OrderedCourses"><value>Ordered courses</value></data><data name="Paths_Lessons"><value>lessons</value></data>
+  <data name="Paths_SeoTitle"><value>Learning paths - Oumezzine Academy</value></data><data name="Paths_SeoDescription"><value>Follow learning paths made up of ordered courses.</value></data>
+  <data name="Lesson_Minutes"><value>min</value></data><data name="Lesson_BackToCourse"><value>Back to course</value></data><data name="Lesson_Share"><value>Share the lesson</value></data><data name="Lesson_InChapter"><value>In this chapter</value></data><data name="Lesson_Video"><value>Video</value></data><data name="Lesson_VideoDescription"><value>This lesson references an external video. Open it in a new tab to follow the demonstration, then return here to continue the chapter.</value></data><data name="Lesson_OpenVideo"><value>Open video</value></data><data name="Lesson_ExternalVideo"><value>External video</value></data><data name="Lesson_Content"><value>Lesson content</value></data><data name="Lesson_ContentIntro"><value>This lesson is concise for now. Use the summary, optional video, and chapter plan to move forward, then check your knowledge with the available quiz.</value></data><data name="Lesson_NoContent"><value>The detailed content for this lesson will be added soon. Return to the curriculum to continue learning.</value></data><data name="Lesson_Navigation"><value>Lesson navigation</value></data><data name="Lesson_Previous"><value>Previous lesson</value></data><data name="Lesson_Next"><value>Next lesson</value></data><data name="Lesson_NoPrevious"><value>No previous lesson</value></data><data name="Lesson_NoNext"><value>No next lesson</value></data><data name="Lesson_Progress"><value>Chapter progress</value></data><data name="Lesson_LessonsInChapter"><value>lessons in this chapter</value></data><data name="Lesson_Videos"><value>video(s)</value></data><data name="Lesson_ContentMinutes"><value>min of content</value></data><data name="Lesson_LearnAtPace"><value>Learn at your own pace</value></data><data name="Lesson_Motivation"><value>Progress step by step and build your Angular skills with Oumezzine Academy.</value></data>
+  <data name="Quiz_Share"><value>Share the quiz</value></data><data name="Quiz_Instruction"><value>Choose one answer per question. Grading is calculated on the server, and correct answers appear only on the result page.</value></data><data name="Quiz_Submit"><value>Grade the quiz</value></data><data name="Quiz_BackToCourse"><value>Back to course</value></data><data name="Quiz_Score"><value>Score</value></data><data name="Quiz_ResultShare"><value>Share the result</value></data><data name="Quiz_ResultDescription"><value>Your results are ready. Correct answers are now visible to help you reinforce the lesson before continuing.</value></data><data name="Quiz_CorrectAnswers"><value>correct answer(s) out of</value></data><data name="Quiz_Review"><value>Review the questions you missed, then retry the quiz whenever you like.</value></data><data name="Quiz_Correct"><value>Correct</value></data><data name="Quiz_ReviewLabel"><value>Review</value></data><data name="Quiz_YourAnswer"><value>Your answer:</value></data><data name="Quiz_NoAnswer"><value>No answer</value></data><data name="Quiz_CorrectAnswer"><value>Correct answer:</value></data><data name="Quiz_ResultSeoDescription"><value>Oumezzine Academy quiz results with corrections and correct answers.</value></data>
+  <data name="Common_LearningSpace"><value>Courses, paths, and quizzes to learn at your own pace.</value></data><data name="Common_Navigation"><value>Main navigation</value></data><data name="Common_OpenMenu"><value>Open menu</value></data><data name="Common_LanguageSelector"><value>Language selector</value></data><data name="Footer_Description"><value>Learn. Practice. Progress.</value></data><data name="Footer_Navigation"><value>Navigation</value></data><data name="Footer_Resources"><value>Resources</value></data><data name="Footer_About"><value>About</value></data><data name="Share_CopyLink"><value>Copy link</value></data><data name="Share_Facebook"><value>Facebook</value></data><data name="Share_LinkedIn"><value>LinkedIn</value></data><data name="Share_X"><value>X/Twitter</value></data><data name="CourseCard_Tagline"><value>Learn, practice, progress</value></data><data name="CourseCard_Lessons"><value>lessons</value></data><data name="CourseCard_Quizzes"><value>quizzes</value></data><data name="CourseCard_Minutes"><value>min</value></data><data name="CourseCard_View"><value>View course</value></data>
+  <data name="Accessibility_HomeBrand"><value>Oumezzine Academy, home</value></data>
+  <data name="Home_Stats_Aria"><value>Resources available on the platform</value></data>
+<data name="Paths_Quizzes"><value>quizzes</value></data><data name="Paths_Level"><value>Level</value></data><data name="Paths_About"><value>About this path</value></data><data name="Paths_NoCourses"><value>This path does not contain any courses yet.</value></data><data name="Paths_ViewCourse"><value>View course</value></data></root>

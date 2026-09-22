@@ -1,0 +1,24 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = L["Error_Title"].Value;
+}
+
+<main class="page">
+    <section class="content-panel error-page" aria-labelledby="error-title">
+        <p class="eyebrow">OUMEZZINE ACADEMY</p>
+        <h1 id="error-title">@L["Error_Title"]</h1>
+        <p>@L["Error_Description"]</p>
+
+@if (Model.ShowRequestId)
+{
+    <p>
+        <strong>@L["Error_RequestId"]</strong> <code>@Model.RequestId</code>
+    </p>
+}
+
+        <div class="actions">
+            <a class="btn-main" asp-area="" asp-controller="Home" asp-action="Index">@L["Common_Back"] <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+            <a class="btn-ghost" asp-area="" asp-controller="Course" asp-action="Index">@L["Common_ViewCourses"]</a>
+        </div>
+    </section>
+</main>

@@ -1,0 +1,3 @@
+@model OumezzineAcademy.Domain.Catalog.StudyStatus?
+@{ var label = Model switch { OumezzineAcademy.Domain.Catalog.StudyStatus.Published => "Publié", OumezzineAcademy.Domain.Catalog.StudyStatus.Draft => "Brouillon", OumezzineAcademy.Domain.Catalog.StudyStatus.Archived => "Archivé", _ => "Non traduit" }; var css = Model switch { OumezzineAcademy.Domain.Catalog.StudyStatus.Published => "status-published", OumezzineAcademy.Domain.Catalog.StudyStatus.Draft => "status-draft", _ => "status-missing" }; }
+<span class="status-badge @css">@label</span>

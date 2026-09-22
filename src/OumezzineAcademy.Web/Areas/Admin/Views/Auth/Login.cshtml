@@ -1,0 +1,45 @@
+@model OumezzineAcademy.Areas.Admin.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Connexion Admin";
+}
+<main class="admin-login-page">
+<section class="admin-login-card" aria-labelledby="admin-login-title">
+<div class="admin-login-mark" aria-hidden="true">
+<i class="bi bi-mortarboard-fill">
+</i>
+</div>
+<p class="eyebrow">OUMEZZINE ACADEMY</p>
+<h1 id="admin-login-title">Connexion administration</h1>
+<p class="admin-login-intro">Accédez à l’espace de gestion de la plateforme.</p>
+<form asp-area="Admin" asp-controller="Auth" asp-action="Login" method="post">
+<input asp-for="ReturnUrl" type="hidden" />
+<div class="admin-login-field">
+<label asp-for="Email">Email</label>
+<input asp-for="Email" autocomplete="username" inputmode="email" autofocus />
+<span asp-validation-for="Email">
+</span>
+</div>
+<div class="admin-login-field">
+<label asp-for="Password">Mot de passe</label>
+<div class="admin-password-wrap">
+<input asp-for="Password" autocomplete="current-password" type="password" />
+<button class="admin-password-toggle" type="button" aria-label="Afficher le mot de passe" aria-pressed="false">
+<i class="bi bi-eye" aria-hidden="true">
+</i>
+<span>Afficher</span>
+</button>
+</div>
+<span asp-validation-for="Password">
+</span>
+</div>
+<label class="admin-remember">
+<input asp-for="RememberMe" /> <span>Se souvenir de moi</span>
+</label>
+@await Html.PartialAsync("_AdminValidationSummary")
+<button class="admin-login-submit" type="submit">Se connecter <i class="bi bi-arrow-right" aria-hidden="true">
+</i>
+</button>
+</form>
+</section>
+</main>
+@section Scripts { <script src="~/js/admin-login.js" asp-append-version="true"></script> }

@@ -1,0 +1,1 @@
+global using OumezzineAcademy.Domain.Catalog;

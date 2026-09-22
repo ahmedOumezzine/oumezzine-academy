@@ -1,0 +1,22 @@
+@{
+    var errors = ViewData.ModelState.Values
+        .SelectMany(entry => entry.Errors)
+        .Select(error => !string.IsNullOrWhiteSpace(error.ErrorMessage)
+            ? error.ErrorMessage
+            : error.Exception is not null ? "Une erreur est survenue. Vérifiez les valeurs saisies." : null)
+        .Where(message => !string.IsNullOrWhiteSpace(message))
+        .Distinct(StringComparer.Ordinal)
+        .ToList();
+}
+@if (errors.Count > 0)
+{
+    <div class="admin-validation-summary" role="alert" aria-live="polite">
+        <strong>@await Html.PartialAsync("_AdminIcon", "warning") Veuillez corriger les erreurs suivantes :</strong>
+        <ul>
+            @foreach (var error in errors)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}

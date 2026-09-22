@@ -1,0 +1,6 @@
+{
+  "name": "learn-lesson-editor-browser-tests",
+  "private": true,
+  "scripts": { "test": "node run.mjs" },
+  "devDependencies": { "@playwright/test": "1.63.0" }
+}

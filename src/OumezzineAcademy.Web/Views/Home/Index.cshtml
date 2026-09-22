@@ -1,0 +1,61 @@
+@model OumezzineAcademy.Models.Catalog.HomeViewModel
+@using OumezzineAcademy.Models.Catalog
+@{
+    ViewData["Seo"] = new SeoViewModel($"{L["Home_Hero_Title"].Value} - Oumezzine Academy", L["Home_Hero_Description"].Value);
+}
+
+<section class="hero">
+    <div class="hero-copy">
+        <p class="eyebrow">@L["Home_Hero_Eyebrow"]</p>
+        <h1>@L["Home_Hero_Title"]</h1>
+        <p class="hero-lead">@L["Home_Hero_Description"]</p>
+        <div class="actions">
+            <a class="btn-main" asp-area="" asp-controller="Course" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">@L["Home_Cta_Start"] <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+            <a class="btn-ghost" asp-area="" asp-controller="LearningPath" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">@L["Home_Cta_Paths"]</a>
+        </div>
+        <div class="hero-benefits"><span><i class="bi bi-check2-circle" aria-hidden="true"></i> @L["Home_Free"]</span><span><i class="bi bi-globe2" aria-hidden="true"></i> @L["Home_Anywhere"]</span><span><i class="bi bi-check2-circle" aria-hidden="true"></i> @L["Home_NoPrerequisites"]</span><span><i class="bi bi-clock" aria-hidden="true"></i> @L["Home_SelfPaced"]</span></div>
+    </div>
+    <div class="hero-dashboard" aria-label="@L["Home_Dashboard_Aria"]">
+        <div class="dashboard-top"><span class="dashboard-kicker"><i class="bi bi-stars" aria-hidden="true"></i> @L["Home_LearningSpace"]</span><span class="dashboard-menu">•••</span></div>
+        <h2>@L["Home_NextStep"]</h2>
+        <div class="dashboard-stats"><div><strong>@Model.CourseCount</strong><span>@L["Home_Stats_Courses"]</span></div><div><strong>@Model.LessonCount</strong><span>@L["Home_Stats_Lessons"]</span></div><div><strong>@Model.LearningPathCount</strong><span>@L["Home_Stats_Paths"]</span></div></div>
+        <div class="dashboard-label">@L["Home_StartWithGoal"]</div>
+        <a class="goal-row" asp-area="" asp-controller="Course" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName"><span class="goal-icon blue"><i class="bi bi-sparkles" aria-hidden="true"></i></span><span><strong>@L["Home_DiscoverCatalog"]</strong><small>@L["Home_ExploreCourses"]</small></span><i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+        <a class="goal-row" asp-area="" asp-controller="LearningPath" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName"><span class="goal-icon mint"><i class="bi bi-signpost-split" aria-hidden="true"></i></span><span><strong>@L["Home_FollowPath"]</strong><small>@L["Home_ClearDirection"]</small></span><i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+    </div>
+</section>
+
+<section class="home-stats-strip" aria-label="@L["Home_Stats_Aria"]">
+    <div><i class="bi bi-book" aria-hidden="true"></i><strong>@Model.CourseCount</strong><span>@L["Home_Stats_Courses"]</span></div>
+    <div><i class="bi bi-play-circle" aria-hidden="true"></i><strong>@Model.LessonCount</strong><span>@L["Home_Stats_Lessons"]</span></div>
+    <div><i class="bi bi-signpost-split" aria-hidden="true"></i><strong>@Model.LearningPathCount</strong><span>@L["Home_Stats_Paths"]</span></div>
+</section>
+
+<div class="page">
+    <section class="how-section">
+        <div class="section-head centered"><div><h2>@L["Home_HowTitle"]</h2><p>@L["Home_HowDescription"]</p></div></div>
+        <div class="steps-grid"><div class="step-card"><span class="step-number">01</span><i class="bi bi-compass" aria-hidden="true"></i><h3>@L["Home_StepChoose"]</h3><p>@L["Home_StepChooseDescription"]</p></div><div class="step-card"><span class="step-number">02</span><i class="bi bi-book" aria-hidden="true"></i><h3>@L["Home_StepFollow"]</h3><p>@L["Home_StepFollowDescription"]</p></div><div class="step-card"><span class="step-number">03</span><i class="bi bi-patch-check" aria-hidden="true"></i><h3>@L["Home_StepTest"]</h3><p>@L["Home_StepTestDescription"]</p></div><div class="step-card"><span class="step-number">04</span><i class="bi bi-arrow-up-right-circle" aria-hidden="true"></i><h3>@L["Home_StepContinue"]</h3><p>@L["Home_StepContinueDescription"]</p></div></div>
+    </section>
+
+    @if (Model.LatestCourses.Count > 0)
+    {
+    <section>
+        <div class="section-head"><div><h2>@L["Home_PopularTitle"]</h2><p>@L["Home_PopularDescription"]</p></div><a class="text-link" asp-area="" asp-controller="Course" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">@L["Home_AllCourses"] <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a></div>
+        <div class="grid home-course-grid count-@Math.Min(Model.LatestCourses.Count, 3)">@foreach (var course in Model.LatestCourses) { <partial name="_CourseCard" model="course" /> }</div>
+    </section>
+    }
+
+    <section>
+        <div class="section-head"><div><h2>@L["Home_ChooseByGoal"]</h2><p>@L["Home_GoalDescription"]</p></div></div>
+        <div class="goal-grid"><a class="goal-card goal-blue" asp-area="" asp-controller="Course" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName"><span>01</span><i class="bi bi-rocket-takeoff" aria-hidden="true"></i><h3>@L["Home_Beginner"]</h3><p>@L["Home_BeginnerDescription"]</p><b>@L["Home_GoalExploreCourses"] <i class="bi bi-arrow-right" aria-hidden="true"></i></b></a><a class="goal-card goal-dark" asp-area="" asp-controller="LearningPath" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName"><span>02</span><i class="bi bi-server" aria-hidden="true"></i><h3>@L["Home_BackendGoal"]</h3><p>@L["Home_BackendDescription"]</p><b>@L["Home_GoalViewPaths"] <i class="bi bi-arrow-right" aria-hidden="true"></i></b></a><a class="goal-card goal-mint" asp-area="" asp-controller="LearningPath" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName"><span>03</span><i class="bi bi-layers" aria-hidden="true"></i><h3>@L["Home_FullStackGoal"]</h3><p>@L["Home_FullStackDescription"]</p><b>@L["Home_GoalViewPaths"] <i class="bi bi-arrow-right" aria-hidden="true"></i></b></a></div>
+    </section>
+
+    <section>
+        <div class="section-head"><div><h2>@L["Home_RecommendedPaths"]</h2><p>@L["Home_RecommendedDescription"]</p></div><a class="text-link" asp-area="" asp-controller="LearningPath" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">@L["Home_AllPaths"] <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a></div>
+        <div class="path-grid home-path-grid count-@Math.Min(Model.LatestLearningPaths.Count, 4)">@foreach (var path in Model.LatestLearningPaths) { <a class="path-card" asp-area="" asp-controller="LearningPath" asp-action="Details" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" asp-route-slug="@path.Slug"><div class="path-accent">@if (!string.IsNullOrWhiteSpace(path.Thumbnail)) { <img src="@path.Thumbnail" alt="@path.Title" loading="lazy" /> } else { <span>@(string.IsNullOrWhiteSpace(path.Title) ? "P" : path.Title[..1].ToUpperInvariant())</span><i class="bi bi-arrow-up-right" aria-hidden="true"></i> }</div><div class="card-body"><div class="badge-row"><span class="badge-soft">@path.Level</span><span class="badge-soft">@path.CourseCount @L["Home_PathCourses"]</span></div><h3>@path.Title</h3><p class="card-text">@path.Summary</p><span class="card-cta">@L["Home_DiscoverPath"] <i class="bi bi-arrow-right" aria-hidden="true"></i></span></div></a>}</div>
+    </section>
+
+    <section class="why-section"><div class="why-copy"><h2>@L["Home_WhyTitle"]</h2><p>@L["Home_WhyDescription"]</p></div><div class="why-grid"><div><i class="bi bi-signpost-split" aria-hidden="true"></i><h3>@L["Home_StructuredPaths"]</h3><p>@L["Home_ProgressiveContent"]</p></div><div><i class="bi bi-lightning-charge" aria-hidden="true"></i><h3>@L["Home_ShortLessons"]</h3><p>@L["Home_ShortLessonsDescription"]</p></div><div><i class="bi bi-patch-question" aria-hidden="true"></i><h3>@L["Home_IntegratedQuizzes"]</h3><p>@L["Home_IntegratedQuizzesDescription"]</p></div><div><i class="bi bi-bar-chart-line" aria-hidden="true"></i><h3>@L["Home_VisibleProgress"]</h3><p>@L["Home_ProgressiveContent"]</p></div></div></section>
+    <section class="final-cta"><div><p class="eyebrow">@L["Home_FinalCta_Eyebrow"]</p><h2>@L["Home_FinalCta_Title"]</h2><p>@L["Home_FinalCta_Description"]</p></div><div class="final-cta-action"><a class="btn-main" asp-area="" asp-controller="Course" asp-action="Index" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">@L["Home_FinalCta_Start"] <i class="bi bi-arrow-right" aria-hidden="true"></i></a><div class="final-cta-points"><span><i class="bi bi-check2" aria-hidden="true"></i> @L["Home_Free"]</span><span><i class="bi bi-check2" aria-hidden="true"></i> @L["Home_NoCommitment"]</span><span><i class="bi bi-check2" aria-hidden="true"></i> @L["Home_Anywhere"]</span></div></div>
+    </section>
+</div>

@@ -1,0 +1,5 @@
+@model AdminCourseListItem
+<form class="course-delete-form" asp-area="Admin" asp-controller="Courses" asp-action="Delete"
+      asp-route-id="@Model.Id" method="post" asp-antiforgery="true">
+    <button class="delete-action" type="submit" aria-label="Supprimer @Model.DisplayTitle" data-confirm-delete data-confirm-item="@Model.DisplayTitle" data-confirm-message="supprimer ce cours">Supprimer</button>
+</form>

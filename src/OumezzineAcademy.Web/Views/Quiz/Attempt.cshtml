@@ -1,0 +1,47 @@
+@model OumezzineAcademy.Models.Catalog.QuizAttemptViewModel
+@using OumezzineAcademy.Models.Catalog
+@{
+    ViewData["Seo"] = new SeoViewModel(string.IsNullOrWhiteSpace(Model.MetaTitle) ? $"{Model.Title} | Oumezzine Academy" : Model.MetaTitle!, Model.MetaDescription ?? Model.Summary ?? Model.Title, Robots: "index, follow");
+}
+
+<div class="quiz-page page">
+    <div class="quiz-hero">
+        <div class="quiz-hero-copy">
+        <span class="badge-soft">@Model.CourseTitle</span>
+        <h1>@Model.Title</h1>
+        <p>@Model.Summary</p>
+        <p class="card-text">@L["Quiz_Instruction"]</p>
+        <div class="quiz-meta"><span><i class="bi bi-patch-question" aria-hidden="true"></i> @Model.QuestionCount @L["CourseDetail_Quizzes"]</span><span><i class="bi bi-clock" aria-hidden="true"></i> @L["Home_SelfPaced"]</span></div>
+        @{
+            ViewData["ShareLabel"] = L["Quiz_Share"].Value;
+        }
+        <partial name="_ShareActions" />
+        </div>
+        <div class="quiz-hero-visual" aria-hidden="true"><div class="quiz-visual-mark">@Model.CourseTitle.FirstOrDefault()</div><div class="quiz-visual-lines"><span></span><span></span><span></span></div></div>
+    </div>
+
+    <div class="quiz-layout"><form asp-area="" asp-controller="Quiz" asp-action="Submit" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" method="post" class="content-panel quiz-form">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="quizId" value="@Model.QuizId" />
+
+        @for (var i = 0; i < Model.Questions.Count; i++)
+        {
+            var question = Model.Questions[i];
+            <fieldset class="quiz-question-section"><legend><span class="quiz-number">@(i + 1)</span><span><small>Question @(i + 1) / @Model.QuestionCount</small>@question.Text</span></legend>
+                @foreach (var answer in question.Answers)
+                {
+                    <label class="quiz-option">
+                        <input type="radio" name="question_@question.QuestionId" value="@answer.AnswerId" required />
+                        <span>@answer.Text</span>
+                    </label>
+                }
+            </fieldset>
+        }
+
+        <div class="actions">
+            <button class="btn-main" type="submit"><i class="bi bi-check2-circle" aria-hidden="true"></i> @L["Quiz_Submit"]</button>
+            <a class="btn-ghost" asp-area="" asp-controller="Course" asp-action="Details" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" asp-route-slug="@Model.CourseSlug">@L["Quiz_BackToCourse"]</a>
+        </div>
+    </form><aside class="quiz-sidebar"><section class="quiz-side-card"><h2>@L["Home_GuidedProgress"]</h2><strong><span data-quiz-answered>0</span> / @Model.QuestionCount</strong><div class="quiz-progress"><span data-quiz-progress></span></div><small>@L["Home_Stats_Lessons"]</small></section><section class="quiz-side-card"><h2><i class="bi bi-lightbulb" aria-hidden="true"></i> @L["About_CheckKnowledge"]</h2><ul><li>@L["Quiz_Instruction"]</li><li>@L["Home_SelfPaced"]</li><li>@L["Quiz_Review"]</li></ul></section><section class="quiz-side-card quiz-context"><small>@L["About_CheckKnowledge"]</small><strong>@Model.CourseTitle</strong><p>@L["About_UsefulQuizzesText"]</p></section></aside></div>
+</div>
+<script src="~/js/quiz-take.js" defer></script>

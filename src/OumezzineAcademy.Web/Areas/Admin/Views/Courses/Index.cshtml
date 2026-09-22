@@ -1,0 +1,171 @@
+@model AdminCoursesListViewModel
+@{ ViewData["Title"] = "Cours"; }
+<div class="admin-page admin-courses-page">
+    @if (TempData["Success"] is string successMessage)
+    {
+        <div class="admin-alert success" role="status">@successMessage</div>
+    }
+    @if (TempData["Error"] is string errorMessage)
+    {
+        <div class="admin-alert error" role="alert">@errorMessage</div>
+    }
+    <div class="admin-heading">
+<div>
+<p class="eyebrow">CATALOGUE</p>
+<h1>Cours</h1>
+<p>Gérez les contenus et leurs publications FR/EN.</p>
+</div>
+<a class="btn-main" asp-area="Admin" asp-controller="Courses" asp-action="Create">@await Html.PartialAsync("_AdminIcon", "add") Créer un cours</a>
+</div>
+    <form class="courses-filters" method="get">
+        <label class="filter-search">
+<span class="visually-hidden">Rechercher un cours</span>
+<input name="search" value="@Model.Search" placeholder="Rechercher un cours..." />@await Html.PartialAsync("_AdminIcon", "search")</label>
+        <select name="category" aria-label="Catégorie">
+<option value="">Toutes les catégories</option>@foreach (var category in Model.Categories) { <option value="@category.Id" selected="@(Model.Category == category.Id)">@category.DisplayName</option> }</select>
+        <select name="level" aria-label="Niveau">
+<option value="">Tous les niveaux</option>@foreach (var level in Enum.GetValues<StudyLevel>()) { if (level != StudyLevel.All) { <option value="@level" selected="@(Model.Level == level)">@level</option> } }</select>
+        <select name="frStatus" aria-label="Statut FR">
+<option value="">Statut FR</option>
+<option value="Published" selected="@(Model.FrenchStatus == "Published")">Publié</option>
+<option value="Draft" selected="@(Model.FrenchStatus == "Draft")">Brouillon</option>
+<option value="Missing" selected="@(Model.FrenchStatus == "Missing")">Non traduit</option>
+</select>
+        <select name="enStatus" aria-label="Statut EN">
+<option value="">Statut EN</option>
+<option value="Published" selected="@(Model.EnglishStatus == "Published")">Publié</option>
+<option value="Draft" selected="@(Model.EnglishStatus == "Draft")">Brouillon</option>
+<option value="Missing" selected="@(Model.EnglishStatus == "Missing")">Non traduit</option>
+</select>
+        <input type="hidden" name="sort" value="@Model.Sort" />
+<input type="hidden" name="pageSize" value="@Model.PageSize" />
+        <button class="btn-main" type="submit">@await Html.PartialAsync("_AdminIcon", "filter") Filtrer</button>
+<a class="btn-ghost" href="@Url.Action("Index", "Courses", new { area = "Admin" })">@await Html.PartialAsync("_AdminIcon", "reset") Réinitialiser</a>
+    </form>
+    <div class="courses-results-bar">
+<strong>@Model.TotalCount cours trouvés</strong>
+<form method="get">
+<span>Trier par</span>
+<input type="hidden" name="search" value="@Model.Search" />
+<input type="hidden" name="category" value="@Model.Category" />
+<input type="hidden" name="level" value="@Model.Level" />
+<input type="hidden" name="frStatus" value="@Model.FrenchStatus" />
+<input type="hidden" name="enStatus" value="@Model.EnglishStatus" />
+<input type="hidden" name="pageSize" value="@Model.PageSize" />
+<select name="sort" onchange="this.form.submit()" aria-label="Trier les cours">
+<option value="modified" selected="@(Model.Sort == "modified")">Date de modification</option>
+<option value="title" selected="@(Model.Sort == "title")">Titre</option>
+<option value="category" selected="@(Model.Sort == "category")">Catégorie</option>
+<option value="level" selected="@(Model.Sort == "level")">Niveau</option>
+</select>
+</form>
+</div>
+    @if (Model.Items.Count == 0)
+    { <section class="courses-empty">
+<span class="kpi-icon kpi-blue">@await Html.PartialAsync("_AdminIcon", "search")</span>
+<h2>Aucun cours trouvé</h2>
+<p>Aucun cours ne correspond à vos critères.</p>
+<a class="btn-main" href="@Url.Action("Index", "Courses", new { area = "Admin" })">Réinitialiser les filtres</a>
+</section> }
+    else
+    {
+        <div class="admin-table-wrap courses-table-wrap">
+<table class="admin-table courses-table">
+<thead>
+<tr>
+<th aria-label="Sélection">
+</th>
+<th>Cours</th>
+<th>Catégorie</th>
+<th>Niveau</th>
+<th>FR</th>
+<th>EN</th>
+<th>Contenu</th>
+<th>Dernière modification</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+        @foreach (var item in Model.Items)
+        { <tr>
+<td>
+<input type="checkbox" aria-label="Sélectionner @item.DisplayTitle" />
+</td>
+<td>
+<div class="course-list-cell">@if (!string.IsNullOrWhiteSpace(item.Thumbnail)) { <img src="@item.Thumbnail" alt="Illustration de @item.DisplayTitle" /> } else { <span class="course-thumb-placeholder">@await Html.PartialAsync("_AdminIcon", "image")</span> }<span>
+<strong>@item.DisplayTitle</strong>
+<small>@item.Slug</small>
+</span>
+</div>
+</td>
+<td>@(string.IsNullOrWhiteSpace(item.CategoryTitle) ? "Sans catégorie" : item.CategoryTitle)</td>
+<td>
+<span class="level-badge level-@item.Level.ToString().ToLowerInvariant()">@item.Level</span>
+</td>
+<td>@await Html.PartialAsync("_CoursePublication", new AdminCoursePublicationViewModel("fr", item.FrenchStatus, item.FrenchVisibility, $"course-{item.Id}-fr-desktop"))</td>
+<td>@await Html.PartialAsync("_CoursePublication", new AdminCoursePublicationViewModel("en", item.EnglishStatus, item.EnglishVisibility, $"course-{item.Id}-en-desktop"))</td>
+<td>
+<span class="course-content-count">@await Html.PartialAsync("_AdminIcon", "lesson") @item.LessonsCount leçons</span>
+<span class="course-content-count">@await Html.PartialAsync("_AdminIcon", "quiz") @item.QuizzesCount quiz</span>
+</td>
+<td>@item.DateUtc.ToLocalTime().ToString("dd/MM/yyyy")</td>
+<td class="admin-actions">
+<a class="content-action" asp-area="Admin" asp-controller="Chapters" asp-action="Index" asp-route-courseId="@item.Id">@await Html.PartialAsync("_AdminIcon", "lesson") Gérer le contenu</a>
+<a class="edit-action" asp-area="Admin" asp-controller="Courses" asp-action="Edit" asp-route-id="@item.Id">@await Html.PartialAsync("_AdminIcon", "edit") Modifier</a>
+@await Html.PartialAsync("_CourseDeleteForm", item)
+</td>
+</tr> }
+        </tbody>
+</table>
+</div>
+        <div class="courses-mobile-list">@foreach (var item in Model.Items) { <article class="course-mobile-card">
+<div class="course-list-cell">@if (!string.IsNullOrWhiteSpace(item.Thumbnail)) { <img src="@item.Thumbnail" alt="Illustration de @item.DisplayTitle" /> } else { <span class="course-thumb-placeholder">@await Html.PartialAsync("_AdminIcon", "image")</span> }<span>
+<strong>@item.DisplayTitle</strong>
+<small>@item.Slug</small>
+</span>
+</div>
+<p>@(string.IsNullOrWhiteSpace(item.CategoryTitle) ? "Sans catégorie" : item.CategoryTitle) · <span class="level-badge level-@item.Level.ToString().ToLowerInvariant()">@item.Level</span>
+</p>
+<div class="mobile-statuses">
+@await Html.PartialAsync("_CoursePublication", new AdminCoursePublicationViewModel("fr", item.FrenchStatus, item.FrenchVisibility, $"course-{item.Id}-fr-mobile"))
+@await Html.PartialAsync("_CoursePublication", new AdminCoursePublicationViewModel("en", item.EnglishStatus, item.EnglishVisibility, $"course-{item.Id}-en-mobile"))
+</div>
+<p>@item.LessonsCount leçons · @item.QuizzesCount quiz · @item.DateUtc.ToLocalTime().ToString("dd/MM/yyyy")</p>
+<div class="mobile-actions">
+<a class="content-action" asp-area="Admin" asp-controller="Chapters" asp-action="Index" asp-route-courseId="@item.Id">Gérer le contenu</a>
+<a class="edit-action" asp-area="Admin" asp-controller="Courses" asp-action="Edit" asp-route-id="@item.Id">Modifier</a>
+@await Html.PartialAsync("_CourseDeleteForm", item)
+</div>
+</article>}</div>
+    }
+    <div class="courses-pagination">
+<label>Afficher <select onchange="this.form.submit()" form="page-size-form">
+<option selected="@(Model.PageSize == 10)">10</option>
+<option selected="@(Model.PageSize == 20)">20</option>
+<option selected="@(Model.PageSize == 50)">50</option>
+</select> par page</label>
+<form id="page-size-form" method="get">
+<input type="hidden" name="search" value="@Model.Search" />
+<input type="hidden" name="category" value="@Model.Category" />
+<input type="hidden" name="level" value="@Model.Level" />
+<input type="hidden" name="frStatus" value="@Model.FrenchStatus" />
+<input type="hidden" name="enStatus" value="@Model.EnglishStatus" />
+<input type="hidden" name="sort" value="@Model.Sort" />
+</form>
+<nav aria-label="Pagination">
+<a class="@(Model.Page <= 1 ? "disabled" : "")" href="@Url.Action("Index", new { page = Math.Max(1, Model.Page - 1), pageSize = Model.PageSize, search = Model.Search, category = Model.Category, level = Model.Level, frStatus = Model.FrenchStatus, enStatus = Model.EnglishStatus, sort = Model.Sort })">‹</a>@for (var pageNumber = 1; pageNumber <= Model.PageCount; pageNumber++) { <a class="@(pageNumber == Model.Page ? "active" : "")" href="@Url.Action("Index", new { page = pageNumber, pageSize = Model.PageSize, search = Model.Search, category = Model.Category, level = Model.Level, frStatus = Model.FrenchStatus, enStatus = Model.EnglishStatus, sort = Model.Sort })">@pageNumber</a> }<a class="@(Model.Page >= Model.PageCount ? "disabled" : "")" href="@Url.Action("Index", new { page = Math.Min(Model.PageCount, Model.Page + 1), pageSize = Model.PageSize, search = Model.Search, category = Model.Category, level = Model.Level, frStatus = Model.FrenchStatus, enStatus = Model.EnglishStatus, sort = Model.Sort })">›</a>
+</nav>
+</div>
+    <aside class="courses-tip">
+<span>@await Html.PartialAsync("_AdminIcon", "published")</span>
+<div>
+<strong>Astuce</strong>
+<p>Ajoutez des traductions EN pour améliorer la visibilité internationale de vos cours.</p>
+</div>
+<a href="@Url.Action("Index", "Course", new { area = "" })">Voir le site</a>
+</aside>
+</div>
+
+@section Scripts {
+    <script src="~/js/course-visibility.js" asp-append-version="true" defer></script>
+}

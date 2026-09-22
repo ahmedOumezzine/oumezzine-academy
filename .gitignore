@@ -1,0 +1,55 @@
+# Visual Studio / .NET
+.vs/
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build / publish
+publish/
+artifacts/
+Debug/
+Release/
+
+# Tests and browser output
+TestResults/
+**/TestResults/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+playwright-report/
+test-results/
+
+# Node
+node_modules/
+
+# Secrets / deployment
+appsettings.Production.json
+*.pubxml
+*.pubxml.user
+.env
+.env.*
+!**/.env.example
+*.pfx
+*.p12
+*.pem
+*.key
+
+# Logs / temporary files
+logs/
+*.log
+tmp/
+temp/
+*.tmp
+*.bak
+*.old
+
+# User uploads
+src/OumezzineAcademy.Web/wwwroot/uploads/*
+!src/OumezzineAcademy.Web/wwwroot/uploads/.gitkeep
+
+# NuGet validation state
+.nuget-validation-state/

@@ -1,0 +1,38 @@
+@model OumezzineAcademy.Models.Catalog.SeoViewModel
+@using System.Globalization
+@inject OumezzineAcademy.Web.Services.ILocalizedUrlService LocalizedUrls
+@{
+    var canonical = Model.Canonical ?? $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}";
+    var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    var locale = language == "en" ? "en_US" : "fr_CA";
+    var alternates = await LocalizedUrls.ResolveAsync(Context);
+    var site = $"https://{Context.Request.Host}";
+    var imageSource = string.IsNullOrWhiteSpace(Model.Image) ? "/images/brand/logo-primary.png" : Model.Image;
+    var imageUrl = Uri.TryCreate(imageSource, UriKind.Absolute, out var absoluteImage) ? new UriBuilder(absoluteImage) { Scheme = Uri.UriSchemeHttps, Port = -1 }.Uri.ToString() : new Uri(new Uri($"https://{Context.Request.Host}/"), imageSource.TrimStart('~', '/')).ToString();
+}
+<title>@Model.Title</title>
+<meta name="description" content="@Model.Description" />
+<meta name="robots" content="@Model.Robots" />
+<link rel="canonical" href="@canonical" />
+@if (alternates.French is not null) { <link rel="alternate" hreflang="fr" href="@(site + alternates.French)" /> }
+@if (alternates.English is not null) { <link rel="alternate" hreflang="en" href="@(site + alternates.English)" /> }
+@if (alternates.French is not null) { <link rel="alternate" hreflang="x-default" href="@(site + alternates.French)" /> }
+<meta property="og:title" content="@Model.Title" />
+<meta property="og:description" content="@Model.Description" />
+<meta property="og:type" content="@Model.Type" />
+<meta property="og:url" content="@canonical" />
+<meta property="og:site_name" content="Oumezzine Academy" />
+<meta property="og:locale" content="@locale" />
+@if (language == "fr" && alternates.English is not null) { <meta property="og:locale:alternate" content="en_US" /> }
+@if (language == "en" && alternates.French is not null) { <meta property="og:locale:alternate" content="fr_CA" /> }
+@if (!string.IsNullOrWhiteSpace(imageUrl))
+{
+    <meta property="og:image" content="@imageUrl" />
+}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="@Model.Title" />
+<meta name="twitter:description" content="@Model.Description" />
+@if (!string.IsNullOrWhiteSpace(imageUrl))
+{
+    <meta name="twitter:image" content="@imageUrl" />
+}

@@ -1,0 +1,4 @@
+@model LearningPathCategoryEditViewModel
+@{ ViewData["Title"] = Model.Id == Guid.Empty ? "Créer une catégorie de parcours" : "Modifier une catégorie de parcours"; }
+<div class="admin-page path-category-form-page"><div class="admin-heading content-heading"><div><p class="eyebrow">CATÉGORIE DE PARCOURS</p><h1>@ViewData["Title"]</h1><p>@(Model.Id == Guid.Empty ? "Créez une catégorie et renseignez ses traductions." : "Gérez ses informations et ses versions linguistiques.")</p></div><a class="btn-ghost" asp-action="Index">← Retour aux catégories</a></div>@await Html.PartialAsync("_LearningPathCategoryForm", Model)</div>
+@section Scripts { <script src="~/js/learning-path-category-form.js" asp-append-version="true"></script> }

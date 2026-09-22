@@ -1,0 +1,110 @@
+@model AdminCourseContentViewModel
+@{ ViewData["Title"] = "Contenu du cours"; }
+<div class="admin-page content-admin-page">
+    <div class="admin-heading content-heading">
+<div>
+<p class="eyebrow">CONTENU DU COURS</p>
+<h1>@Model.DisplayTitle</h1>
+<p>Organisez les chapitres, les leçons, les quiz et leur ordre de publication.</p>
+</div>
+<div class="content-heading-actions">
+<a class="btn-ghost" asp-controller="Courses" asp-action="Index">Retour aux cours</a>
+<a class="btn-main" asp-action="Create" asp-route-courseId="@Model.CourseId">+ Créer un chapitre</a>
+</div>
+</div>
+    <section class="content-course-summary">
+<div class="content-course-info">
+<h2>@Model.DisplayTitle</h2>
+<p>@Model.CategoryTitle <span aria-hidden="true">•</span> @Model.Level</p>
+<div class="content-statuses">
+<span>FR : @await Html.PartialAsync("_AdminStatusBadge", Model.FrenchStatus)</span>
+<span>EN : @await Html.PartialAsync("_AdminStatusBadge", Model.EnglishStatus)</span>
+</div>
+</div>
+<div class="content-stats">
+<div>
+<strong>@Model.ChapterCount</strong>
+<span>Chapitres</span>
+</div>
+<div>
+<strong>@Model.LessonCount</strong>
+<span>Leçons</span>
+</div>
+<div>
+<strong>@Model.QuizCount</strong>
+<span>Quiz</span>
+</div>
+</div>
+</section>
+    @if (TempData["Success"] is not null) { <div class="admin-alert success">@TempData["Success"]</div> } @if (TempData["Error"] is not null) { <div class="admin-alert error">@TempData["Error"]</div> }
+    <div class="content-section-heading">
+<div>
+<p class="eyebrow">STRUCTURE</p>
+<h2>Chapitres</h2>
+<p>Construisez une progression claire, étape par étape.</p>
+</div>
+<span class="content-count">@Model.ChapterCount chapitre(s)</span>
+</div>
+    @if (Model.Chapters.Count == 0)
+    {
+        <div class="content-empty">
+<span>@await Html.PartialAsync("_AdminIcon", "chapter")</span>
+<h2>Aucun chapitre</h2>
+<p>Commencez par structurer le contenu du cours.</p>
+<a class="btn-main" asp-action="Create" asp-route-courseId="@Model.CourseId">+ Créer un chapitre</a>
+</div>
+    }
+    else
+    {
+        <div class="content-table-wrap">
+<table class="admin-table content-table">
+<thead>
+<tr>
+<th>Ordre</th>
+<th>Chapitre</th>
+<th>FR</th>
+<th>EN</th>
+<th>Contenu</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+        @foreach (var item in Model.Chapters)
+        {
+            var title = string.IsNullOrWhiteSpace(item.FrenchTitle) ? (string.IsNullOrWhiteSpace(item.EnglishTitle) || item.EnglishTitle == "Missing" ? "Chapitre sans traduction" : item.EnglishTitle) : item.FrenchTitle;
+            <tr>
+<td>
+<span class="order-badge">@item.Order.ToString("00")</span>
+</td>
+<td>
+<strong class="content-title">@title</strong>
+</td>
+<td>@await Html.PartialAsync("_AdminStatusBadge", item.FrenchStatus)</td>
+<td>@await Html.PartialAsync("_AdminStatusBadge", item.EnglishStatus)</td>
+<td>
+<span class="content-metric-line">@item.LessonsCount leçons</span>
+<span class="content-metric-line">@item.QuizzesCount quiz</span>
+</td>
+<td>
+<div class="content-actions">
+<a class="content-action-primary" asp-controller="Lessons" asp-action="Index" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@item.Id">Leçons</a>
+<a class="content-action-primary" asp-controller="Quizzes" asp-action="Index" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@item.Id">Quiz</a>
+<a class="edit-action" asp-action="Edit" asp-route-courseId="@Model.CourseId" asp-route-id="@item.Id">Modifier</a>
+<form asp-action="Move" asp-route-courseId="@Model.CourseId" asp-route-id="@item.Id" asp-route-direction="-1" method="post">
+<button class="icon-action" type="submit" disabled="@item.IsFirst" aria-label="Monter">↑</button>
+</form>
+<form asp-action="Move" asp-route-courseId="@Model.CourseId" asp-route-id="@item.Id" asp-route-direction="1" method="post">
+<button class="icon-action" type="submit" disabled="@item.IsLast" aria-label="Descendre">↓</button>
+</form>
+<form asp-action="Delete" asp-route-courseId="@Model.CourseId" asp-route-id="@item.Id" method="post">
+<button class="icon-action danger" type="submit" aria-label="Supprimer @title" data-confirm-delete data-confirm-item="@title" data-confirm-message="supprimer ce chapitre">×</button>
+</form>
+</div>
+</td>
+</tr>
+        }
+        </tbody>
+</table>
+</div>
+    }
+</div>

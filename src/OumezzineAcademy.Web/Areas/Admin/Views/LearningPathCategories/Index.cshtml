@@ -1,0 +1,40 @@
+@model IReadOnlyList<AdminLearningPathCategoryListItem>
+@{ ViewData["Title"] = "Catégories de parcours"; }
+<div class="admin-page path-category-page">
+<div class="admin-heading content-heading">
+<div>
+<p class="eyebrow">PARCOURS</p>
+<h1>Catégories de parcours</h1>
+<p>Classez et organisez vos itinéraires d’apprentissage.</p>
+</div>
+<div class="content-heading-actions">
+<a class="btn-ghost" asp-controller="LearningPaths" asp-action="Index">Voir les parcours</a>
+<a class="btn-main" asp-action="Create">+ Créer une catégorie</a>
+</div>
+</div>
+@if (TempData["Success"] is not null) { <div class="admin-alert success">@TempData["Success"]</div> } @if (TempData["Error"] is not null) { <div class="admin-alert error">@TempData["Error"]</div> }
+@if (Model.Count == 0) { <section class="path-category-empty">
+<h2>Aucune catégorie de parcours.</h2>
+<p>Créez une première catégorie pour organiser vos itinéraires.</p>
+<a class="btn-main" asp-action="Create">+ Créer une catégorie</a>
+</section> } else { <div class="path-category-grid">@foreach (var item in Model) { <article class="path-category-card">
+<div class="path-category-card-head">
+<span class="section-icon">@await Html.PartialAsync("_AdminIcon", "category")</span>
+</div>
+<div class="path-category-language">
+<small>Français</small>
+<strong>@(string.IsNullOrWhiteSpace(item.FrenchTitle) ? "Non traduit" : item.FrenchTitle)</strong>@await Html.PartialAsync("_AdminStatusBadge", item.FrenchStatus)</div>
+<div class="path-category-language">
+<small>English</small>
+<strong>@(string.IsNullOrWhiteSpace(item.EnglishTitle) || item.EnglishTitle == "Missing" ? "Non traduit" : item.EnglishTitle)</strong>@await Html.PartialAsync("_AdminStatusBadge", item.EnglishStatus)</div>
+<div class="path-category-card-foot">
+<span>@item.PathCount parcours</span>
+<div>
+<a class="edit-action" asp-action="Edit" asp-route-id="@item.Id">Modifier</a>
+<form asp-action="Delete" asp-route-id="@item.Id" method="post">
+<button class="path-category-delete" type="submit" data-confirm-delete data-confirm-item="@(string.IsNullOrWhiteSpace(item.FrenchTitle) ? item.EnglishTitle : item.FrenchTitle)" data-confirm-message="retirer cette catégorie de parcours">Retirer</button>
+</form>
+</div>
+</div>
+</article> }</div> }
+</div>

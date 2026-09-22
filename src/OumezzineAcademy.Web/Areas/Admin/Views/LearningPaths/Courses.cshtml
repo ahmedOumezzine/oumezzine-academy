@@ -1,0 +1,97 @@
+@model AdminLearningPathCoursesViewModel
+@{ ViewData["Title"] = Model.LearningPathTitle; }
+<div class="admin-page path-courses-page">
+    <div class="admin-heading content-heading">
+        <div>
+            <p class="eyebrow">PARCOURS</p>
+            <h1>@Model.LearningPathTitle</h1>
+            <p>Sélectionnez les cours et définissez leur ordre.</p>
+        </div>
+        <a class="btn-ghost" asp-action="Index">← Retour aux parcours</a>
+    </div>
+
+    @if (TempData["Error"] is not null) { <div class="admin-alert error" role="alert">@TempData["Error"]</div> }
+    @if (TempData["Success"] is not null) { <div class="admin-alert success" role="status">@TempData["Success"]</div> }
+
+    <section class="path-courses-add" aria-labelledby="add-course-title">
+        <div class="path-courses-section-title">
+            <span class="section-icon">@await Html.PartialAsync("_AdminIcon", "add")</span>
+            <div>
+                <h2 id="add-course-title">Ajouter un cours</h2>
+                <p>Chaque cours ne peut apparaître qu’une seule fois.</p>
+            </div>
+        </div>
+
+        @if (Model.AvailableCourses.Count == 0)
+        {
+            <p class="path-courses-empty">Tous les cours disponibles ont déjà été ajoutés à ce parcours.</p>
+        }
+        else
+        {
+            <form class="path-course-picker" asp-action="AddCourse" asp-route-id="@Model.LearningPathId" method="post">
+                <label class="path-course-search-label" for="course-search">Rechercher un cours</label>
+                <div class="path-course-search"><i class="bi bi-search" aria-hidden="true"></i><input id="course-search" type="search" placeholder="Rechercher un cours…" autocomplete="off" data-course-search aria-controls="available-course-list" /></div>
+                <fieldset class="path-course-options" aria-describedby="course-picker-hint">
+                    <legend class="sr-only">Choisir un cours à ajouter</legend>
+                    <p id="course-picker-hint" class="sr-only">Sélectionnez un seul cours, puis choisissez Ajouter au parcours.</p>
+                    <div id="available-course-list" class="path-course-option-list">
+                        @foreach (var course in Model.AvailableCourses)
+                        {
+                            var searchText = $"{course.Title} {course.Slug} {course.CategoryName} {course.Level}";
+                            <label class="path-course-option" data-course-option data-search-text="@searchText">
+                                <input type="radio" name="courseId" value="@course.Id" required data-course-radio />
+                                <span class="path-course-option-main"><strong>@course.Title</strong><span class="path-course-option-meta"><span>@course.CategoryName</span><span>@course.Level</span></span></span>
+                                <span class="path-course-option-status"><span>FR @await Html.PartialAsync("_AdminStatusBadge", course.FrenchStatus)</span><span>EN @await Html.PartialAsync("_AdminStatusBadge", course.EnglishStatus)</span></span>
+                            </label>
+                        }
+                    </div>
+                    <p class="path-course-no-results" data-course-empty hidden>Aucun cours disponible ne correspond à votre recherche.</p>
+                </fieldset>
+                <button class="btn-main path-course-add-button" type="submit" disabled data-course-add><i class="bi bi-plus-lg" aria-hidden="true"></i> Ajouter au parcours</button>
+            </form>
+        }
+    </section>
+
+    <section class="path-course-list" aria-labelledby="path-course-list-title">
+        <div class="path-courses-section-title">
+            <span class="section-icon">@await Html.PartialAsync("_AdminIcon", "course")</span>
+            <div>
+                <h2 id="path-course-list-title">Cours du parcours</h2>
+                <p>@Model.SelectedCourses.Count cours dans cet itinéraire.</p>
+            </div>
+        </div>
+        @if (Model.SelectedCourses.Count == 0)
+        {
+            <div class="path-courses-empty"><strong>Aucun cours dans ce parcours.</strong><span>Ajoutez un premier cours pour construire l’itinéraire.</span></div>
+        }
+        else
+        {
+            <div class="path-course-table-wrap">
+                <table class="admin-table path-course-table">
+                    <thead><tr><th scope="col">Ordre</th><th scope="col">Cours</th><th scope="col">Catégorie</th><th scope="col">Niveau</th><th scope="col">FR</th><th scope="col">EN</th><th scope="col">Actions</th></tr></thead>
+                    <tbody>
+                    @foreach (var item in Model.SelectedCourses)
+                    {
+                        <tr>
+                            <td data-label="Ordre"><span class="path-order">@item.Order.ToString("00")</span></td>
+                            <td data-label="Cours"><strong>@item.Title</strong></td>
+                            <td data-label="Catégorie">@item.CategoryTitle</td>
+                            <td data-label="Niveau">@item.Level</td>
+                            <td data-label="FR">@await Html.PartialAsync("_AdminStatusBadge", item.FrenchStatus)</td>
+                            <td data-label="EN">@await Html.PartialAsync("_AdminStatusBadge", item.EnglishStatus)</td>
+                            <td data-label="Actions">
+                                <div class="path-course-actions">
+                                    <form asp-action="MoveCourse" asp-route-id="@Model.LearningPathId" asp-route-courseLinkId="@item.Id" asp-route-direction="-1" method="post"><button class="path-move-button" type="submit" disabled="@item.IsFirst" aria-label="Monter le cours @item.Title">↑ <span>Monter</span></button></form>
+                                    <form asp-action="MoveCourse" asp-route-id="@Model.LearningPathId" asp-route-courseLinkId="@item.Id" asp-route-direction="1" method="post"><button class="path-move-button" type="submit" disabled="@item.IsLast" aria-label="Descendre le cours @item.Title">↓ <span>Descendre</span></button></form>
+                                    <form asp-action="RemoveCourse" asp-route-id="@Model.LearningPathId" asp-route-courseLinkId="@item.Id" method="post"><button class="path-remove-button" type="submit" data-confirm-delete data-confirm-item="@item.Title" data-confirm-message="retirer ce cours du parcours">@await Html.PartialAsync("_AdminIcon", "close") Retirer</button></form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>
+@section Scripts { <script src="~/js/learning-path-courses.js" asp-append-version="true"></script> }

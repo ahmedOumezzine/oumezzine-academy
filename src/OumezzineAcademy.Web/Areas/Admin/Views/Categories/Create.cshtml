@@ -1,0 +1,5 @@
+@model CategoryEditViewModel
+@* _AdminValidationSummary is rendered by the shared _CategoryForm partial. *@
+@{ ViewData["Title"] = Model.Id == Guid.Empty ? "Créer une catégorie" : "Modifier une catégorie"; }
+<div class="admin-page category-form-page"><div class="admin-heading"><div><p class="eyebrow">CATÉGORIE</p><h1>@ViewData["Title"]</h1><p>@(Model.Id == Guid.Empty ? "Créez une nouvelle catégorie et renseignez ses traductions." : "Gérez les informations et traductions de cette catégorie.")</p></div><a class="btn-ghost" asp-action="Index">← Retour aux catégories</a></div>@await Html.PartialAsync("_CategoryForm", Model)</div>
+@section Scripts { <script src="~/js/category-form.js" asp-append-version="true"></script> }

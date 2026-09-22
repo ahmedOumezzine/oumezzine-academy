@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>OumezzineAcademy.Application</RootNamespace>
+    <AssemblyName>OumezzineAcademy.Application</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OumezzineAcademy.Domain\OumezzineAcademy.Domain.csproj" />
+  </ItemGroup>
+</Project>

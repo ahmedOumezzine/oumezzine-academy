@@ -1,0 +1,24 @@
+@model CategoryEditViewModel
+@{ var edit = Model.Id != Guid.Empty; }
+<form class="category-form" asp-action="@(edit ? "Edit" : "Create")" method="post" data-category-form>
+    <input asp-for="Id" type="hidden" />
+    @await Html.PartialAsync("_AdminValidationSummary")
+    <div class="category-form-layout">
+        <section class="category-form-card">
+            <div class="category-form-title"><span class="category-card-icon" aria-hidden="true">@await Html.PartialAsync("_AdminIcon", "translate")</span><div><h2>Traductions</h2><p>Renseignez les informations de la catégorie dans chaque langue.</p></div></div>
+            <div class="category-tabs" role="tablist" aria-label="Traductions de la catégorie"><button type="button" class="category-tab is-active" role="tab" aria-selected="true" aria-controls="category-fr" data-category-tab="category-fr">Français <span class="category-tab-status" data-status-for="French">@(Model.French.Title is null ? "Non traduit" : Model.French.PublicationStatus == StudyStatus.Published ? "Publié" : "Brouillon")</span></button><button type="button" class="category-tab" role="tab" aria-selected="false" aria-controls="category-en" data-category-tab="category-en">English <span class="category-tab-status" data-status-for="English">@(Model.English.Title is null ? "Non traduit" : Model.English.PublicationStatus == StudyStatus.Published ? "Publié" : "Brouillon")</span></button></div>
+            @foreach (var language in new[] { (Prefix: "French", Label: "Français"), (Prefix: "English", Label: "English") })
+            {
+                var input = language.Prefix == "French" ? Model.French : Model.English;
+                <div id="category-@(language.Prefix == "French" ? "fr" : "en")" class="category-tab-panel" role="tabpanel" @(language.Prefix == "English" ? "hidden" : null) data-category-panel="@language.Prefix">
+                    <label for="@language.Prefix-Title">Titre</label><input id="@language.Prefix-Title" name="@($"{language.Prefix}.Title")" value="@input.Title" data-category-title="@language.Prefix" />
+                    <label for="@language.Prefix-Slug">Slug <button type="button" class="slug-generate" data-category-slug-from="@language.Prefix" data-category-slug-target="@language.Prefix">Générer</button></label><input id="@language.Prefix-Slug" name="@($"{language.Prefix}.Slug")" value="@input.Slug" />
+                    <label for="@language.Prefix-Summary">Résumé</label><textarea id="@language.Prefix-Summary" name="@($"{language.Prefix}.Summary")" rows="5" maxlength="500" data-category-summary="@language.Prefix">@input.Summary</textarea><small class="category-character-count" data-category-count="@language.Prefix">0 / 500 caractères</small>
+                    <label for="@language.Prefix-PublicationStatus">Statut de publication</label><select id="@language.Prefix-PublicationStatus" name="@($"{language.Prefix}.PublicationStatus")" data-category-status="@language.Prefix">@foreach (var status in Enum.GetValues<StudyStatus>()) { <option value="@status" selected="@(status == input.PublicationStatus ? "selected" : null)">@status</option> }</select><small>Brouillon : non visible publiquement. Publié : visible sur le site dans cette langue.</small>
+                </div>
+            }
+        </section>
+        <aside class="category-form-sidebar"><section class="category-form-card category-preview-card"><div class="category-form-title"><span class="category-card-icon" aria-hidden="true">@await Html.PartialAsync("_AdminIcon", "eye")</span><div><h2>Aperçu</h2><p>Aperçu de la catégorie dans la langue sélectionnée.</p></div></div><h3 data-category-preview-title>Titre de la catégorie</h3><span class="category-status is-missing" data-category-preview-status>Non traduit</span><p data-category-preview-summary>Aucun résumé pour cette langue.</p><div class="category-preview-meta"><span data-category-preview-count>@Model.CourseCount cours</span><span data-category-preview-slug>/slug</span></div></section>@if (edit) { <section class="category-form-card category-info-card"><h2>Informations</h2><p>Cours liés <strong>@Model.CourseCount</strong></p>@if (Model.LastModifiedOnUtc.HasValue) { <p>Dernière mise à jour <strong>@Model.LastModifiedOnUtc.Value.ToLocalTime().ToString("g")</strong></p> }<p>Créée le <strong>@Model.CreatedOnUtc?.ToLocalTime().ToString("g")</strong></p></section> }</aside>
+    </div>
+    <div class="category-action-bar"><a class="btn-ghost" asp-action="Index">Annuler</a><button class="btn-main" type="submit">@(edit ? "Enregistrer les modifications" : "Créer la catégorie")</button></div>
+</form>

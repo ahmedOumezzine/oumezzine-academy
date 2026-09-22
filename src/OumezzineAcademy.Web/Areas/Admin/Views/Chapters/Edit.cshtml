@@ -1,0 +1,22 @@
+@model ChapterEditViewModel
+@{ var isEdit = Model.Id != Guid.Empty; ViewData["Title"] = isEdit ? "Modifier un chapitre" : "Créer un chapitre"; }
+<div class="admin-page chapter-edit-page">
+    <nav class="admin-breadcrumb" aria-label="Fil d’Ariane"><a asp-action="Index" asp-route-courseId="@Model.CourseId">Cours</a><span>›</span><strong>@ViewData["Title"]</strong></nav>
+    <div class="admin-heading lesson-heading"><div><p class="eyebrow">@Model.CourseFrenchTitle</p><h1>@ViewData["Title"]</h1><p>@Model.CourseEnglishTitle</p></div><a class="btn-ghost" asp-action="Index" asp-route-courseId="@Model.CourseId">Retour aux chapitres</a></div>
+    <form class="admin-form lesson-form lesson-concept-form" data-rich-content-form data-content-entity="le chapitre" data-photo-area="chapters" data-photo-upload-url="@(isEdit ? Url.Action("UploadImage", "Chapters", new { area = "Admin", courseId = Model.CourseId, id = Model.Id }) : null)" asp-action="@(isEdit ? "Edit" : "Create")" asp-route-courseId="@Model.CourseId" asp-route-id="@Model.Id" method="post">
+        <input asp-for="Id" type="hidden" /><input asp-for="CourseId" type="hidden" />
+        @if (!isEdit) { <input type="hidden" name="continueEditing" value="true" /> }
+        @await Html.PartialAsync("_AdminValidationSummary")
+        <div class="lesson-form-columns"><div class="lesson-form-main">
+            <section class="lesson-form-card"><div class="lesson-section-title"><span class="section-icon">@await Html.PartialAsync("_AdminIcon", "settings")</span><div><h2>Informations générales</h2><p>Définissez la position du chapitre dans le cours.</p></div></div><label asp-for="Order">Ordre</label><input asp-for="Order" type="number" min="1" /></section>
+            <section class="lesson-form-card"><div class="lesson-section-title"><span class="section-icon">@await Html.PartialAsync("_AdminIcon", "language")</span><div><h2>Contenu localisé</h2><p>Rédigez chaque version indépendamment.</p></div></div>
+                <div class="lesson-tabs" role="tablist" aria-label="Traductions du chapitre"><button type="button" class="lesson-tab active" role="tab" aria-selected="true" data-lesson-tab="chapter-fr">Français</button><button type="button" class="lesson-tab" role="tab" aria-selected="false" data-lesson-tab="chapter-en">English</button></div>
+                <div id="chapter-fr" class="lesson-tab-panel active" role="tabpanel">@await Html.PartialAsync("_ChapterTranslationFields", (Model.French, "French", "Français"))</div>
+                <div id="chapter-en" class="lesson-tab-panel" role="tabpanel" hidden>@await Html.PartialAsync("_ChapterTranslationFields", (Model.English, "English", "English"))</div>
+            </section>
+        </div></div>
+        <div class="lesson-action-bar"><a class="btn-ghost" asp-action="Index" asp-route-courseId="@Model.CourseId">Annuler</a><button class="btn-main" type="submit">@await Html.PartialAsync("_AdminIcon", "save") @(isEdit ? "Enregistrer les modifications" : "Créer le chapitre")</button></div>
+    </form>
+</div>
+@section Head { <link rel="stylesheet" href="~/lib/ckeditor5/ckeditor5.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/admin-lesson-editor.css" asp-append-version="true" /> }
+@section Scripts { <script src="~/lib/ckeditor5/ckeditor5.umd.js" asp-append-version="true"></script><script src="~/lib/ckeditor5/fr.umd.js" asp-append-version="true"></script><script src="~/js/admin-lesson-editor.js" asp-append-version="true"></script><script src="~/js/chapter-form.js" asp-append-version="true"></script> }

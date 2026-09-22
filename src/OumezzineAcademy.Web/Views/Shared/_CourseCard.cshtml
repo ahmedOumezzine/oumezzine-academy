@@ -1,0 +1,28 @@
+@model OumezzineAcademy.Models.Catalog.CourseCardViewModel
+<a class="course-card" asp-area="" asp-controller="Course" asp-action="Details" asp-route-slug="@Model.Slug" asp-route-culture="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
+    <div class="thumb course-visual @(string.IsNullOrWhiteSpace(Model.Thumbnail) ? "" : "has-image")">
+        @if (!string.IsNullOrWhiteSpace(Model.Thumbnail))
+        {
+            <img src="@Model.Thumbnail" alt="@Model.Title" title="@Model.Title" loading="lazy" />
+        }
+        <div class="course-symbol" aria-hidden="true"><span>@Model.Title.FirstOrDefault()</span></div>
+        <div class="course-visual-copy"><strong>@Model.CategoryTitle</strong><small>@L["CourseCard_Tagline"]</small></div>
+    </div>
+    <div class="card-body">
+        <div class="badge-row course-metadata">
+            <span class="badge-soft">@Model.Level</span>
+            <span class="badge-soft">@Model.CategoryTitle</span>
+        </div>
+        <h3>@Model.Title</h3>
+        <p class="card-text">@Model.Summary</p>
+        <div class="badge-row">
+            <span class="badge-soft">@Model.LessonCount @L["CourseCard_Lessons"]</span>
+            <span class="badge-soft">@Model.QuizCount @L["CourseCard_Quizzes"]</span>
+            @if (Model.DurationMinutes > 0)
+            {
+                <span class="badge-soft">@Model.DurationMinutes @L["CourseCard_Minutes"]</span>
+            }
+        </div>
+        <span class="card-cta">@L["CourseCard_View"] <i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
+    </div>
+</a>

@@ -1,0 +1,5 @@
+<Project>
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'OumezzineAcademy.Testing'">
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+  </ItemGroup>
+</Project>

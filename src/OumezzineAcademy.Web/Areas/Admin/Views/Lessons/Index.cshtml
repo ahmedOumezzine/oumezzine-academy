@@ -1,0 +1,114 @@
+@model AdminLessonListViewModel
+@{ ViewData["Title"] = "Leçons"; }
+<div class="admin-page content-admin-page">
+    <div class="admin-breadcrumb">
+<a asp-controller="Courses" asp-action="Index">Cours</a>
+<span>›</span>
+<a asp-controller="Chapters" asp-action="Index" asp-route-courseId="@Model.CourseId">@Model.CourseTitle</a>
+<span>›</span>
+<strong>Chapitre : @Model.ChapterTitle</strong>
+<span>›</span>
+<strong>Leçons</strong>
+</div>
+    <div class="admin-heading content-heading">
+<div>
+<p class="eyebrow">CONTENU DU COURS</p>
+<h1>@Model.CourseTitle</h1>
+<p>Chapitre @Model.ChapterOrder.ToString("00") · @Model.ChapterTitle</p>
+</div>
+<div class="content-heading-actions">
+<a class="btn-ghost" asp-controller="Chapters" asp-action="Index" asp-route-courseId="@Model.CourseId">@await Html.PartialAsync("_AdminIcon", "arrow-left") Retour aux chapitres</a>
+<a class="btn-main" asp-action="Create" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId">@await Html.PartialAsync("_AdminIcon", "add") Créer une leçon</a>
+</div>
+</div>
+    <section class="content-chapter-summary">
+<div>
+<span class="section-icon">@await Html.PartialAsync("_AdminIcon", "chapter")</span>
+</div>
+<div>
+<p class="eyebrow">CHAPITRE @Model.ChapterOrder.ToString("00")</p>
+<h2>@Model.ChapterTitle</h2>
+<div class="content-statuses">
+<span>FR : @await Html.PartialAsync("_AdminStatusBadge", Model.ChapterFrenchStatus)</span>
+<span>EN : @await Html.PartialAsync("_AdminStatusBadge", Model.ChapterEnglishStatus)</span>
+</div>
+</div>
+<div class="content-count-summary">
+<strong>@Model.Lessons.Count</strong>
+<span>Leçons</span>
+</div>
+</section>
+    @if (TempData["Success"] is not null) { <div class="admin-alert success">@TempData["Success"]</div> }
+    @if (Model.Lessons.Count == 0) { <div class="content-empty">
+<span>@await Html.PartialAsync("_AdminIcon", "lesson")</span>
+<h2>Aucune leçon</h2>
+<p>Ajoutez la première leçon de ce chapitre.</p>
+<a class="btn-main" asp-action="Create" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId">@await Html.PartialAsync("_AdminIcon", "add") Créer une leçon</a>
+</div> }
+    else { <div class="content-table-wrap">
+<table class="admin-table content-table lesson-content-table">
+<thead>
+<tr>
+<th>Ordre</th>
+<th>Leçon</th>
+<th>FR</th>
+<th>EN</th>
+<th>Type</th>
+<th>Durée</th>
+<th>Dernière modification</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>@foreach (var item in Model.Lessons) { <tr>
+<td>
+<span class="order-badge">@item.Order.ToString("00")</span>
+</td>
+<td>
+<strong class="content-title">@(string.IsNullOrWhiteSpace(item.FrenchTitle) ? (string.IsNullOrWhiteSpace(item.EnglishTitle) || item.EnglishTitle == "Missing" ? "Leçon sans traduction" : item.EnglishTitle) : item.FrenchTitle)</strong>@if (!string.IsNullOrWhiteSpace(item.Slug)) { <small class="content-slug">@item.Slug</small> }</td>
+<td>@await Html.PartialAsync("_AdminStatusBadge", item.FrenchStatus)</td>
+<td>@await Html.PartialAsync("_AdminStatusBadge", item.EnglishStatus)</td>
+<td>
+<span class="content-type">@if (item.HasText) { <span>Texte</span> }@if (item.HasVideo) { <span>Vidéo</span> }@if (item.HasDocument) { <span>Document</span> }</span>
+</td>
+<td>@(item.DurationMinutes.HasValue ? $"{item.DurationMinutes} min" : "—")</td>
+<td>@(item.LastModifiedOnUtc.HasValue ? item.LastModifiedOnUtc.Value.ToLocalTime().ToString("dd/MM/yyyy") : "—")</td>
+<td>
+<div class="content-actions">
+<a class="edit-action" asp-action="Edit" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId" asp-route-id="@item.Id">@await Html.PartialAsync("_AdminIcon", "edit") Modifier</a>
+<div class="order-actions">
+<form asp-action="Move" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId" asp-route-id="@item.Id" asp-route-direction="-1" method="post">
+<button class="icon-action" type="submit" aria-label="Monter la leçon" disabled="@item.IsFirst">↑</button>
+</form>
+<form asp-action="Move" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId" asp-route-id="@item.Id" asp-route-direction="1" method="post">
+<button class="icon-action" type="submit" aria-label="Descendre la leçon" disabled="@item.IsLast">↓</button>
+</form>
+</div>
+<form asp-action="Delete" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId" asp-route-id="@item.Id" method="post">
+<button class="icon-action danger" type="submit" aria-label="Supprimer la leçon @(string.IsNullOrWhiteSpace(item.FrenchTitle) ? item.EnglishTitle : item.FrenchTitle)" data-confirm-delete data-confirm-item="@(string.IsNullOrWhiteSpace(item.FrenchTitle) ? item.EnglishTitle : item.FrenchTitle)" data-confirm-message="supprimer cette leçon">@await Html.PartialAsync("_AdminIcon", "close")</button>
+</form>
+</div>
+</td>
+</tr> }</tbody>
+</table>
+</div>
+<div class="content-mobile-list">@foreach (var item in Model.Lessons) { <article class="content-mobile-card">
+<div class="content-mobile-top">
+<span class="order-badge">@item.Order.ToString("00")</span>
+<strong>@(string.IsNullOrWhiteSpace(item.FrenchTitle) ? (string.IsNullOrWhiteSpace(item.EnglishTitle) || item.EnglishTitle == "Missing" ? "Leçon sans traduction" : item.EnglishTitle) : item.FrenchTitle)</strong>
+</div>
+<div class="content-statuses">
+<span>FR : @await Html.PartialAsync("_AdminStatusBadge", item.FrenchStatus)</span>
+<span>EN : @await Html.PartialAsync("_AdminStatusBadge", item.EnglishStatus)</span>
+</div>
+<p class="content-mobile-meta">@((item.HasText, item.HasVideo, item.HasDocument) switch { (true, true, true) => "Texte + Vidéo + Document", (true, true, false) => "Texte + Vidéo", (true, false, true) => "Texte + Document", (false, true, false) => "Vidéo", (false, false, true) => "Document", _ => "Texte" }) <span>•</span> @(item.DurationMinutes.HasValue ? $"{item.DurationMinutes} min" : "—")</p>
+<div class="content-mobile-actions">
+<a class="edit-action" asp-action="Edit" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId" asp-route-id="@item.Id">Modifier</a>
+<form asp-action="Move" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId" asp-route-id="@item.Id" asp-route-direction="-1" method="post">
+<button class="icon-action" type="submit" disabled="@item.IsFirst" aria-label="Monter">↑</button>
+</form>
+<form asp-action="Move" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId" asp-route-id="@item.Id" asp-route-direction="1" method="post">
+<button class="icon-action" type="submit" disabled="@item.IsLast" aria-label="Descendre">↓</button>
+</form>
+</div>
+</article> }</div> }
+</div>

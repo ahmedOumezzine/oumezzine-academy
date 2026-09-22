@@ -1,0 +1,8 @@
+@model LearningPathEditViewModel
+@{ ViewData["Title"] = Model.Id == Guid.Empty ? "Créer un parcours" : "Modifier un parcours"; }
+<div class="admin-page learning-path-editor-page">
+    <div class="admin-heading content-heading"><div><p class="eyebrow">PARCOURS</p><h1>@ViewData["Title"]</h1><p>Définissez l’itinéraire et ses versions linguistiques.</p></div><div class="content-heading-actions"><a class="btn-ghost" asp-action="Index">← Retour</a><a class="btn-ghost" asp-action="Index">Annuler</a><button class="btn-main" type="submit" form="learning-path-form">@(Model.Id == Guid.Empty ? "Créer le parcours" : "Enregistrer les modifications")</button></div></div>
+    @await Html.PartialAsync("_LearningPathForm", Model)
+</div>
+@section Head { <link rel="stylesheet" href="~/lib/ckeditor5/ckeditor5.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/admin-learningpath-editor.css" asp-append-version="true" /> }
+@section Scripts { <script src="~/lib/ckeditor5/ckeditor5.umd.js" asp-append-version="true"></script><script src="~/lib/ckeditor5/fr.umd.js" asp-append-version="true"></script><script src="~/js/learning-path-form.js" asp-append-version="true"></script><script src="~/js/admin-learningpath-editor.js" asp-append-version="true"></script> }

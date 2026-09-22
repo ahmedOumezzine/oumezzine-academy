@@ -1,0 +1,17 @@
+@model LessonEditViewModel
+@{ ViewData["Title"] = Model.Id == Guid.Empty ? "Créer une leçon" : "Modifier une leçon"; }
+<div class="admin-page lesson-edit-page">
+    <nav class="admin-breadcrumb" aria-label="Fil d’Ariane"><a asp-area="Admin" asp-controller="Courses" asp-action="Index">Cours</a><span>›</span><a asp-area="Admin" asp-controller="Chapters" asp-action="Index" asp-route-courseId="@Model.CourseId">@Model.CourseFrenchTitle</a><span>›</span><a asp-area="Admin" asp-controller="Lessons" asp-action="Index" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId">@Model.ChapterTitle</a><span>›</span><strong>@ViewData["Title"]</strong></nav>
+    <div class="admin-heading lesson-heading"><div><p class="eyebrow">CONTENU DU COURS</p><h1>@ViewData["Title"]</h1><p>Ajoutez une nouvelle leçon à ce chapitre. Le contenu sera disponible dans la langue que vous publiez.</p></div><a class="btn-ghost" asp-area="Admin" asp-controller="Lessons" asp-action="Index" asp-route-courseId="@Model.CourseId" asp-route-chapterId="@Model.ChapterId">@await Html.PartialAsync("_AdminIcon", "arrow-left") Retour aux leçons</a></div>
+    @await Html.PartialAsync("_LessonForm", Model)
+</div>
+@section Head {
+    <link rel="stylesheet" href="~/lib/ckeditor5/ckeditor5.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin-lesson-editor.css" asp-append-version="true" />
+}
+@section Scripts {
+    <script src="~/lib/ckeditor5/ckeditor5.umd.js" asp-append-version="true"></script>
+    <script src="~/lib/ckeditor5/fr.umd.js" asp-append-version="true"></script>
+    <script src="~/js/lesson-form.js" asp-append-version="true"></script>
+    <script src="~/js/admin-lesson-editor.js" asp-append-version="true"></script>
+}
