@@ -20,4 +20,3 @@ public sealed class RouteLanguageRequestCultureProvider : RequestCultureProvider
                 : null);
     }
 }
-

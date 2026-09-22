@@ -1,5 +1,4 @@
 using System.Reflection;
-using OumezzineAcademy.Domain.Catalog;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;

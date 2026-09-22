@@ -205,4 +205,3 @@ public class QuizQuestionResultViewModel
     public string? SelectedAnswer { get; set; }
     public string CorrectAnswer { get; set; } = "";
 }
-

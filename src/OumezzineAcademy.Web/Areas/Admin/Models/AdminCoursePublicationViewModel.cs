@@ -1,6 +1,3 @@
-using OumezzineAcademy.Models.Catalog;
-using OumezzineAcademy.Web.Services;
-
 namespace OumezzineAcademy.Areas.Admin.Models;
 
 public sealed record AdminCoursePublicationViewModel(
@@ -22,4 +19,3 @@ public sealed record AdminCoursePublicationViewModel(
     };
     public string VisibilityLabel => Visibility.IsVisible ? "Visible" : "Non visible";
 }
-

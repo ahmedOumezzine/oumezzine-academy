@@ -23,4 +23,3 @@ public sealed class AdminCategoryCardTests
 
     private static string ProjectFile(string relativePath) => TestProjectFiles.FindOumezzineAcademyFile(relativePath);
 }
-

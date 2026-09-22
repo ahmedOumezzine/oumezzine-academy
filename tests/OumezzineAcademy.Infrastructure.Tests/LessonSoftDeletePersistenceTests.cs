@@ -1,14 +1,13 @@
-using OumezzineAcademy.Areas.Admin.Models;
-using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Web.Services;
-using OumezzineAcademy.Infrastructure.Sanitization;
-using OumezzineAcademy.Infrastructure.Persistence;
-using OumezzineAcademy.Infrastructure.Media;
-using OumezzineAcademy.Application.Abstractions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using OumezzineAcademy.Application.Abstractions;
+using OumezzineAcademy.Areas.Admin.Models;
+using OumezzineAcademy.Infrastructure.Data;
+using OumezzineAcademy.Infrastructure.Media;
+using OumezzineAcademy.Infrastructure.Persistence;
+using OumezzineAcademy.Infrastructure.Sanitization;
+using OumezzineAcademy.Web.Services;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -56,7 +55,9 @@ public sealed class LessonSoftDeletePersistenceTests
         var service = new AdminLessonService(new EfAdminLessonQueries(db), new EfAdminLessonCoreCommands(db, new HtmlSanitizerService()), new EfAdminLessonMediaCommands(db, new FileSystemMediaStorage(".")), new EfAdminLessonDeleteCommands(db), new NullStudyLmsCacheInvalidator());
         var input = new LessonEditViewModel
         {
-            CourseId = course.Id, ChapterId = chapter.Id, Order = 1,
+            CourseId = course.Id,
+            ChapterId = chapter.Id,
+            Order = 1,
             French = new() { Title = "Leçon", Slug = "lecon", ContentHtml = "<p>Bonjour</p>" },
             English = new() { Title = "Lesson", Slug = "lesson", ContentHtml = "<p>Hello</p>" }
         };
@@ -78,4 +79,3 @@ public sealed class LessonSoftDeletePersistenceTests
         Assert.False(db.Entry(saved).Property<bool>("IsDeleted").CurrentValue);
     }
 }
-

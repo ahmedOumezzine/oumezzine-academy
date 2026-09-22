@@ -66,4 +66,3 @@ public sealed class AdminHttpAcceptanceTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 }
-

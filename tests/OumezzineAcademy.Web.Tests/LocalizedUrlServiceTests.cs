@@ -1,7 +1,7 @@
-using Xunit;
 using Microsoft.AspNetCore.Http;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Web.Services;
+using Xunit;
 
 namespace OumezzineAcademy.Tests;
 
@@ -46,7 +46,8 @@ public sealed class LocalizedUrlServiceTests
         context.Request.RouteValues["slug"] = "intro";
         var result = await new LocalizedUrlService(new SlugQueries(new("course", "intro", new Dictionary<string, string>
         {
-            ["fr"] = "introduction", ["en"] = "intro"
+            ["fr"] = "introduction",
+            ["en"] = "intro"
         }))).ResolveAsync(context);
 
         Assert.Equal("/en/courses/intro", result.Current);

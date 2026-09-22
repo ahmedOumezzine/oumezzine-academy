@@ -1,7 +1,7 @@
-using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using OumezzineAcademy.Infrastructure.Data;
+using OumezzineAcademy.Infrastructure.Persistence;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -50,4 +50,3 @@ public sealed class StudyLmsSeedServiceTests
 
     private sealed record SeedCounts(int Categories, int Courses, int Chapters, int Lessons, int Quizzes, int Questions, int Answers, int PathCategories, int Paths, int PathCourses, int Prerequisites);
 }
-

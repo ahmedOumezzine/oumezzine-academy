@@ -86,15 +86,21 @@ public sealed class PublicBasicControllerTests
         public CategoryDetailViewModel? Category { get; init; }
         public IReadOnlyList<CategoryCardViewModel> Categories { get; init; } = [];
         public (string?, string?, StudyLevel?, string?, string?, int, int) LastSearch { get; private set; }
+
         public Task<HomeViewModel> GetHomeAsync() => Task.FromResult(Home);
+
         public Task<CourseSearchViewModel> SearchCoursesAsync(string? q, string? category, StudyLevel? level, string? sort, string? view, int page, int pageSize)
         {
             LastSearch = (q, category, level, sort, view, page, pageSize);
             return Task.FromResult(Search);
         }
+
         public Task<CourseDetailViewModel?> GetCourseAsync(string slug) => Task.FromResult(Course);
+
         public Task<LessonDetailViewModel?> GetLessonAsync(string slug) => Task.FromResult<LessonDetailViewModel?>(null);
+
         public Task<IReadOnlyList<CategoryCardViewModel>> GetCategoriesAsync() => Task.FromResult(Categories);
+
         public Task<CategoryDetailViewModel?> GetCategoryAsync(string slug) => Task.FromResult(Category);
     }
 }

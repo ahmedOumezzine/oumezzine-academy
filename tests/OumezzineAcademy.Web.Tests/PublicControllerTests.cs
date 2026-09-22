@@ -114,11 +114,17 @@ public sealed class PublicControllerTests
     private sealed class CourseCatalogFake : ICourseCatalogService
     {
         public LessonDetailViewModel? Lesson { get; init; }
+
         public Task<HomeViewModel> GetHomeAsync() => Task.FromResult(new HomeViewModel());
+
         public Task<CourseSearchViewModel> SearchCoursesAsync(string? q, string? category, StudyLevel? level, string? sort, string? view, int page, int pageSize) => Task.FromResult(new CourseSearchViewModel());
+
         public Task<CourseDetailViewModel?> GetCourseAsync(string slug) => Task.FromResult<CourseDetailViewModel?>(null);
+
         public Task<LessonDetailViewModel?> GetLessonAsync(string slug) => Task.FromResult(Lesson);
+
         public Task<IReadOnlyList<CategoryCardViewModel>> GetCategoriesAsync() => Task.FromResult<IReadOnlyList<CategoryCardViewModel>>([]);
+
         public Task<CategoryDetailViewModel?> GetCategoryAsync(string slug) => Task.FromResult<CategoryDetailViewModel?>(null);
     }
 
@@ -126,7 +132,9 @@ public sealed class PublicControllerTests
     {
         public LearningPathListViewModel List { get; } = new();
         public LearningPathDetailViewModel? Detail { get; init; }
+
         public Task<LearningPathListViewModel> GetPathsAsync(string? category, StudyLevel? level) => Task.FromResult(List);
+
         public Task<LearningPathDetailViewModel?> GetPathAsync(string slug) => Task.FromResult(Detail);
     }
 
@@ -134,7 +142,9 @@ public sealed class PublicControllerTests
     {
         public QuizAttemptViewModel? AttemptModel { get; init; }
         public QuizResultViewModel? ResultModel { get; init; }
+
         public Task<QuizAttemptViewModel?> GetQuizAsync(string slug) => Task.FromResult(AttemptModel);
+
         public Task<QuizResultViewModel?> GradeAsync(Guid quizId, IFormCollection form) => Task.FromResult(ResultModel);
     }
 }

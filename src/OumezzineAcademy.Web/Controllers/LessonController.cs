@@ -1,6 +1,6 @@
-using OumezzineAcademy.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
+using OumezzineAcademy.Web.Services;
 
 namespace OumezzineAcademy.Controllers;
 
@@ -21,4 +21,3 @@ public class LessonController : Controller
         return model == null ? NotFound() : View(model);
     }
 }
-

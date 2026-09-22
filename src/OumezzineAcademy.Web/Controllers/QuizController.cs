@@ -1,5 +1,5 @@
-using OumezzineAcademy.Web.Services;
 using Microsoft.AspNetCore.Mvc;
+using OumezzineAcademy.Web.Services;
 
 namespace OumezzineAcademy.Controllers;
 
@@ -28,4 +28,3 @@ public class QuizController : Controller
         return model == null ? NotFound() : View("Result", model);
     }
 }
-

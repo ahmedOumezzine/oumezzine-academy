@@ -1,6 +1,5 @@
-using OumezzineAcademy.Application.Abstractions;
-using OumezzineAcademy.Models.Catalog;
 using Microsoft.AspNetCore.Mvc;
+using OumezzineAcademy.Application.Abstractions;
 using System.Text;
 using System.Xml;
 
@@ -82,6 +81,3 @@ public class SeoController : Controller
 
     private static bool HasSlug(string? slug) => !string.IsNullOrWhiteSpace(slug);
 }
-
-
-

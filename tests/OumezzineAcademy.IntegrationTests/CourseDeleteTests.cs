@@ -1,13 +1,11 @@
-using System.Net;
-using System.Text.RegularExpressions;
-using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Web.Services;
-using OumezzineAcademy.Application.Abstractions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using OumezzineAcademy.Application.Abstractions;
+using OumezzineAcademy.Infrastructure.Data;
+using OumezzineAcademy.Web.Services;
+using System.Net;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -102,7 +100,8 @@ public sealed class CourseDeleteTests
             {
                 db.StudyLearningPathCourses.Add(new LearningPathCourse
                 {
-                    Id = Guid.NewGuid(), CourseId = id,
+                    Id = Guid.NewGuid(),
+                    CourseId = id,
                     LearningPath = new LearningPath { Id = Guid.NewGuid(), Title = "Test path", Slug = "test-path", LearningPathCategory = new LearningPathCategory { Id = Guid.NewGuid(), Title = "Test", Slug = "test" } }
                 });
             }
@@ -178,7 +177,9 @@ public sealed class CourseDeleteTests
 
     private static string[] DeleteForms(string html, Guid id) => Regex.Matches(html, @"<form\b[^>]*class=""course-delete-form""[^>]*>.*?</form>", RegexOptions.Singleline)
         .Select(m => m.Value).Where(form => Attribute(form, "action").Contains(id.ToString(), StringComparison.OrdinalIgnoreCase)).ToArray();
+
     private static string Attribute(string html, string name) => WebUtility.HtmlDecode(Regex.Match(html, $"\\b{name}=\"([^\"]*)\"").Groups[1].Value);
+
     private static string Token(string form) => Attribute(Regex.Match(form, @"<input\b[^>]*name=""__RequestVerificationToken""[^>]*>").Value, "value");
 
     private sealed class Fixture : IDisposable
@@ -188,6 +189,7 @@ public sealed class CourseDeleteTests
         public HttpClient Client { get; }
         public FakeCache Cache { get; } = new();
         public FakeMedia Media { get; } = new();
+
         public Fixture()
         {
             Factory = _base.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
@@ -198,7 +200,9 @@ public sealed class CourseDeleteTests
             Client = Factory.CreateClient(new() { AllowAutoRedirect = false, BaseAddress = new Uri("https://localhost") });
             Media.CourseExists = id => { using var scope = Factory.Services.CreateScope(); return scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().StudyCourses.Any(x => x.Id == id); };
         }
+
         public static string Thumbnail(Guid id) => $"/uploads/courses/{id:D}/test.png";
+
         public async Task<Guid> AddCourseAsync()
         {
             using var scope = Factory.Services.CreateScope();
@@ -208,28 +212,39 @@ public sealed class CourseDeleteTests
             course.Translations.Add(new() { Id = Guid.NewGuid(), LanguageCode = "fr", Title = "Cours à supprimer", Slug = "fr-" + id.ToString("N") });
             db.Add(course); await db.SaveChangesAsync(); return id;
         }
+
         public async Task AssertRetainedAsync(Guid id)
         {
             using var scope = Factory.Services.CreateScope();
             Assert.True(await scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().StudyCourses.AnyAsync(x => x.Id == id));
             Assert.Equal(0, Cache.Invalidations); Assert.Empty(Media.Deleted);
         }
-        public void Dispose() { Client.Dispose(); Factory.Dispose(); _base.Dispose(); }
+
+        public void Dispose()
+        { Client.Dispose(); Factory.Dispose(); _base.Dispose(); }
     }
+
     private sealed class FakeCache : IStudyLmsCacheInvalidator
     {
         public int Invalidations;
-        public Task InvalidatePublicAsync(CancellationToken token = default) { Invalidations++; return Task.CompletedTask; }
+
+        public Task InvalidatePublicAsync(CancellationToken token = default)
+        { Invalidations++; return Task.CompletedTask; }
+
         public Task InvalidateCatalogAsync(CancellationToken token = default) => Task.CompletedTask;
     }
+
     private sealed class FakeMedia : IMediaStorage
     {
         public List<string?> Deleted { get; } = [];
         public Func<Guid, bool>? CourseExists;
         public bool CourseExistedAtDeletion;
         public bool FailCleanup;
+
         public Task<string> SaveImageAsync(MediaUpload upload, string area, Guid entityId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
         public bool IsSafeImagePath(string? relativePath, string area, Guid entityId) => true;
+
         public void DeleteIfSafe(string? relativePath, string area, Guid entityId)
         {
             CourseExistedAtDeletion = CourseExists!(entityId);
@@ -238,4 +253,3 @@ public sealed class CourseDeleteTests
         }
     }
 }
-

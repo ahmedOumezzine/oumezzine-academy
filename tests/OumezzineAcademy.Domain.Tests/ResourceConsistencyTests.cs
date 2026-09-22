@@ -36,4 +36,3 @@ public sealed class ResourceConsistencyTests
         Assert.Equal(keys.Length, keys.Distinct(StringComparer.Ordinal).Count());
     }
 }
-

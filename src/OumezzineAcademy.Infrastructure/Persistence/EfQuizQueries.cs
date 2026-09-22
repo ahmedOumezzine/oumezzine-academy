@@ -37,5 +37,3 @@ public sealed class EfQuizQueries(ApplicationDbContext db) : IQuizQueries
         return quiz;
     }
 }
-
-

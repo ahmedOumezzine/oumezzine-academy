@@ -1,10 +1,12 @@
-using Xunit;
+using AhmedOumezzine.EFCore.Repository.Extensions;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OumezzineAcademy.Application.Abstractions;
-using OumezzineAcademy.Domain.Catalog;
 using OumezzineAcademy.Infrastructure.Data;
 using OumezzineAcademy.Infrastructure.Persistence;
 using OumezzineAcademy.Infrastructure.Sanitization;
+using Xunit;
 
 namespace OumezzineAcademy.Tests;
 
@@ -23,7 +25,7 @@ public sealed class LearningPathPersistenceTests
     public async Task Composes_courses_and_rejects_duplicates_or_missing_items()
     {
         await using var db = CreateDb(out var categoryId, out var pathId, out var courseId);
-        var commands = new EfAdminLearningPathCommands(db);
+        var commands = new EfAdminLearningPathCommands(db, CreateRepository(db));
         await commands.AddCourseAsync(pathId, courseId);
         await Assert.ThrowsAsync<InvalidOperationException>(() => commands.AddCourseAsync(pathId, courseId));
         await Assert.ThrowsAsync<InvalidOperationException>(() => commands.SynchronizeCoursesAsync(pathId, new[] { Guid.NewGuid() }));
@@ -34,7 +36,7 @@ public sealed class LearningPathPersistenceTests
     public async Task Deletes_learning_path_and_rejects_unknown_path()
     {
         await using var db = CreateDb(out _, out var pathId, out _);
-        var commands = new EfAdminLearningPathCommands(db);
+        var commands = new EfAdminLearningPathCommands(db, CreateRepository(db));
         await commands.DeleteAsync(pathId);
         Assert.Empty(await db.LearningPaths.ToListAsync());
         await Assert.ThrowsAsync<KeyNotFoundException>(() => commands.DeleteAsync(Guid.NewGuid()));
@@ -57,4 +59,12 @@ public sealed class LearningPathPersistenceTests
         => new(id, categoryId, StudyLevel.Beginner, null,
             new("Parcours", "parcours", "Résumé", null, null, StudyStatus.Published),
             new("Path", "path-en", "Summary", null, null, StudyStatus.Published));
+
+    private static IRepository CreateRepository(ApplicationDbContext db)
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => db);
+        services.AddGenericRepository<ApplicationDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IRepository>();
+    }
 }

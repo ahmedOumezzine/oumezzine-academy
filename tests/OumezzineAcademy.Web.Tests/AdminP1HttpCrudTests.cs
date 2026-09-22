@@ -48,4 +48,3 @@ public sealed class AdminP1HttpCrudTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }
-

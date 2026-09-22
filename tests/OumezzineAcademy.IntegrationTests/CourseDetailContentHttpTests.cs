@@ -1,10 +1,8 @@
-using System.Net;
 using AngleSharp.Html.Parser;
-using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Models.Catalog;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using OumezzineAcademy.Infrastructure.Data;
+using System.Net;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -64,19 +62,28 @@ public sealed class CourseDetailContentHttpTests
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = new CourseCategory
         {
-            Id = Guid.NewGuid(), CreatedOnUtc = DateTime.UtcNow, Title = "Development", Slug = "development",
+            Id = Guid.NewGuid(),
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = "Development",
+            Slug = "development",
             Status = StudyStatus.Published
         };
         category.Translations.AddRange(
             new CourseCategoryTranslation
             {
-                Id = Guid.NewGuid(), LanguageCode = "fr",
-                PublicationStatus = StudyStatus.Published, Title = "Développement", Slug = "developpement"
+                Id = Guid.NewGuid(),
+                LanguageCode = "fr",
+                PublicationStatus = StudyStatus.Published,
+                Title = "Développement",
+                Slug = "developpement"
             },
             new CourseCategoryTranslation
             {
-                Id = Guid.NewGuid(), LanguageCode = "en",
-                PublicationStatus = StudyStatus.Published, Title = "Development", Slug = "development"
+                Id = Guid.NewGuid(),
+                LanguageCode = "en",
+                PublicationStatus = StudyStatus.Published,
+                Title = "Development",
+                Slug = "development"
             });
 
         db.AddRange(category,
@@ -96,22 +103,37 @@ public sealed class CourseDetailContentHttpTests
     {
         var course = new Course
         {
-            Id = Guid.NewGuid(), CreatedOnUtc = DateTime.UtcNow, Title = title, Slug = frenchSlug,
-            CourseCategoryId = category.Id, CourseCategory = category, Level = StudyLevel.Beginner, Status = StudyStatus.Published
+            Id = Guid.NewGuid(),
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = title,
+            Slug = frenchSlug,
+            CourseCategoryId = category.Id,
+            CourseCategory = category,
+            Level = StudyLevel.Beginner,
+            Status = StudyStatus.Published
         };
         course.Translations.Add(new CourseTranslation
         {
-            Id = Guid.NewGuid(), LanguageCode = "fr", PublicationStatus = StudyStatus.Published,
-            Title = title, Slug = frenchSlug, Summary = frenchSummary, Overview = RichHtml(frenchOverview)
+            Id = Guid.NewGuid(),
+            LanguageCode = "fr",
+            PublicationStatus = StudyStatus.Published,
+            Title = title,
+            Slug = frenchSlug,
+            Summary = frenchSummary,
+            Overview = RichHtml(frenchOverview)
         });
         course.Translations.Add(new CourseTranslation
         {
-            Id = Guid.NewGuid(), LanguageCode = "en", PublicationStatus = StudyStatus.Published,
-            Title = $"{title} EN", Slug = englishSlug, Summary = englishSummary, Overview = RichHtml(englishOverview)
+            Id = Guid.NewGuid(),
+            LanguageCode = "en",
+            PublicationStatus = StudyStatus.Published,
+            Title = $"{title} EN",
+            Slug = englishSlug,
+            Summary = englishSummary,
+            Overview = RichHtml(englishOverview)
         });
         return course;
     }
 
     private static string? RichHtml(string content) => string.IsNullOrWhiteSpace(content) ? null : $"<p>{content}</p>";
 }
-

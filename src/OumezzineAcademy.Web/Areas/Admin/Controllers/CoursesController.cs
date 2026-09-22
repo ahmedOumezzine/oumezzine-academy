@@ -1,9 +1,8 @@
-using OumezzineAcademy.Areas.Admin.Models;
-using OumezzineAcademy.Application.Abstractions;
-using OumezzineAcademy.Models.Catalog;
-using OumezzineAcademy.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OumezzineAcademy.Application.Abstractions;
+using OumezzineAcademy.Areas.Admin.Models;
+using OumezzineAcademy.Web.Services;
 
 namespace OumezzineAcademy.Areas.Admin.Controllers;
 
@@ -23,9 +22,9 @@ public sealed class CoursesController : Controller
     {
         page = Math.Max(1, page);
         pageSize = pageSize is 20 or 50 ? pageSize : 10;
-        var categories = (await _queries.GetCategoryOptionsAsync(cancellationToken)).Select(x => new AdminCategoryOption { Id=x.Id, DisplayName=x.DisplayName }).ToList();
+        var categories = (await _queries.GetCategoryOptionsAsync(cancellationToken)).Select(x => new AdminCategoryOption { Id = x.Id, DisplayName = x.DisplayName }).ToList();
         var result = await _queries.ListAsync(search, category, level, frStatus, enStatus, sort, page, pageSize, cancellationToken);
-        var items = result.Items.Select(x => new AdminCourseListItem { Id=x.Id, CourseStatus=x.CourseStatus, Thumbnail=x.Thumbnail, Slug=x.Slug, DisplayTitle=x.DisplayTitle, FrenchTitle=x.FrenchTitle, EnglishTitle=x.EnglishTitle, CategoryTitle=x.CategoryTitle, Level=x.Level, FrenchStatus=x.FrenchStatus, EnglishStatus=x.EnglishStatus, LessonsCount=x.LessonsCount, QuizzesCount=x.QuizzesCount, DateUtc=x.DateUtc, FrenchVisibility=CourseVisibilityPolicy.Evaluate(x.CourseStatus,x.FrenchStatus,"fr"), EnglishVisibility=CourseVisibilityPolicy.Evaluate(x.CourseStatus,x.EnglishStatus,"en") }).ToList();
+        var items = result.Items.Select(x => new AdminCourseListItem { Id = x.Id, CourseStatus = x.CourseStatus, Thumbnail = x.Thumbnail, Slug = x.Slug, DisplayTitle = x.DisplayTitle, FrenchTitle = x.FrenchTitle, EnglishTitle = x.EnglishTitle, CategoryTitle = x.CategoryTitle, Level = x.Level, FrenchStatus = x.FrenchStatus, EnglishStatus = x.EnglishStatus, LessonsCount = x.LessonsCount, QuizzesCount = x.QuizzesCount, DateUtc = x.DateUtc, FrenchVisibility = CourseVisibilityPolicy.Evaluate(x.CourseStatus, x.FrenchStatus, "fr"), EnglishVisibility = CourseVisibilityPolicy.Evaluate(x.CourseStatus, x.EnglishStatus, "en") }).ToList();
         return View(new AdminCoursesListViewModel { Items = items, TotalCount = result.TotalCount, Categories = categories, Search = search, Category = category, Level = level, FrenchStatus = frStatus, EnglishStatus = enStatus, Sort = string.IsNullOrWhiteSpace(sort) ? "modified" : sort, Page = page, PageSize = pageSize });
     }
 
@@ -60,27 +59,34 @@ public sealed class CoursesController : Controller
         Validate(model.French, "French"); Validate(model.English, "English");
         if (!string.IsNullOrWhiteSpace(model.French.Slug) && await service.SlugExistsAsync("fr", model.French.Slug, model.Id, token)) ModelState.AddModelError("French.Slug", "Ce slug existe déjà en français.");
         if (!string.IsNullOrWhiteSpace(model.English.Slug) && await service.SlugExistsAsync("en", model.English.Slug, model.Id, token)) ModelState.AddModelError("English.Slug", "Ce slug existe déjà en anglais.");
-        if (!ModelState.IsValid) { await PrepareFormModelAsync(model, token);
-        return View("Create", model);
-    }
-        try {
-        var result = await service.SaveWithThumbnailAsync(model, token);
-        foreach (var error in result.Errors) ModelState.AddModelError(error.Key, error.Message);
-        if (!result.Success) { await PrepareFormModelAsync(model, token); return View("Create", model); }
-        TempData["Success"] = "Cours enregistré.";
-        return RedirectToAction(nameof(Index));
+        if (!ModelState.IsValid)
+        {
+            await PrepareFormModelAsync(model, token);
+            return View("Create", model);
         }
-        catch (InvalidDataException ex) { ModelState.AddModelError("Thumbnail", ex.Message); await PrepareFormModelAsync(model, token);
-        return View("Create", model);
+        try
+        {
+            var result = await service.SaveWithThumbnailAsync(model, token);
+            foreach (var error in result.Errors) ModelState.AddModelError(error.Key, error.Message);
+            if (!result.Success) { await PrepareFormModelAsync(model, token); return View("Create", model); }
+            TempData["Success"] = "Cours enregistré.";
+            return RedirectToAction(nameof(Index));
         }
-        catch (InvalidOperationException) { ModelState.AddModelError("", "Impossible d'enregistrer ce cours. Vérifiez les valeurs saisies."); await PrepareFormModelAsync(model, token);
-        return View("Create", model);
-    }
+        catch (InvalidDataException ex)
+        {
+            ModelState.AddModelError("Thumbnail", ex.Message); await PrepareFormModelAsync(model, token);
+            return View("Create", model);
+        }
+        catch (InvalidOperationException)
+        {
+            ModelState.AddModelError("", "Impossible d'enregistrer ce cours. Vérifiez les valeurs saisies."); await PrepareFormModelAsync(model, token);
+            return View("Create", model);
+        }
     }
 
-    private async Task<IReadOnlyList<AdminCategoryOption>> CategoryOptionsAsync(CancellationToken token) => (await _queries.GetCategoryOptionsAsync(token)).Select(x=>new AdminCategoryOption{Id=x.Id,DisplayName=x.DisplayName}).ToList();
+    private async Task<IReadOnlyList<AdminCategoryOption>> CategoryOptionsAsync(CancellationToken token) => (await _queries.GetCategoryOptionsAsync(token)).Select(x => new AdminCategoryOption { Id = x.Id, DisplayName = x.DisplayName }).ToList();
 
-    private async Task<List<AdminCourseOption>> PrerequisitesAsync(CancellationToken token) => (await _queries.GetPrerequisiteOptionsAsync()).Select(x=>new AdminCourseOption{Id=x.Id,Title=x.Title,Slug=x.Slug,Level=x.Level,CategoryName=x.CategoryName}).ToList();
+    private async Task<List<AdminCourseOption>> PrerequisitesAsync(CancellationToken token) => (await _queries.GetPrerequisiteOptionsAsync()).Select(x => new AdminCourseOption { Id = x.Id, Title = x.Title, Slug = x.Slug, Level = x.Level, CategoryName = x.CategoryName }).ToList();
 
     private async Task PrepareFormModelAsync(CourseEditViewModel model, CancellationToken token)
     {
@@ -107,7 +113,8 @@ public sealed class CoursesController : Controller
     }
 
     private static CourseTranslationInput Input(OumezzineAcademy.Domain.Catalog.CourseTranslation? x) => x is null ? new() : new() { Title = x.Title, Slug = x.Slug, Summary = x.Summary, Overview = x.Overview, WhatYouLearn = x.WhatYouLearn, Requirements = x.Requirements, Audience = x.Audience, MetaTitle = x.MetaTitle, MetaDescription = x.MetaDescription, PublicationStatus = x.PublicationStatus };
-    private static CourseTranslationInput Input(AdminCourseTranslationDto x) => new() { Title=x.Title, Slug=x.Slug, Summary=x.Summary, Overview=x.Overview, WhatYouLearn=x.WhatYouLearn, Requirements=x.Requirements, Audience=x.Audience, MetaTitle=x.MetaTitle, MetaDescription=x.MetaDescription, PublicationStatus=x.PublicationStatus };
+
+    private static CourseTranslationInput Input(AdminCourseTranslationDto x) => new() { Title = x.Title, Slug = x.Slug, Summary = x.Summary, Overview = x.Overview, WhatYouLearn = x.WhatYouLearn, Requirements = x.Requirements, Audience = x.Audience, MetaTitle = x.MetaTitle, MetaDescription = x.MetaDescription, PublicationStatus = x.PublicationStatus };
 
     [HttpPost("thumbnail/{id:guid}")]
     [ValidateAntiForgeryToken]
@@ -132,6 +139,3 @@ public sealed class CoursesController : Controller
         return await _service.DeleteThumbnailAsync(id, cancellationToken) ? Ok() : NotFound();
     }
 }
-
-
-

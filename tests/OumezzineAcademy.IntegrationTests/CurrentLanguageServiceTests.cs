@@ -1,7 +1,7 @@
-using OumezzineAcademy.Infrastructure.Persistence;
-using System.Globalization;
-using OumezzineAcademy.Web.Services;
 using Microsoft.EntityFrameworkCore;
+using OumezzineAcademy.Infrastructure.Persistence;
+using OumezzineAcademy.Web.Services;
+using System.Globalization;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -49,5 +49,3 @@ public sealed class CurrentLanguageServiceTests
         }
     }
 }
-
-

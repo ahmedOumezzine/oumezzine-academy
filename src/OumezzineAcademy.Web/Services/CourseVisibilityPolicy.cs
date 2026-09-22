@@ -1,7 +1,4 @@
 using System.Linq.Expressions;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Models.Catalog;
-using OumezzineAcademy.Application.Abstractions;
 
 namespace OumezzineAcademy.Web.Services;
 
@@ -39,4 +36,3 @@ public static class CourseVisibilityPolicy
         return new(reasons.Count == 0, reasons.AsReadOnly());
     }
 }
-

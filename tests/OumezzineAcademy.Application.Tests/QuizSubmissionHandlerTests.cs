@@ -1,6 +1,6 @@
-using Xunit;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Application.UseCases;
+using Xunit;
 
 namespace OumezzineAcademy.Tests;
 
@@ -38,6 +38,7 @@ public sealed class QuizSubmissionHandlerTests
     {
         public Task<QuizAttemptDto?> GetQuizAsync(string slug, string languageCode, CancellationToken cancellationToken = default)
             => Task.FromResult<QuizAttemptDto?>(null);
+
         public Task<QuizGradingData?> GetGradingDataAsync(Guid quizId, string languageCode, CancellationToken cancellationToken = default) => Task.FromResult(data);
     }
 }

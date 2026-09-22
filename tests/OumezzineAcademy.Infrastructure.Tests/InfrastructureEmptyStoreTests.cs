@@ -1,12 +1,13 @@
+using AhmedOumezzine.EFCore.Repository.Extensions;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 using OumezzineAcademy.Application.Abstractions;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Infrastructure.Data;
 using OumezzineAcademy.Infrastructure;
+using OumezzineAcademy.Infrastructure.Data;
 using OumezzineAcademy.Infrastructure.Persistence;
 using OumezzineAcademy.Infrastructure.Sanitization;
+using System.Reflection;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -53,6 +54,7 @@ public sealed class InfrastructureEmptyStoreTests
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IAdminLearningPathCoreCommands));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IAdminLearningPathCommands));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IStudyLmsSeeder));
+        Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IRepository));
     }
 
     [Fact]
@@ -86,7 +88,7 @@ public sealed class InfrastructureEmptyStoreTests
         await using var db = CreateDb();
         var id = Guid.NewGuid();
 
-        var categories = new EfAdminCategoryPersistence(db);
+        var categories = new EfAdminCategoryPersistence(db, CreateRepository(db));
         Assert.Empty(await categories.ListAsync());
         Assert.Null(await categories.GetForEditAsync(id));
         Assert.False(await categories.SlugExistsAsync("fr", "missing", id));
@@ -146,10 +148,10 @@ public sealed class InfrastructureEmptyStoreTests
         Assert.Null(await new EfAdminLearningPathMediaCommands(db, media).UploadAsync(id, upload));
         Assert.Equal(new(false, null), await new EfAdminCourseMediaCommands(db, media).UploadAsync(id, upload));
         Assert.False(await new EfAdminCourseMediaCommands(db, media).RemoveAsync(id));
-        Assert.True((await new EfAdminCourseDeleteCommands(db, media).DeleteAsync(id)).NotFound);
+        Assert.True((await new EfAdminCourseDeleteCommands(db, media, CreateRepository(db)).DeleteAsync(id)).NotFound);
         Assert.True((await new EfAdminLessonDeleteCommands(db).DeleteAsync(id, id, id)).NotFound);
-        Assert.Equal(AdminLearningPathCategoryDeleteStatus.NotFound, await new EfAdminLearningPathCategoryCommands(db).DeleteAsync(id));
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => new EfAdminLearningPathCommands(db).DeleteAsync(id));
+        Assert.Equal(AdminLearningPathCategoryDeleteStatus.NotFound, await new EfAdminLearningPathCategoryCommands(db, CreateRepository(db)).DeleteAsync(id));
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => new EfAdminLearningPathCommands(db, CreateRepository(db)).DeleteAsync(id));
     }
 
     [Fact]
@@ -201,7 +203,7 @@ public sealed class InfrastructureEmptyStoreTests
         db.CourseCategories.Add(category);
         db.Courses.Add(course);
         await db.SaveChangesAsync();
-        var commands = new EfAdminCourseDeleteCommands(db, new MediaSpy());
+        var commands = new EfAdminCourseDeleteCommands(db, new MediaSpy(), CreateRepository(db));
 
         Assert.True((await commands.DeleteAsync(Guid.Empty)).NotFound);
         var chapter = new CourseContent { Id = Guid.NewGuid(), CourseId = course.Id, Title = "Chapter" };
@@ -217,7 +219,7 @@ public sealed class InfrastructureEmptyStoreTests
     public async Task Course_category_persistence_supports_save_edit_and_delete_rules()
     {
         await using var db = CreateDb();
-        var persistence = new EfAdminCategoryPersistence(db);
+        var persistence = new EfAdminCategoryPersistence(db, CreateRepository(db));
         var command = new AdminCategorySaveCommand(null,
             new(" French ", " french ", "Summary", "Meta", "Description", StudyStatus.Published),
             new(" English ", " english ", null, null, null, StudyStatus.Draft));
@@ -249,7 +251,7 @@ public sealed class InfrastructureEmptyStoreTests
         db.LearningPaths.Add(path);
         db.Courses.AddRange(course1, course2);
         await db.SaveChangesAsync();
-        var commands = new EfAdminLearningPathCommands(db);
+        var commands = new EfAdminLearningPathCommands(db, CreateRepository(db));
 
         await commands.AddCourseAsync(path.Id, course1.Id);
         await Assert.ThrowsAsync<InvalidOperationException>(() => commands.AddCourseAsync(path.Id, course1.Id));
@@ -326,13 +328,24 @@ public sealed class InfrastructureEmptyStoreTests
 
     private static ApplicationDbContext CreateDb() => new(new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
+    private static IRepository CreateRepository(ApplicationDbContext db)
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => db);
+        services.AddGenericRepository<ApplicationDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IRepository>();
+    }
+
     private sealed class MediaSpy : IMediaStorage
     {
         public List<string> Deleted { get; } = [];
         public bool Safe { get; set; } = true;
         public bool ThrowOnDelete { get; set; }
+
         public Task<string> SaveImageAsync(MediaUpload upload, string area, Guid entityId, CancellationToken cancellationToken = default) => Task.FromResult($"/uploads/{area}/{entityId:D}/image.png");
+
         public bool IsSafeImagePath(string? relativePath, string area, Guid entityId) => Safe;
+
         public void DeleteIfSafe(string? relativePath, string area, Guid entityId)
         {
             if (ThrowOnDelete) throw new ArgumentException("test");

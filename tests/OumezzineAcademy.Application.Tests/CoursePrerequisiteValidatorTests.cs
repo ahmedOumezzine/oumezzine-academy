@@ -1,6 +1,6 @@
-using Xunit;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Application.UseCases;
+using Xunit;
 
 namespace OumezzineAcademy.Tests;
 

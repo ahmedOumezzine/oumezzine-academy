@@ -7,4 +7,3 @@ namespace OumezzineAcademy.Models
         public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
     }
 }
-

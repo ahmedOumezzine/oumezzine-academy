@@ -1,15 +1,15 @@
-using OumezzineAcademy.Application.Admin.Catalog;
-using OumezzineAcademy.Infrastructure.Persistence;
-using OumezzineAcademy.Infrastructure.Media;
-using OumezzineAcademy.Application.UseCases;
-using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Areas.Admin.Models;
-using OumezzineAcademy.Models.Catalog;
-using OumezzineAcademy.Web.Services;
-using OumezzineAcademy.Infrastructure.Sanitization;
-using Microsoft.AspNetCore.Http;
+using AhmedOumezzine.EFCore.Repository.Extensions;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using OumezzineAcademy.Application.Admin.Catalog;
+using OumezzineAcademy.Application.UseCases;
+using OumezzineAcademy.Areas.Admin.Models;
+using OumezzineAcademy.Infrastructure.Data;
+using OumezzineAcademy.Infrastructure.Media;
+using OumezzineAcademy.Infrastructure.Persistence;
+using OumezzineAcademy.Infrastructure.Sanitization;
+using OumezzineAcademy.Web.Services;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -24,7 +24,7 @@ public sealed class AdminLearningPathTests
         db.StudyLearningPathCategories.Add(category);
         db.Entry(category).Property<bool>("IsDeleted").CurrentValue = false;
         await db.SaveChangesAsync();
-        var service = new AdminLearningPathService(new EfAdminLearningPathMediaCommands(db,new FileSystemMediaStorage(".")), new EfAdminLearningPathQueries(db), new EfAdminLearningPathCoreCommands(db, new HtmlSanitizerService()), new EfAdminLearningPathCommands(db));
+        var service = new AdminLearningPathService(new EfAdminLearningPathMediaCommands(db, new FileSystemMediaStorage(".")), new EfAdminLearningPathQueries(db), new EfAdminLearningPathCoreCommands(db, new HtmlSanitizerService()), new EfAdminLearningPathCommands(db, CreateRepository(db)));
         var model = new LearningPathEditViewModel
         {
             CategoryId = category.Id,
@@ -59,7 +59,7 @@ public sealed class AdminLearningPathTests
         db.StudyLearningPaths.Add(path);
         await db.SaveChangesAsync();
 
-        var service = new AdminLearningPathService(new EfAdminLearningPathMediaCommands(db,new FileSystemMediaStorage(".")), new EfAdminLearningPathQueries(db), new EfAdminLearningPathCoreCommands(db, new HtmlSanitizerService()), new EfAdminLearningPathCommands(db));
+        var service = new AdminLearningPathService(new EfAdminLearningPathMediaCommands(db, new FileSystemMediaStorage(".")), new EfAdminLearningPathQueries(db), new EfAdminLearningPathCoreCommands(db, new HtmlSanitizerService()), new EfAdminLearningPathCommands(db, CreateRepository(db)));
         var viewModel = await service.CoursesAsync(path.Id, default);
 
         Assert.NotNull(viewModel);
@@ -122,6 +122,11 @@ public sealed class AdminLearningPathTests
         db.StudyCourses.Add(course); await db.SaveChangesAsync(); return course.Id;
     }
 
+    private static IRepository CreateRepository(ApplicationDbContext db)
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => db);
+        services.AddGenericRepository<ApplicationDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IRepository>();
+    }
 }
-
-

@@ -1,13 +1,11 @@
+using Microsoft.EntityFrameworkCore;
+using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Areas.Admin.Models;
 using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Models.Catalog;
-using OumezzineAcademy.Web.Services;
-using OumezzineAcademy.Infrastructure.Sanitization;
-using OumezzineAcademy.Application.Abstractions;
-using OumezzineAcademy.Infrastructure.Persistence;
 using OumezzineAcademy.Infrastructure.Media;
-using Microsoft.EntityFrameworkCore;
+using OumezzineAcademy.Infrastructure.Persistence;
+using OumezzineAcademy.Infrastructure.Sanitization;
+using OumezzineAcademy.Web.Services;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -23,7 +21,8 @@ public sealed class AdminContentServiceTests
 
         await service.SaveAsync(new ChapterEditViewModel
         {
-            CourseId = courseId, Order = 1,
+            CourseId = courseId,
+            Order = 1,
             French = new() { Title = "Introduction", Summary = "Les bases", PublicationStatus = StudyStatus.Published }
         }, CancellationToken.None);
 
@@ -65,7 +64,9 @@ public sealed class AdminContentServiceTests
 
         await service.SaveAsync(new LessonEditViewModel
         {
-            CourseId = courseId, ChapterId = chapter.Id, Order = 1,
+            CourseId = courseId,
+            ChapterId = chapter.Id,
+            Order = 1,
             French = new() { Title = "Texte", Slug = "texte", Summary = "Résumé", ContentHtml = "<h2>OK</h2><script>alert(1)</script><p onerror=bad>Texte</p>", PublicationStatus = StudyStatus.Published },
             English = new() { Title = "Text", Slug = "text", Summary = "Summary", ContentHtml = "<p>Safe</p>", PublicationStatus = StudyStatus.Draft }
         }, CancellationToken.None);
@@ -113,4 +114,3 @@ public sealed class AdminContentServiceTests
         return (course.Id, category.Id);
     }
 }
-

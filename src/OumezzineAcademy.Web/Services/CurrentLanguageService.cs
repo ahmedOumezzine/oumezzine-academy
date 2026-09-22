@@ -1,5 +1,5 @@
-using System.Globalization;
 using OumezzineAcademy.Application.Abstractions;
+using System.Globalization;
 
 namespace OumezzineAcademy.Web.Services;
 
@@ -16,4 +16,3 @@ public sealed class CurrentLanguageService : ICurrentLanguageService
         }
     }
 }
-

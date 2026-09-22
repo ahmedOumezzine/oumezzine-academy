@@ -1,8 +1,7 @@
-using OumezzineAcademy.Areas.Admin.Models;
-using OumezzineAcademy.Models.Catalog;
-using OumezzineAcademy.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OumezzineAcademy.Areas.Admin.Models;
+using OumezzineAcademy.Web.Services;
 
 namespace OumezzineAcademy.Areas.Admin.Controllers;
 
@@ -31,10 +30,14 @@ public sealed class LearningPathsController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(Guid id, CancellationToken token)
     {
-        try { await _service.DeleteAsync(id, token); TempData["Success"] = "Parcours supprimé.";
+        try
+        {
+            await _service.DeleteAsync(id, token); TempData["Success"] = "Parcours supprimé.";
         }
-        catch (InvalidOperationException ex) { TempData["Error"] = ex.Message;
-    }
+        catch (InvalidOperationException ex)
+        {
+            TempData["Error"] = ex.Message;
+        }
         return RedirectToAction(nameof(Index));
     }
 
@@ -48,12 +51,18 @@ public sealed class LearningPathsController : Controller
     [HttpPost("admin/learningpaths/{id:guid}/courses/add"), ValidateAntiForgeryToken]
     public async Task<IActionResult> AddCourse(Guid id, Guid courseId, CancellationToken token)
     {
-        try { await _service.AddCourseAsync(id, courseId, token); TempData["Success"] = "Cours ajouté au parcours.";
+        try
+        {
+            await _service.AddCourseAsync(id, courseId, token); TempData["Success"] = "Cours ajouté au parcours.";
         }
-        catch (InvalidOperationException) { TempData["Error"] = "Ce cours est déjà présent dans le parcours.";
-    }
-        catch (KeyNotFoundException) { TempData["Error"] = "Le cours ou le parcours demandé est introuvable.";
-    }
+        catch (InvalidOperationException)
+        {
+            TempData["Error"] = "Ce cours est déjà présent dans le parcours.";
+        }
+        catch (KeyNotFoundException)
+        {
+            TempData["Error"] = "Le cours ou le parcours demandé est introuvable.";
+        }
         return RedirectToAction(nameof(Courses), new { id });
     }
 
@@ -77,16 +86,21 @@ public sealed class LearningPathsController : Controller
         if (model.CategoryId == Guid.Empty) ModelState.AddModelError(nameof(model.CategoryId), "Sélectionnez une catégorie.");
         if (!string.IsNullOrWhiteSpace(model.French.Slug) && await _service.SlugExistsAsync("fr", model.French.Slug, model.Id, token)) ModelState.AddModelError("French.Slug", "Ce slug existe déjà en français.");
         if (!string.IsNullOrWhiteSpace(model.English.Slug) && await _service.SlugExistsAsync("en", model.English.Slug, model.Id, token)) ModelState.AddModelError("English.Slug", "Ce slug existe déjà en anglais.");
-        if (!ModelState.IsValid) {
-        var prepared = await _service.GetFormAsync(model.Id == Guid.Empty ? null : model.Id, token); model.Categories = prepared?.Categories ?? []; model.SelectedCategoryTitle = prepared?.SelectedCategoryTitle ?? "Catégorie";
-        return View("Edit", model);
-    }
-        try { await _service.SaveAsync(model, token); TempData["Success"] = "Parcours enregistré.";
-        return RedirectToAction(nameof(Index));
+        if (!ModelState.IsValid)
+        {
+            var prepared = await _service.GetFormAsync(model.Id == Guid.Empty ? null : model.Id, token); model.Categories = prepared?.Categories ?? []; model.SelectedCategoryTitle = prepared?.SelectedCategoryTitle ?? "Catégorie";
+            return View("Edit", model);
         }
-        catch (InvalidOperationException ex) { ModelState.AddModelError("", ex.Message);
-        return View("Edit", model);
-    }
+        try
+        {
+            await _service.SaveAsync(model, token); TempData["Success"] = "Parcours enregistré.";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (InvalidOperationException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+            return View("Edit", model);
+        }
     }
 
     private void Validate(LearningPathTranslationInput input, string key)
@@ -95,5 +109,3 @@ public sealed class LearningPathsController : Controller
         if (input.PublicationStatus == StudyStatus.Published && (string.IsNullOrWhiteSpace(input.Title) || string.IsNullOrWhiteSpace(input.Slug) || string.IsNullOrWhiteSpace(input.Summary))) ModelState.AddModelError(key, $"La traduction {key} publiée doit avoir un titre, un slug et un résumé.");
     }
 }
-
-

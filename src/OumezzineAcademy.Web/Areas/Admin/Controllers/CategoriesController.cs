@@ -1,13 +1,11 @@
-using OumezzineAcademy.Areas.Admin.Models;
-using OumezzineAcademy.Models.Catalog;
-using OumezzineAcademy.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OumezzineAcademy.Areas.Admin.Models;
+using OumezzineAcademy.Web.Services;
 
 namespace OumezzineAcademy.Areas.Admin.Controllers;
 
 [Area("Admin"), Authorize(Roles = "Admin")]
-
 public sealed class CategoriesController : Controller
 {
     private readonly AdminCategoryService _service;
@@ -100,8 +98,4 @@ public sealed class CategoriesController : Controller
             ModelState.AddModelError(language, "Une traduction publiée doit avoir un titre et un slug.");
         }
     }
-
 }
-
-
-

@@ -1,5 +1,5 @@
-using Xunit;
 using OumezzineAcademy.Infrastructure.Sanitization;
+using Xunit;
 
 namespace OumezzineAcademy.Tests;
 

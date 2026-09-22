@@ -1,10 +1,9 @@
+using AhmedOumezzine.EFCore.Repository.Entities;
+
 namespace OumezzineAcademy.Domain.Catalog;
 
-public class CourseCategory
+public class CourseCategory : BaseEntity
 {
-    public Guid Id { get; set; }
-    public DateTime CreatedOnUtc { get; set; }
-    public DateTime? LastModifiedOnUtc { get; set; }
     public string Title { get; set; } = "";
     public string Slug { get; set; } = "";
     public string? Summary { get; set; }
@@ -13,11 +12,8 @@ public class CourseCategory
     public List<CourseCategoryTranslation> Translations { get; set; } = new();
 }
 
-public class Course
+public class Course : BaseEntity
 {
-    public Guid Id { get; set; }
-    public DateTime CreatedOnUtc { get; set; }
-    public DateTime? LastModifiedOnUtc { get; set; }
     public string Title { get; set; } = "";
     public string Slug { get; set; } = "";
     public string? Summary { get; set; }
@@ -37,11 +33,8 @@ public class Course
     public List<CoursePrerequisite> RequiredByCourses { get; set; } = new();
 }
 
-public class CourseContent
+public class CourseContent : BaseEntity
 {
-    public Guid Id { get; set; }
-    public DateTime CreatedOnUtc { get; set; }
-    public DateTime? LastModifiedOnUtc { get; set; }
     public string Title { get; set; } = "";
     public string Slug { get; set; } = "";
     public string? Summary { get; set; }
@@ -54,11 +47,8 @@ public class CourseContent
     public List<CourseContentTranslation> Translations { get; set; } = new();
 }
 
-public class CourseLesson
+public class CourseLesson : BaseEntity
 {
-    public Guid Id { get; set; }
-    public DateTime CreatedOnUtc { get; set; }
-    public DateTime? LastModifiedOnUtc { get; set; }
     public string Title { get; set; } = "";
     public string Slug { get; set; } = "";
     public string? Summary { get; set; }
@@ -73,11 +63,8 @@ public class CourseLesson
     public List<CourseLessonTranslation> Translations { get; set; } = new();
 }
 
-public class CourseQuiz
+public class CourseQuiz : BaseEntity
 {
-    public Guid Id { get; set; }
-    public DateTime CreatedOnUtc { get; set; }
-    public DateTime? LastModifiedOnUtc { get; set; }
     public string Title { get; set; } = "";
     public string Slug { get; set; } = "";
     public string? Summary { get; set; }
@@ -89,11 +76,8 @@ public class CourseQuiz
     public List<CourseQuizTranslation> Translations { get; set; } = new();
 }
 
-public class QuizQuestion
+public class QuizQuestion : BaseEntity
 {
-    public Guid Id { get; set; }
-    public DateTime CreatedOnUtc { get; set; }
-    public DateTime? LastModifiedOnUtc { get; set; }
     public string Text { get; set; } = "";
     public int Order { get; set; }
     public Guid CourseQuizId { get; set; }
@@ -102,11 +86,8 @@ public class QuizQuestion
     public List<QuizQuestionTranslation> Translations { get; set; } = new();
 }
 
-public class QuizAnswer
+public class QuizAnswer : BaseEntity
 {
-    public Guid Id { get; set; }
-    public DateTime CreatedOnUtc { get; set; }
-    public DateTime? LastModifiedOnUtc { get; set; }
     public string Text { get; set; } = "";
     public bool IsCorrect { get; set; }
     public Guid QuizQuestionId { get; set; }
@@ -114,11 +95,8 @@ public class QuizAnswer
     public List<QuizAnswerTranslation> Translations { get; set; } = new();
 }
 
-public class LearningPathCategory
+public class LearningPathCategory : BaseEntity
 {
-    public Guid Id { get; set; }
-    public DateTime CreatedOnUtc { get; set; }
-    public DateTime? LastModifiedOnUtc { get; set; }
     public string Title { get; set; } = "";
     public string Slug { get; set; } = "";
     public string? Summary { get; set; }
@@ -127,11 +105,8 @@ public class LearningPathCategory
     public List<LearningPathCategoryTranslation> Translations { get; set; } = new();
 }
 
-public class LearningPath
+public class LearningPath : BaseEntity
 {
-    public Guid Id { get; set; }
-    public DateTime CreatedOnUtc { get; set; }
-    public DateTime? LastModifiedOnUtc { get; set; }
     public string Title { get; set; } = "";
     public string Slug { get; set; } = "";
     public string? Summary { get; set; }
@@ -144,15 +119,11 @@ public class LearningPath
     public List<LearningPathTranslation> Translations { get; set; } = new();
 }
 
-public class LearningPathCourse
+public class LearningPathCourse : BaseEntity
 {
-    public Guid Id { get; set; }
-    public DateTime CreatedOnUtc { get; set; }
-    public DateTime? LastModifiedOnUtc { get; set; }
     public Guid LearningPathId { get; set; }
     public LearningPath LearningPath { get; set; } = null!;
     public Guid CourseId { get; set; }
     public Course Course { get; set; } = null!;
     public int Order { get; set; }
 }
-

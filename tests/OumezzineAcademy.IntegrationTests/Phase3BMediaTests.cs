@@ -1,8 +1,7 @@
+using Microsoft.AspNetCore.Http;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Infrastructure.Media;
-using OumezzineAcademy.Web.Services;
 using OumezzineAcademy.Infrastructure.Sanitization;
-using Microsoft.AspNetCore.Http;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -124,10 +123,10 @@ public sealed class Phase3BMediaTests
         };
         return new FormFile(stream, 0, stream.Length, "file", name) { Headers = new HeaderDictionary(), ContentType = contentType };
     }
+
     private static async Task<string> SaveAsync(IMediaStorage storage, IFormFile file, string area, Guid entityId)
     {
         await using var stream = file.OpenReadStream();
         return await storage.SaveImageAsync(new MediaUpload(file.FileName, file.ContentType, file.Length, stream), area, entityId);
     }
 }
-

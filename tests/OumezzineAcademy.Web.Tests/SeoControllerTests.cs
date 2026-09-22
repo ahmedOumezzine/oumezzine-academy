@@ -1,7 +1,7 @@
-using Xunit;
 using Microsoft.AspNetCore.Http;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Controllers;
+using Xunit;
 
 namespace OumezzineAcademy.Tests;
 

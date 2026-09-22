@@ -1,7 +1,6 @@
-using Xunit;
-using System.Globalization;
-using OumezzineAcademy.Domain.Catalog;
 using OumezzineAcademy.Web.Services;
+using System.Globalization;
+using Xunit;
 
 namespace OumezzineAcademy.Tests;
 

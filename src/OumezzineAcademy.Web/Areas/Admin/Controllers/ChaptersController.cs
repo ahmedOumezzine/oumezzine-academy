@@ -1,8 +1,7 @@
-using OumezzineAcademy.Areas.Admin.Models;
-using OumezzineAcademy.Models.Catalog;
-using OumezzineAcademy.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OumezzineAcademy.Areas.Admin.Models;
+using OumezzineAcademy.Web.Services;
 
 namespace OumezzineAcademy.Areas.Admin.Controllers;
 
@@ -39,13 +38,15 @@ public sealed class ChaptersController : Controller
 
     [HttpPost("admin/courses/{courseId:guid}/chapters/{id:guid}/edit"), ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(Guid courseId, Guid id, ChapterEditViewModel model, CancellationToken token)
-    { model.Id = id;
+    {
+        model.Id = id;
         return await Save(courseId, model, token);
     }
 
     [HttpPost("admin/courses/{courseId:guid}/chapters/{id:guid}/move"), ValidateAntiForgeryToken]
     public async Task<IActionResult> Move(Guid courseId, Guid id, int direction, CancellationToken token)
-    { await _service.MoveAsync(courseId, id, direction, token);
+    {
+        await _service.MoveAsync(courseId, id, direction, token);
         return RedirectToAction(nameof(Index), new { courseId });
     }
 
@@ -53,28 +54,41 @@ public sealed class ChaptersController : Controller
     public async Task<IActionResult> Delete(Guid courseId, Guid id, CancellationToken token)
     {
         try
-        { await _service.DeleteAsync(courseId, id, token); TempData["Success"] = "Chapitre supprimé.";
+        {
+            await _service.DeleteAsync(courseId, id, token); TempData["Success"] = "Chapitre supprimé.";
         }
-        catch (InvalidOperationException ex) { TempData["Error"] = ex.Message;
+        catch (InvalidOperationException ex)
+        {
+            TempData["Error"] = ex.Message;
         }
         return RedirectToAction(nameof(Index), new { courseId });
     }
 
     private async Task<IActionResult> Save(Guid courseId, ChapterEditViewModel model, CancellationToken token)
-    { model.CourseId = courseId; Validate(model.French, "French"); Validate(model.English, "English");
-        if (!ModelState.IsValid) {
-        var form = await _service.GetFormAsync(courseId, model.Id == Guid.Empty ? null : model.Id, token);
-        if (form is not null) { model.CourseFrenchTitle = form.CourseFrenchTitle; model.CourseEnglishTitle = form.CourseEnglishTitle;
+    {
+        model.CourseId = courseId; Validate(model.French, "French"); Validate(model.English, "English");
+        if (!ModelState.IsValid)
+        {
+            var form = await _service.GetFormAsync(courseId, model.Id == Guid.Empty ? null : model.Id, token);
+            if (form is not null)
+            {
+                model.CourseFrenchTitle = form.CourseFrenchTitle; model.CourseEnglishTitle = form.CourseEnglishTitle;
+            }
+            return View("Edit", model);
         }
-        return View("Edit", model);
-    } try { await _service.SaveAsync(model, token); TempData["Success"] = "Chapitre enregistré.";
-        if (Request.Form["continueEditing"] == "true")
-            return RedirectToAction(nameof(Edit), new { courseId, id = model.Id });
-        return RedirectToAction(nameof(Index), new { courseId });
+        try
+        {
+            await _service.SaveAsync(model, token); TempData["Success"] = "Chapitre enregistré.";
+            if (Request.Form["continueEditing"] == "true")
+                return RedirectToAction(nameof(Edit), new { courseId, id = model.Id });
+            return RedirectToAction(nameof(Index), new { courseId });
         }
-        catch (InvalidOperationException ex) { ModelState.AddModelError("", ex.Message);
-        return View("Edit", model);
-    } }
+        catch (InvalidOperationException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+            return View("Edit", model);
+        }
+    }
 
     private void Validate(ChapterTranslationInput input, string key)
     {
@@ -97,5 +111,3 @@ public sealed class ChaptersController : Controller
         catch (KeyNotFoundException) { return NotFound(); }
     }
 }
-
-

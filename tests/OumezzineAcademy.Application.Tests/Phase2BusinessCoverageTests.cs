@@ -1,12 +1,10 @@
-using OumezzineAcademy.Application.UseCases;
-using OumezzineAcademy.Infrastructure.Persistence;
-using System.Globalization;
-using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Models.Catalog;
-using OumezzineAcademy.Web.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using OumezzineAcademy.Application.UseCases;
+using OumezzineAcademy.Infrastructure.Data;
+using OumezzineAcademy.Infrastructure.Persistence;
+using OumezzineAcademy.Web.Services;
+using System.Globalization;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -246,6 +244,3 @@ public sealed class Phase2BusinessCoverageTests
 
     private sealed record Graph(Guid CategoryId, CourseCategory Category, Course Course, LearningPath Path, QuizAnswer Answer);
 }
-
-
-

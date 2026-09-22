@@ -1,22 +1,21 @@
-using System.Security.Claims;
-using OumezzineAcademy.Infrastructure.Data;
-using InfrastructureDbContext = OumezzineAcademy.Infrastructure.Data.ApplicationDbContext;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Models.Catalog;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.DataProtection;
+using OumezzineAcademy.Domain.Catalog;
+using OumezzineAcademy.Infrastructure.Data;
+using System.Security.Claims;
 
 namespace OumezzineAcademy.Tests;
 
-public enum AdminTestProfile { Anonymous, User, Admin }
+public enum AdminTestProfile
+{ Anonymous, User, Admin }
 
 public sealed class AdminWebApplicationFactory : WebApplicationFactory<Program>
 {
@@ -66,40 +65,68 @@ public sealed class AdminWebApplicationFactory : WebApplicationFactory<Program>
     {
         var category = new CourseCategory
         {
-            Id = Guid.Parse("00000000-0000-0000-0000-000000000001"), CreatedOnUtc = DateTime.UtcNow,
-            Title = "Test category", Slug = "test-category", Status = StudyStatus.Published
+            Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = "Test category",
+            Slug = "test-category",
+            Status = StudyStatus.Published
         };
         var course = new Course
         {
-            Id = CourseId, CreatedOnUtc = DateTime.UtcNow, Title = "Test course", Slug = "test-course",
-            CourseCategoryId = category.Id, Level = StudyLevel.Beginner, Status = StudyStatus.Published
+            Id = CourseId,
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = "Test course",
+            Slug = "test-course",
+            CourseCategoryId = category.Id,
+            Level = StudyLevel.Beginner,
+            Status = StudyStatus.Published
         };
         var chapter = new CourseContent
         {
-            Id = ChapterId, CreatedOnUtc = DateTime.UtcNow, Title = "Test chapter", Slug = "test-chapter",
-            CourseId = CourseId, Order = 1, Status = StudyStatus.Published
+            Id = ChapterId,
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = "Test chapter",
+            Slug = "test-chapter",
+            CourseId = CourseId,
+            Order = 1,
+            Status = StudyStatus.Published
         };
         var quiz = new CourseQuiz
         {
-            Id = QuizId, CreatedOnUtc = DateTime.UtcNow, Title = "Test quiz", Slug = "test-quiz",
-            CourseContentId = ChapterId, Order = 1, Status = StudyStatus.Published
+            Id = QuizId,
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = "Test quiz",
+            Slug = "test-quiz",
+            CourseContentId = ChapterId,
+            Order = 1,
+            Status = StudyStatus.Published
         };
         var question = new QuizQuestion
         {
-            Id = Guid.Parse("40000000-0000-0000-0000-000000000001"), CreatedOnUtc = DateTime.UtcNow,
-            Text = "Test question", Order = 1, CourseQuizId = QuizId
+            Id = Guid.Parse("40000000-0000-0000-0000-000000000001"),
+            CreatedOnUtc = DateTime.UtcNow,
+            Text = "Test question",
+            Order = 1,
+            CourseQuizId = QuizId
         };
         db.AddRange(category, course, chapter, quiz, question);
         db.Add(new CourseLesson
         {
-            Id = Guid.Parse("50000000-0000-0000-0000-000000000001"), CreatedOnUtc = DateTime.UtcNow,
-            Title = "Test lesson", Slug = "test-lesson", CourseContentId = ChapterId, Order = 1,
+            Id = Guid.Parse("50000000-0000-0000-0000-000000000001"),
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = "Test lesson",
+            Slug = "test-lesson",
+            CourseContentId = ChapterId,
+            Order = 1,
             Status = StudyStatus.Published
         });
         db.Add(new QuizAnswer
         {
-            Id = Guid.Parse("60000000-0000-0000-0000-000000000001"), CreatedOnUtc = DateTime.UtcNow,
-            Text = "Test answer", IsCorrect = true, QuizQuestionId = question.Id
+            Id = Guid.Parse("60000000-0000-0000-0000-000000000001"),
+            CreatedOnUtc = DateTime.UtcNow,
+            Text = "Test answer",
+            IsCorrect = true,
+            QuizQuestionId = question.Id
         });
         db.SaveChanges();
     }
@@ -108,7 +135,10 @@ public sealed class AdminWebApplicationFactory : WebApplicationFactory<Program>
 public sealed class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     public const string TestScheme = "AdminTest";
-    public TestAuthHandler(Microsoft.Extensions.Options.IOptionsMonitor<AuthenticationSchemeOptions> options, Microsoft.Extensions.Logging.ILoggerFactory logger, System.Text.Encodings.Web.UrlEncoder encoder) : base(options, logger, encoder) { }
+
+    public TestAuthHandler(Microsoft.Extensions.Options.IOptionsMonitor<AuthenticationSchemeOptions> options, Microsoft.Extensions.Logging.ILoggerFactory logger, System.Text.Encodings.Web.UrlEncoder encoder) : base(options, logger, encoder)
+    {
+    }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -119,4 +149,3 @@ public sealed class TestAuthHandler : AuthenticationHandler<AuthenticationScheme
         return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(new ClaimsIdentity(claims, TestScheme)), TestScheme)));
     }
 }
-

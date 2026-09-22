@@ -1,3 +1,4 @@
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Domain.Catalog;
@@ -5,7 +6,7 @@ using OumezzineAcademy.Infrastructure.Data;
 
 namespace OumezzineAcademy.Infrastructure.Persistence;
 
-public sealed class EfAdminCategoryPersistence(ApplicationDbContext db) : IAdminCategoryQueries, IAdminCategoryPersistence
+public sealed class EfAdminCategoryPersistence(ApplicationDbContext db, IRepository repository) : IAdminCategoryQueries, IAdminCategoryPersistence
 {
     public async Task<IReadOnlyList<AdminCategoryListDto>> ListAsync(CancellationToken token = default) => await db.StudyCourseCategories.AsNoTracking().OrderBy(x => x.Slug).Select(x => new AdminCategoryListDto(x.Id,
         x.Translations.Where(t => t.LanguageCode == "fr").Select(t => t.Title).FirstOrDefault() ?? "Non traduit",
@@ -38,7 +39,7 @@ public sealed class EfAdminCategoryPersistence(ApplicationDbContext db) : IAdmin
         var entity = await db.StudyCourseCategories.SingleOrDefaultAsync(x => x.Id == id, token);
         if (entity is null) return AdminCategoryDeleteStatus.NotFound;
         if (await db.StudyCourses.AnyAsync(x => x.CourseCategoryId == id, token)) return AdminCategoryDeleteStatus.InUse;
-        db.StudyCourseCategories.Remove(entity); await db.SaveChangesAsync(token); return AdminCategoryDeleteStatus.Deleted;
+        await repository.HardDeleteAsync(entity, token); return AdminCategoryDeleteStatus.Deleted;
     }
 
     private void Upsert(CourseCategory entity, string language, AdminCategoryTranslationDto input)

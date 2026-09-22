@@ -1,4 +1,3 @@
-using OumezzineAcademy.Models.Catalog;
 using System.ComponentModel.DataAnnotations;
 
 namespace OumezzineAcademy.Areas.Admin.Models;
@@ -445,4 +444,3 @@ public sealed class AdminAnswerInput
     public string? EnglishText { get; set; }
     public bool IsCorrect { get; set; }
 }
-

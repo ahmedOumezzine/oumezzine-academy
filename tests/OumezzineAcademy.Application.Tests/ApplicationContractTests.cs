@@ -1,8 +1,7 @@
-using System.Collections;
-using System.Reflection;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Application.Admin.Catalog;
-using OumezzineAcademy.Domain.Catalog;
+using System.Collections;
+using System.Reflection;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;

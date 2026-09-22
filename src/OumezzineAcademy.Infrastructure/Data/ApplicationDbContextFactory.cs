@@ -15,4 +15,3 @@ public sealed class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Ap
         return new ApplicationDbContext(options);
     }
 }
-

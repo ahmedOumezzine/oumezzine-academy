@@ -1,9 +1,8 @@
-using Xunit;
 using Microsoft.EntityFrameworkCore;
 using OumezzineAcademy.Application.Abstractions;
-using OumezzineAcademy.Domain.Catalog;
 using OumezzineAcademy.Infrastructure.Data;
 using OumezzineAcademy.Infrastructure.Persistence;
+using Xunit;
 
 namespace OumezzineAcademy.Tests;
 

@@ -1,10 +1,10 @@
-using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Domain.Catalog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using OumezzineAcademy.Application.Abstractions;
+using OumezzineAcademy.Domain.Catalog;
+using OumezzineAcademy.Infrastructure.Data;
 using System.Security.Cryptography;
 using System.Text;
-using OumezzineAcademy.Application.Abstractions;
 
 namespace OumezzineAcademy.Infrastructure.Persistence;
 
@@ -12,6 +12,7 @@ public sealed class StudyLmsSeedService : IStudyLmsSeeder
 {
     private readonly ApplicationDbContext _db;
     private readonly ILogger<StudyLmsSeedService> _logger;
+
     public StudyLmsSeedService(ApplicationDbContext db, ILogger<StudyLmsSeedService> logger) => (_db, _logger) = (db, logger);
 
     public async Task SeedAsync(CancellationToken token = default)
@@ -85,18 +86,25 @@ public sealed class StudyLmsSeedService : IStudyLmsSeeder
         if (entity is null) { entity = new CourseCategory { Id = StableId("category:" + slug), Slug = slug, Title = fr, Summary = fr, Status = StudyStatus.Published, CreatedOnUtc = DateTime.UtcNow }; _db.StudyCourseCategories.Add(entity); }
         await CategoryTranslationAsync(entity, "fr", fr, slug, token); await CategoryTranslationAsync(entity, "en", en, slug, token); return entity;
     }
+
     private async Task CategoryTranslationAsync(CourseCategory e, string lang, string title, string slug, CancellationToken token)
     { if (!await _db.StudyCourseCategoryTranslations.AnyAsync(x => x.CourseCategoryId == e.Id && x.LanguageCode == lang, token)) _db.StudyCourseCategoryTranslations.Add(new CourseCategoryTranslation { Id = StableId($"category-translation:{e.Id}:{lang}"), CourseCategoryId = e.Id, LanguageCode = lang, PublicationStatus = StudyStatus.Published, Title = title, Slug = slug, Summary = title }); }
+
     private async Task<Course> CourseAsync(string slug, string title, CourseCategory category, StudyLevel level, CancellationToken token)
     { var e = await _db.StudyCourses.AsNoTracking().FirstOrDefaultAsync(x => x.Slug == slug, token); if (e is null) { e = new Course { Id = StableId("course:" + slug), Slug = slug, Title = title, Summary = title, CourseCategoryId = category.Id, Level = level, Status = StudyStatus.Published, CreatedOnUtc = DateTime.UtcNow }; _db.StudyCourses.Add(e); } return e; }
+
     private async Task CourseTranslationAsync(Course e, string lang, string title, string slug, string summary, CancellationToken token)
     { if (!await _db.StudyCourseTranslations.AnyAsync(x => x.CourseId == e.Id && x.LanguageCode == lang, token)) _db.StudyCourseTranslations.Add(new CourseTranslation { Id = StableId($"course-translation:{e.Id}:{lang}"), CourseId = e.Id, LanguageCode = lang, PublicationStatus = StudyStatus.Published, Title = title, Slug = slug, Summary = summary, Overview = summary, MetaTitle = $"{title} | Oumezzine Academy", MetaDescription = summary }); }
+
     private async Task PrerequisiteAsync(Course e, Course required, CancellationToken token)
     { if (e.Id != required.Id && !await _db.StudyCoursePrerequisites.AnyAsync(x => x.CourseId == e.Id && x.PrerequisiteCourseId == required.Id, token)) _db.StudyCoursePrerequisites.Add(new CoursePrerequisite { CourseId = e.Id, PrerequisiteCourseId = required.Id }); }
+
     private async Task<LearningPathCategory> PathCategoryAsync(string slug, string fr, string en, CancellationToken token)
     { var e = await _db.StudyLearningPathCategories.AsNoTracking().FirstOrDefaultAsync(x => x.Slug == slug, token); if (e is null) { e = new LearningPathCategory { Id = StableId("path-category:" + slug), Slug = slug, Title = fr, Summary = fr, Status = StudyStatus.Published, CreatedOnUtc = DateTime.UtcNow }; _db.StudyLearningPathCategories.Add(e); } foreach (var (lang, title) in new[] { ("fr", fr), ("en", en) }) if (!await _db.StudyLearningPathCategoryTranslations.AnyAsync(x => x.LearningPathCategoryId == e.Id && x.LanguageCode == lang, token)) _db.StudyLearningPathCategoryTranslations.Add(new LearningPathCategoryTranslation { Id = StableId($"path-category-translation:{e.Id}:{lang}"), LearningPathCategoryId = e.Id, LanguageCode = lang, PublicationStatus = StudyStatus.Published, Title = title, Slug = $"{slug}-{lang}", Summary = title }); return e; }
+
     private async Task PathAsync(LearningPathCategory category, string slug, string fr, string en, IReadOnlyList<Course> courses, CancellationToken token)
     { var e = await _db.StudyLearningPaths.AsNoTracking().FirstOrDefaultAsync(x => x.Slug == slug, token); if (e is null) { e = new LearningPath { Id = StableId("path:" + slug), Slug = slug, Title = fr, Summary = fr, LearningPathCategoryId = category.Id, Level = slug.Contains("backend") || slug.Contains("full-stack") ? StudyLevel.Intermediate : StudyLevel.Beginner, Status = StudyStatus.Published, CreatedOnUtc = DateTime.UtcNow }; _db.StudyLearningPaths.Add(e); } foreach (var (lang, title) in new[] { ("fr", fr), ("en", en) }) if (!await _db.StudyLearningPathTranslations.AnyAsync(x => x.LearningPathId == e.Id && x.LanguageCode == lang, token)) _db.StudyLearningPathTranslations.Add(new LearningPathTranslation { Id = StableId($"path-translation:{e.Id}:{lang}"), LearningPathId = e.Id, LanguageCode = lang, PublicationStatus = StudyStatus.Published, Title = title, Slug = lang == "fr" ? slug : $"{slug}-en", Summary = title, MetaTitle = $"{title} | Oumezzine Academy", MetaDescription = title }); for (var i = 0; i < courses.Count; i++) if (!await _db.StudyLearningPathCourses.AnyAsync(x => x.LearningPathId == e.Id && x.CourseId == courses[i].Id, token)) _db.StudyLearningPathCourses.Add(new LearningPathCourse { Id = StableId($"path-course:{e.Id}:{courses[i].Id}"), LearningPathId = e.Id, CourseId = courses[i].Id, Order = i + 1 }); }
+
     private async Task ContentAsync(Course course, CourseSeed definition, int chapterOrder, CancellationToken token)
     {
         var topics = ChapterTopics[definition.Key];
@@ -114,6 +122,7 @@ public sealed class StudyLmsSeedService : IStudyLmsSeeder
                 if (!await _db.StudyCourseLessonTranslations.AnyAsync(x => x.CourseLessonId == lesson.Id && x.LanguageCode == lang, token)) _db.StudyCourseLessonTranslations.Add(new CourseLessonTranslation { Id = StableId($"lesson-translation:{lesson.Id}:{lang}"), CourseLessonId = lesson.Id, LanguageCode = lang, PublicationStatus = StudyStatus.Published, Title = title, Slug = slug, Summary = summary, ContentHtml = html });
         }
     }
+
     private async Task QuizAsync(Course course, int chapterOrder, CancellationToken token)
     {
         var content = await _db.StudyCourseContents.AsNoTracking().FirstOrDefaultAsync(x => x.CourseId == course.Id && x.Order == chapterOrder, token);
@@ -143,9 +152,11 @@ public sealed class StudyLmsSeedService : IStudyLmsSeeder
             }
         }
     }
+
     private sealed record CourseSeed(string Key, string Slug, string Category, string FrTitle, StudyLevel Level, string FrSlug, string FrSummary, string EnTitle, string EnSlug, string EnSummary);
     private sealed record LessonSeed(string Fr, string En, string FrSummary, string EnSummary, string FrContent, string EnContent);
     private sealed record ChapterSeed(string Fr, string En, LessonSeed LessonOne, LessonSeed LessonTwo);
+
     private static readonly CourseSeed[] Definitions = [
         new("html", "html-css-basics", "frontend", "HTML & CSS — Les bases", StudyLevel.Beginner, "html-css-bases", "Créez des pages accessibles et apprenez à les mettre en forme avec HTML sémantique et CSS responsive.", "HTML & CSS Fundamentals", "html-css-fundamentals", "Build accessible pages with semantic HTML and style them using responsive CSS."),
         new("javascript", "javascript-beginners", "frontend", "JavaScript pour débutants", StudyLevel.Beginner, "javascript-debutants", "Découvrez les variables, fonctions, conditions et événements pour rendre vos pages interactives.", "JavaScript for Beginners", "javascript-for-beginners", "Learn variables, functions, conditions, and events to make web pages interactive."),
@@ -174,7 +185,8 @@ public sealed class StudyLmsSeedService : IStudyLmsSeeder
     };
 
     private static ChapterSeed[] Chapters((string Fr, string En, string FrLesson, string EnLesson, string FrText, string EnText) a, (string Fr, string En, string FrLesson, string EnLesson, string FrText, string EnText) b, (string Fr, string En, string FrLesson, string EnLesson, string FrText, string EnText) c) => [Make(a), Make(b), Make(c)];
+
     private static ChapterSeed Make((string Fr, string En, string FrLesson, string EnLesson, string FrText, string EnText) x) => new(x.Fr, x.En, Lesson(x.FrLesson, x.EnLesson, x.FrText, x.EnText), Lesson($"Exercices : {x.FrLesson}", $"Practice: {x.EnLesson}", $"Appliquez « {x.FrLesson} » dans un exemple court, puis vérifiez le résultat et les cas limites.", $"Apply “{x.EnLesson}” in a short example, then verify the result and edge cases."));
+
     private static LessonSeed Lesson(string fr, string en, string frText, string enText) => new(fr, en, frText, enText, $"<h2>{fr}</h2><p>{frText}</p><p>Commencez par un exemple minimal, observez le résultat, puis modifiez une seule chose à la fois. Cette méthode aide à distinguer la règle du comportement accidentel.</p><h3>À retenir</h3><ul><li>Choisissez des noms explicites.</li><li>Vérifiez le résultat avec un cas simple.</li></ul>", $"<h2>{en}</h2><p>{enText}</p><p>Start with a minimal example, observe the result, then change one thing at a time. This helps distinguish the intended rule from accidental behavior.</p><h3>Key points</h3><ul><li>Choose explicit names.</li><li>Verify the result with a simple case.</li></ul>");
 }
-

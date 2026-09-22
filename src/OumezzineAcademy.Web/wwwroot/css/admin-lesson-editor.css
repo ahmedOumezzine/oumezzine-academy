@@ -1,44 +1,179 @@
-.lesson-editor { min-width:0; max-width:100%; }
-.lesson-concept-form .lesson-file-input { width:1px; height:1px; padding:0; border:0; overflow:hidden; clip-path:inset(50%); }
-.lesson-editor > textarea { box-sizing:border-box; min-height:260px; width:100%; }
-.lesson-editor .ck-editor { min-width:0; max-width:100%; width:100%; }
+.lesson-editor {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.lesson-concept-form .lesson-file-input {
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+}
+
+.lesson-editor > textarea {
+    box-sizing: border-box;
+    min-height: 260px;
+    width: 100%;
+}
+
+.lesson-editor .ck-editor {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+}
+
 .lesson-editor .ck.ck-editor__editable_inline {
-    min-height:260px;
-    max-height:620px;
-    overflow-y:auto;
-    overflow-x:hidden;
-    overflow-wrap:anywhere;
+    min-height: 260px;
+    max-height: 620px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overflow-wrap: anywhere;
 }
-.lesson-editor .ck.ck-toolbar > .ck-toolbar__items { flex-wrap:wrap; }
-.lesson-editor .ck-content img { max-width:100%; height:auto; }
-.lesson-editor .ck-content pre, .lesson-preview-html pre { max-width:100%; overflow-x:auto; }
-.lesson-editor .ck-content .table, .lesson-preview-html figure.table { display:block; max-width:100%; overflow-x:auto; }
-.lesson-editor .ck-content table, .lesson-preview-html table { display:block; max-width:100%; overflow-x:auto; }
-.lesson-preview-html { min-width:0; overflow-wrap:anywhere; }
-.lesson-preview-image[hidden] { display:none; }
-.lesson-photo-help, .lesson-photo-status { font-size:13px; line-height:1.5; margin:0 0 16px; }
-.lesson-photo-status { background:#eff6ff; border-radius:8px; padding:12px; }
-.lesson-photo-status[hidden] { display:none; }
-.editor-word-count { color:var(--color-muted); display:block; font-size:11px; padding:6px 2px; text-align:right; }
-.lesson-editor .field-error[hidden] { display:none; }
+
+.lesson-editor .ck.ck-toolbar > .ck-toolbar__items {
+    flex-wrap: wrap;
+}
+
+.lesson-editor .ck-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+.lesson-editor .ck-content pre, .lesson-preview-html pre {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.lesson-editor .ck-content .table, .lesson-preview-html figure.table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.lesson-editor .ck-content table, .lesson-preview-html table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.lesson-preview-html {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.lesson-preview-image[hidden] {
+    display: none;
+}
+
+.lesson-photo-help, .lesson-photo-status {
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0 0 16px;
+}
+
+.lesson-photo-status {
+    background: #eff6ff;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+    .lesson-photo-status[hidden] {
+        display: none;
+    }
+
+.editor-word-count {
+    color: var(--color-muted);
+    display: block;
+    font-size: 11px;
+    padding: 6px 2px;
+    text-align: right;
+}
+
+.lesson-editor .field-error[hidden] {
+    display: none;
+}
+
 @media (max-width:700px) {
-    .lesson-editor .ck.ck-editor__editable_inline { max-height:560px; }
-    .lesson-editor .ck.ck-toolbar { padding:4px; }
-    .ck.ck-balloon-panel { max-width:calc(100vw - 24px); }
-    .ck.ck-link-form { min-width:0; max-width:calc(100vw - 32px); flex-wrap:wrap; }
-    .ck.ck-link-form .ck-labeled-field-view { min-width:0; max-width:100%; }
-    .ck.ck-input { min-width:0; max-width:100%; }
+    .lesson-editor .ck.ck-editor__editable_inline {
+        max-height: 560px;
+    }
+
+    .lesson-editor .ck.ck-toolbar {
+        padding: 4px;
+    }
+
+    .ck.ck-balloon-panel {
+        max-width: calc(100vw - 24px);
+    }
+
+    .ck.ck-link-form {
+        min-width: 0;
+        max-width: calc(100vw - 32px);
+        flex-wrap: wrap;
+    }
+
+        .ck.ck-link-form .ck-labeled-field-view {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+    .ck.ck-input {
+        min-width: 0;
+        max-width: 100%;
+    }
 }
+
 @media (max-width:600px) {
-  .admin-form, .admin-page, .admin-content { max-width:100%; min-width:0; }
-  .admin-form-grid, .admin-grid, .form-grid, .editor-grid, .media-upload-grid { grid-template-columns:1fr !important; }
-  .admin-heading { align-items:flex-start; flex-direction:column; gap:12px; }
-  .admin-heading .btn-main, .admin-heading .btn-ghost { width:100%; }
-  .admin-table-wrap, .table-responsive { max-width:100%; overflow-x:auto; }
-  .admin-table { min-width:680px; }
-  .admin-actions, .form-actions, .action-bar { align-items:stretch; flex-direction:column; }
-  .admin-actions > *, .form-actions > *, .action-bar > * { width:100%; }
-  .translation-tabs, .path-category-tabs, .learning-path-tabs { display:flex; flex-wrap:wrap; }
-  .translation-tabs button, .path-category-tabs button, .learning-path-tabs button { flex:1 1 120px; min-height:44px; }
-  textarea, input, select { max-width:100%; }
+    .admin-form, .admin-page, .admin-content {
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .admin-form-grid, .admin-grid, .form-grid, .editor-grid, .media-upload-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .admin-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+        .admin-heading .btn-main, .admin-heading .btn-ghost {
+            width: 100%;
+        }
+
+    .admin-table-wrap, .table-responsive {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    .admin-table {
+        min-width: 680px;
+    }
+
+    .admin-actions, .form-actions, .action-bar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+        .admin-actions > *, .form-actions > *, .action-bar > * {
+            width: 100%;
+        }
+
+    .translation-tabs, .path-category-tabs, .learning-path-tabs {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+        .translation-tabs button, .path-category-tabs button, .learning-path-tabs button {
+            flex: 1 1 120px;
+            min-height: 44px;
+        }
+
+    textarea, input, select {
+        max-width: 100%;
+    }
 }

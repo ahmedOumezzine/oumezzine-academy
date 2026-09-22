@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.OutputCaching;
-using Microsoft.Extensions.Logging;
 using OumezzineAcademy.Application.Abstractions;
 
 namespace OumezzineAcademy.Web.Services.Caching;
@@ -26,4 +25,3 @@ public sealed class StudyLmsCacheInvalidator : IStudyLmsCacheInvalidator
         await InvalidateCatalogAsync(token);
     }
 }
-

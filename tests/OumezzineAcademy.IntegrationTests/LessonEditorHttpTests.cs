@@ -1,15 +1,15 @@
-using System.Net;
 using AngleSharp.Html.Parser;
-using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Infrastructure.Media;
-using OumezzineAcademy.Application.Abstractions;
-using OumezzineAcademy.Web.Services;
-using OumezzineAcademy.Infrastructure.Sanitization;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.AspNetCore.TestHost;
+using OumezzineAcademy.Application.Abstractions;
+using OumezzineAcademy.Infrastructure.Data;
+using OumezzineAcademy.Infrastructure.Media;
+using OumezzineAcademy.Infrastructure.Sanitization;
+using OumezzineAcademy.Web.Services;
+using System.Net;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -108,8 +108,12 @@ public sealed class LessonEditorHttpTests
         return new()
         {
             ["__RequestVerificationToken"] = document.QuerySelector("input[name=__RequestVerificationToken]")!.GetAttribute("value")!,
-            ["French.Title"] = "Éditeur FR", ["French.Slug"] = "editor-fr", ["French.ContentHtml"] = french,
-            ["English.Title"] = "Editor EN", ["English.Slug"] = "editor-en", ["English.ContentHtml"] = english,
+            ["French.Title"] = "Éditeur FR",
+            ["French.Slug"] = "editor-fr",
+            ["French.ContentHtml"] = french,
+            ["English.Title"] = "Editor EN",
+            ["English.Slug"] = "editor-en",
+            ["English.ContentHtml"] = english,
             ["Order"] = "2"
         };
     }
@@ -121,7 +125,8 @@ public sealed class LessonEditorHttpTests
         try
         {
             using var factory = new AdminWebApplicationFactory(AdminTestProfile.Admin);
-            using var configured = factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services => {
+            using var configured = factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
+            {
                 services.RemoveAll<IMediaStorage>();
                 services.AddSingleton<IMediaStorage>(new FileSystemMediaStorage(root));
             }));
@@ -159,9 +164,14 @@ public sealed class LessonEditorHttpTests
             using (var scope = configured.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                db.StudyCourseTranslations.Add(new OumezzineAcademy.Domain.Catalog.CourseTranslation {
-                    Id = Guid.NewGuid(), CourseId = AdminWebApplicationFactory.CourseId, LanguageCode = "fr",
-                    Title = "Cours illustré", Slug = "cours-illustre", PublicationStatus = OumezzineAcademy.Domain.Catalog.StudyStatus.Published
+                db.StudyCourseTranslations.Add(new OumezzineAcademy.Domain.Catalog.CourseTranslation
+                {
+                    Id = Guid.NewGuid(),
+                    CourseId = AdminWebApplicationFactory.CourseId,
+                    LanguageCode = "fr",
+                    Title = "Cours illustré",
+                    Slug = "cours-illustre",
+                    PublicationStatus = OumezzineAcademy.Domain.Catalog.StudyStatus.Published
                 });
                 await db.SaveChangesAsync();
             }
@@ -205,4 +215,3 @@ public sealed class LessonEditorHttpTests
         File.WriteAllText(Path.Combine(path, $"{name}.html"), html);
     }
 }
-

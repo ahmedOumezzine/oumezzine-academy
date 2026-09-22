@@ -19,6 +19,4 @@ public sealed class AdminNavigationTests
         Assert.Contains("aria-current=\"@(coursesActive ? \"page\" : null)\"", layout);
         Assert.DoesNotContain("Action ==", layout);
     }
-
 }
-

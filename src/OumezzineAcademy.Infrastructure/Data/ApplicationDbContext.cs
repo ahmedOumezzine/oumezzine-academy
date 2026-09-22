@@ -111,8 +111,4 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<LearningPathTranslation>().HasIndex(x => new { x.LanguageCode, x.Slug }).IsUnique();
         builder.Entity<LearningPathCategoryTranslation>().HasIndex(x => new { x.LanguageCode, x.Slug }).IsUnique();
     }
-
 }
-
-
-

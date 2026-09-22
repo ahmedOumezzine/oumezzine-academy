@@ -1,11 +1,9 @@
-using System.Net;
-using System.Xml.Linq;
-using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Models.Catalog;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using OumezzineAcademy.Infrastructure.Data;
+using System.Net;
+using System.Xml.Linq;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -58,21 +56,33 @@ public sealed class SeoSitemapHttpTests
         db.StudyCourseTranslations.AddRange(
             new CourseTranslation
             {
-                Id = Guid.NewGuid(), CourseId = AdminWebApplicationFactory.CourseId, LanguageCode = "fr",
-                PublicationStatus = StudyStatus.Published, Title = "Cours français", Slug = "cours-fr&plus"
+                Id = Guid.NewGuid(),
+                CourseId = AdminWebApplicationFactory.CourseId,
+                LanguageCode = "fr",
+                PublicationStatus = StudyStatus.Published,
+                Title = "Cours français",
+                Slug = "cours-fr&plus"
             },
             new CourseTranslation
             {
-                Id = Guid.NewGuid(), CourseId = AdminWebApplicationFactory.CourseId, LanguageCode = "en",
-                PublicationStatus = StudyStatus.Published, Title = "English course", Slug = "course-en"
+                Id = Guid.NewGuid(),
+                CourseId = AdminWebApplicationFactory.CourseId,
+                LanguageCode = "en",
+                PublicationStatus = StudyStatus.Published,
+                Title = "English course",
+                Slug = "course-en"
             });
 
         var categoryId = await db.StudyCourses.Where(x => x.Id == AdminWebApplicationFactory.CourseId)
             .Select(x => x.CourseCategoryId).SingleAsync();
         var frenchOnly = new Course
         {
-            Id = Guid.NewGuid(), CreatedOnUtc = DateTime.UtcNow, Title = "French only", Slug = "fallback-fr-only",
-            CourseCategoryId = categoryId, Status = StudyStatus.Published,
+            Id = Guid.NewGuid(),
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = "French only",
+            Slug = "fallback-fr-only",
+            CourseCategoryId = categoryId,
+            Status = StudyStatus.Published,
             Translations = [new CourseTranslation
             {
                 Id = Guid.NewGuid(), LanguageCode = "fr", PublicationStatus = StudyStatus.Published,
@@ -81,8 +91,12 @@ public sealed class SeoSitemapHttpTests
         };
         var draft = new Course
         {
-            Id = Guid.NewGuid(), CreatedOnUtc = DateTime.UtcNow, Title = "Draft", Slug = "draft-course",
-            CourseCategoryId = categoryId, Status = StudyStatus.Draft,
+            Id = Guid.NewGuid(),
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = "Draft",
+            Slug = "draft-course",
+            CourseCategoryId = categoryId,
+            Status = StudyStatus.Draft,
             Translations = [new CourseTranslation
             {
                 Id = Guid.NewGuid(), LanguageCode = "fr", PublicationStatus = StudyStatus.Published,
@@ -91,8 +105,12 @@ public sealed class SeoSitemapHttpTests
         };
         var emptySlug = new Course
         {
-            Id = Guid.NewGuid(), CreatedOnUtc = DateTime.UtcNow, Title = "Empty slug", Slug = "empty-slug-course",
-            CourseCategoryId = categoryId, Status = StudyStatus.Published,
+            Id = Guid.NewGuid(),
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = "Empty slug",
+            Slug = "empty-slug-course",
+            CourseCategoryId = categoryId,
+            Status = StudyStatus.Published,
             Translations = [new CourseTranslation
             {
                 Id = Guid.NewGuid(), LanguageCode = "en", PublicationStatus = StudyStatus.Published,
@@ -103,4 +121,3 @@ public sealed class SeoSitemapHttpTests
         await db.SaveChangesAsync();
     }
 }
-

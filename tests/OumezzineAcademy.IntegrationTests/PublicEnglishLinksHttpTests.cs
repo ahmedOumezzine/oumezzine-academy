@@ -1,9 +1,6 @@
 using AngleSharp.Html.Parser;
-using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Models.Catalog;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using OumezzineAcademy.Infrastructure.Data;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -102,100 +99,169 @@ public sealed class PublicEnglishLinksHttpTests
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = new CourseCategory
         {
-            Id = Guid.NewGuid(), CreatedOnUtc = DateTime.UtcNow, Title = "Développement", Slug = FrenchCategorySlug,
+            Id = Guid.NewGuid(),
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = "Développement",
+            Slug = FrenchCategorySlug,
             Status = StudyStatus.Published
         };
         category.Translations.Add(new CourseCategoryTranslation
         {
-            Id = Guid.NewGuid(), LanguageCode = "fr", PublicationStatus = StudyStatus.Published,
-            Title = "Développement web", Slug = FrenchCategorySlug
+            Id = Guid.NewGuid(),
+            LanguageCode = "fr",
+            PublicationStatus = StudyStatus.Published,
+            Title = "Développement web",
+            Slug = FrenchCategorySlug
         });
         if (includeEnglishCategory)
             category.Translations.Add(new CourseCategoryTranslation
             {
-                Id = Guid.NewGuid(), LanguageCode = "en", PublicationStatus = StudyStatus.Published,
-                Title = "Web development", Slug = EnglishCategorySlug
+                Id = Guid.NewGuid(),
+                LanguageCode = "en",
+                PublicationStatus = StudyStatus.Published,
+                Title = "Web development",
+                Slug = EnglishCategorySlug
             });
 
         var course = new Course
         {
-            Id = Guid.NewGuid(), CreatedOnUtc = DateTime.UtcNow, Title = "Introduction React",
-            Slug = "introduction-a-react", CourseCategory = category, CourseCategoryId = category.Id,
-            Level = StudyLevel.Beginner, Status = StudyStatus.Published
+            Id = Guid.NewGuid(),
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = "Introduction React",
+            Slug = "introduction-a-react",
+            CourseCategory = category,
+            CourseCategoryId = category.Id,
+            Level = StudyLevel.Beginner,
+            Status = StudyStatus.Published
         };
         course.Translations.Add(new CourseTranslation
         {
-            Id = Guid.NewGuid(), LanguageCode = "fr", PublicationStatus = StudyStatus.Published,
-            Title = "Introduction à React", Slug = "introduction-a-react", Summary = "Résumé React FR", Overview = "<p>React FR</p>"
+            Id = Guid.NewGuid(),
+            LanguageCode = "fr",
+            PublicationStatus = StudyStatus.Published,
+            Title = "Introduction à React",
+            Slug = "introduction-a-react",
+            Summary = "Résumé React FR",
+            Overview = "<p>React FR</p>"
         });
         course.Translations.Add(new CourseTranslation
         {
-            Id = Guid.NewGuid(), LanguageCode = "en", PublicationStatus = StudyStatus.Published,
-            Title = "Introduction to React", Slug = "introduction-to-react", Summary = "React summary EN", Overview = "<p>React EN</p>"
+            Id = Guid.NewGuid(),
+            LanguageCode = "en",
+            PublicationStatus = StudyStatus.Published,
+            Title = "Introduction to React",
+            Slug = "introduction-to-react",
+            Summary = "React summary EN",
+            Overview = "<p>React EN</p>"
         });
 
         var chapter = new CourseContent
         {
-            Id = Guid.NewGuid(), CreatedOnUtc = DateTime.UtcNow, Title = "React chapter", Slug = "react-chapter",
-            Course = course, CourseId = course.Id, Order = 1, Status = StudyStatus.Published
+            Id = Guid.NewGuid(),
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = "React chapter",
+            Slug = "react-chapter",
+            Course = course,
+            CourseId = course.Id,
+            Order = 1,
+            Status = StudyStatus.Published
         };
         chapter.Translations.Add(new CourseContentTranslation
         {
-            Id = Guid.NewGuid(), LanguageCode = "fr", PublicationStatus = StudyStatus.Published, Title = "Chapitre React"
+            Id = Guid.NewGuid(),
+            LanguageCode = "fr",
+            PublicationStatus = StudyStatus.Published,
+            Title = "Chapitre React"
         });
         chapter.Translations.Add(new CourseContentTranslation
         {
-            Id = Guid.NewGuid(), LanguageCode = "en", PublicationStatus = StudyStatus.Published, Title = "React chapter"
+            Id = Guid.NewGuid(),
+            LanguageCode = "en",
+            PublicationStatus = StudyStatus.Published,
+            Title = "React chapter"
         });
         var lesson = new CourseLesson
         {
-            Id = Guid.NewGuid(), CreatedOnUtc = DateTime.UtcNow, Title = "React lesson", Slug = "react-lesson-fr",
-            CourseContent = chapter, CourseContentId = chapter.Id, Order = 1, Status = StudyStatus.Published
+            Id = Guid.NewGuid(),
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = "React lesson",
+            Slug = "react-lesson-fr",
+            CourseContent = chapter,
+            CourseContentId = chapter.Id,
+            Order = 1,
+            Status = StudyStatus.Published
         };
         lesson.Translations.Add(new CourseLessonTranslation
         {
-            Id = Guid.NewGuid(), LanguageCode = "fr", PublicationStatus = StudyStatus.Published,
-            Title = "Leçon React", Slug = "react-lesson-fr", Summary = "Résumé de la leçon"
+            Id = Guid.NewGuid(),
+            LanguageCode = "fr",
+            PublicationStatus = StudyStatus.Published,
+            Title = "Leçon React",
+            Slug = "react-lesson-fr",
+            Summary = "Résumé de la leçon"
         });
         lesson.Translations.Add(new CourseLessonTranslation
         {
-            Id = Guid.NewGuid(), LanguageCode = "en", PublicationStatus = StudyStatus.Published,
-            Title = "React lesson", Slug = "react-lesson-en", Summary = "React lesson summary"
+            Id = Guid.NewGuid(),
+            LanguageCode = "en",
+            PublicationStatus = StudyStatus.Published,
+            Title = "React lesson",
+            Slug = "react-lesson-en",
+            Summary = "React lesson summary"
         });
 
         var pathCategory = new LearningPathCategory
         {
-            Id = Guid.NewGuid(), CreatedOnUtc = DateTime.UtcNow, Title = "Development", Slug = "development",
+            Id = Guid.NewGuid(),
+            CreatedOnUtc = DateTime.UtcNow,
+            Title = "Development",
+            Slug = "development",
             Status = StudyStatus.Published
         };
         pathCategory.Translations.Add(new LearningPathCategoryTranslation
         {
-            Id = Guid.NewGuid(), LanguageCode = "fr", PublicationStatus = StudyStatus.Published,
-            Title = "Développement", Slug = "developpement"
+            Id = Guid.NewGuid(),
+            LanguageCode = "fr",
+            PublicationStatus = StudyStatus.Published,
+            Title = "Développement",
+            Slug = "developpement"
         });
         pathCategory.Translations.Add(new LearningPathCategoryTranslation
         {
-            Id = Guid.NewGuid(), LanguageCode = "en", PublicationStatus = StudyStatus.Published,
-            Title = "Development", Slug = "development"
+            Id = Guid.NewGuid(),
+            LanguageCode = "en",
+            PublicationStatus = StudyStatus.Published,
+            Title = "Development",
+            Slug = "development"
         });
         var path = new LearningPath
         {
-            Id = Guid.NewGuid(), LearningPathCategory = pathCategory, LearningPathCategoryId = pathCategory.Id,
-            Status = StudyStatus.Published, Level = StudyLevel.Beginner
+            Id = Guid.NewGuid(),
+            LearningPathCategory = pathCategory,
+            LearningPathCategoryId = pathCategory.Id,
+            Status = StudyStatus.Published,
+            Level = StudyLevel.Beginner
         };
         path.Translations.Add(new LearningPathTranslation
         {
-            Id = Guid.NewGuid(), LanguageCode = "fr", PublicationStatus = StudyStatus.Published,
-            Title = "Parcours React", Slug = "parcours-react", Summary = "Parcours React"
+            Id = Guid.NewGuid(),
+            LanguageCode = "fr",
+            PublicationStatus = StudyStatus.Published,
+            Title = "Parcours React",
+            Slug = "parcours-react",
+            Summary = "Parcours React"
         });
         path.Translations.Add(new LearningPathTranslation
         {
-            Id = Guid.NewGuid(), LanguageCode = "en", PublicationStatus = StudyStatus.Published,
-            Title = "React path", Slug = "path-en", Summary = "React path"
+            Id = Guid.NewGuid(),
+            LanguageCode = "en",
+            PublicationStatus = StudyStatus.Published,
+            Title = "React path",
+            Slug = "path-en",
+            Summary = "React path"
         });
         path.LearningPathCourses.Add(new LearningPathCourse { Id = Guid.NewGuid(), LearningPath = path, Course = course, Order = 1 });
         db.AddRange(category, course, chapter, lesson, pathCategory, path);
         await db.SaveChangesAsync();
     }
 }
-

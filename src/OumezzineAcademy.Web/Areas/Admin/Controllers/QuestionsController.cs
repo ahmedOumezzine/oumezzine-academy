@@ -1,8 +1,7 @@
-using OumezzineAcademy.Areas.Admin.Models;
-using OumezzineAcademy.Models.Catalog;
-using OumezzineAcademy.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OumezzineAcademy.Areas.Admin.Models;
+using OumezzineAcademy.Web.Services;
 
 namespace OumezzineAcademy.Areas.Admin.Controllers;
 
@@ -105,5 +104,3 @@ public sealed class QuestionsController : Controller
         }
     }
 }
-
-

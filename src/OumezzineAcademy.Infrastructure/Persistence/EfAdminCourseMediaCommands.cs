@@ -1,6 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace OumezzineAcademy.Infrastructure.Persistence;
 

@@ -1,14 +1,12 @@
-using System.Data.Common;
-using System.Net;
-using System.Text.RegularExpressions;
-using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Infrastructure.Persistence;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Models.Catalog;
-using OumezzineAcademy.Web.Services;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using OumezzineAcademy.Infrastructure.Data;
+using OumezzineAcademy.Infrastructure.Persistence;
+using OumezzineAcademy.Web.Services;
+using System.Data.Common;
+using System.Net;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -172,26 +170,35 @@ public sealed class CourseVisibilityTests
 
     private static Course CreateCourse(StudyStatus status) => new()
     {
-        Id = Guid.NewGuid(), Title = "Legacy title", Slug = Guid.NewGuid().ToString("N"), Status = status,
+        Id = Guid.NewGuid(),
+        Title = "Legacy title",
+        Slug = Guid.NewGuid().ToString("N"),
+        Status = status,
         CreatedOnUtc = DateTime.UtcNow,
         CourseCategory = new CourseCategory { Id = Guid.NewGuid(), Title = "Draft category", Slug = Guid.NewGuid().ToString("N"), Status = StudyStatus.Draft }
     };
 
     private static void AddTranslation(Course course, string language, StudyStatus status) => course.Translations.Add(new()
     {
-        Id = Guid.NewGuid(), CourseId = course.Id, LanguageCode = language, PublicationStatus = status,
-        Title = language == "fr" ? "Titre français" : "English title", Slug = $"{language}-{course.Id:N}"
+        Id = Guid.NewGuid(),
+        CourseId = course.Id,
+        LanguageCode = language,
+        PublicationStatus = status,
+        Title = language == "fr" ? "Titre français" : "English title",
+        Slug = $"{language}-{course.Id:N}"
     });
 
-    private sealed class FixedLanguage(string code) : ICurrentLanguageService { public string LanguageCode => code; }
+    private sealed class FixedLanguage(string code) : ICurrentLanguageService
+    { public string LanguageCode => code; }
 
     private sealed class QueryCounter : DbCommandInterceptor
     {
         public int Count { get; set; }
+
         public override InterceptionResult<DbDataReader> ReaderExecuting(DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result)
         { Count++; return result; }
+
         public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
         { Count++; return ValueTask.FromResult(result); }
     }
 }
-

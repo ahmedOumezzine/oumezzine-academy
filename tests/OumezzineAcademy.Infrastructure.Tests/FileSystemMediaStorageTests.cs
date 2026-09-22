@@ -1,6 +1,5 @@
-using Xunit;
-using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Infrastructure.Media;
+using Xunit;
 
 namespace OumezzineAcademy.Tests;
 

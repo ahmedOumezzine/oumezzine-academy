@@ -1,8 +1,5 @@
-using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Models.Catalog;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using OumezzineAcademy.Infrastructure.Data;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -53,13 +50,22 @@ public sealed class PublicLocalizedRoutingTests
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         db.StudyCourseCategoryTranslations.Add(new CourseCategoryTranslation
         {
-            Id = Guid.NewGuid(), CourseCategoryId = CategoryId, LanguageCode = "en",
-            PublicationStatus = StudyStatus.Published, Title = "Frontend", Slug = "frontend"
+            Id = Guid.NewGuid(),
+            CourseCategoryId = CategoryId,
+            LanguageCode = "en",
+            PublicationStatus = StudyStatus.Published,
+            Title = "Frontend",
+            Slug = "frontend"
         });
         db.StudyCourseTranslations.Add(new CourseTranslation
         {
-            Id = Guid.NewGuid(), CourseId = AdminWebApplicationFactory.CourseId, LanguageCode = "en",
-            PublicationStatus = StudyStatus.Published, Title = "Course EN", Slug = "course-en", Summary = "Summary"
+            Id = Guid.NewGuid(),
+            CourseId = AdminWebApplicationFactory.CourseId,
+            LanguageCode = "en",
+            PublicationStatus = StudyStatus.Published,
+            Title = "Course EN",
+            Slug = "course-en",
+            Summary = "Summary"
         });
         await db.SaveChangesAsync();
     }
@@ -79,25 +85,38 @@ public sealed class PublicLocalizedRoutingTests
         var category = new LearningPathCategory { Id = Guid.NewGuid(), Status = StudyStatus.Published };
         category.Translations.Add(new LearningPathCategoryTranslation
         {
-            Id = Guid.NewGuid(), LearningPathCategoryId = category.Id, LanguageCode = "en",
-            PublicationStatus = StudyStatus.Published, Title = "Development", Slug = "development"
+            Id = Guid.NewGuid(),
+            LearningPathCategoryId = category.Id,
+            LanguageCode = "en",
+            PublicationStatus = StudyStatus.Published,
+            Title = "Development",
+            Slug = "development"
         });
         var path = new LearningPath
         {
-            Id = Guid.NewGuid(), LearningPathCategory = category, Status = StudyStatus.Published,
+            Id = Guid.NewGuid(),
+            LearningPathCategory = category,
+            Status = StudyStatus.Published,
             Level = StudyLevel.Beginner
         };
         path.Translations.Add(new LearningPathTranslation
         {
-            Id = Guid.NewGuid(), LearningPathId = path.Id, LanguageCode = "en",
-            PublicationStatus = StudyStatus.Published, Title = "Path EN", Slug = "path-en", Summary = "Path summary"
+            Id = Guid.NewGuid(),
+            LearningPathId = path.Id,
+            LanguageCode = "en",
+            PublicationStatus = StudyStatus.Published,
+            Title = "Path EN",
+            Slug = "path-en",
+            Summary = "Path summary"
         });
         path.LearningPathCourses.Add(new LearningPathCourse
         {
-            Id = Guid.NewGuid(), LearningPath = path, CourseId = AdminWebApplicationFactory.CourseId, Order = 1
+            Id = Guid.NewGuid(),
+            LearningPath = path,
+            CourseId = AdminWebApplicationFactory.CourseId,
+            Order = 1
         });
         db.StudyLearningPaths.Add(path);
         await db.SaveChangesAsync();
     }
 }
-

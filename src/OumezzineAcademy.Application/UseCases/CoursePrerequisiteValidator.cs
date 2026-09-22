@@ -31,4 +31,3 @@ public sealed class CoursePrerequisiteValidator(ICoursePrerequisiteEdges edges) 
         return graph.Keys.Any(HasCycle);
     }
 }
-

@@ -1,6 +1,6 @@
-using Xunit;
 using Microsoft.AspNetCore.Http;
 using OumezzineAcademy.Web.Services;
+using Xunit;
 
 namespace OumezzineAcademy.Tests;
 

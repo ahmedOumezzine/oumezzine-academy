@@ -1,8 +1,7 @@
-using OumezzineAcademy.Areas.Admin.Models;
-using OumezzineAcademy.Models.Catalog;
-using OumezzineAcademy.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OumezzineAcademy.Areas.Admin.Models;
+using OumezzineAcademy.Web.Services;
 
 namespace OumezzineAcademy.Areas.Admin.Controllers;
 
@@ -42,13 +41,15 @@ public sealed class LessonsController : Controller
 
     [HttpPost("admin/courses/{courseId:guid}/chapters/{chapterId:guid}/lessons/{id:guid}/edit"), ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(Guid courseId, Guid chapterId, Guid id, LessonEditViewModel model, CancellationToken token)
-    { model.Id = id;
+    {
+        model.Id = id;
         return await Save(courseId, chapterId, model, token);
     }
 
     [HttpPost("admin/courses/{courseId:guid}/chapters/{chapterId:guid}/lessons/{id:guid}/move"), ValidateAntiForgeryToken]
     public async Task<IActionResult> Move(Guid courseId, Guid chapterId, Guid id, int direction, CancellationToken token)
-    { await _service.MoveAsync(courseId, chapterId, id, direction, token);
+    {
+        await _service.MoveAsync(courseId, chapterId, id, direction, token);
         return RedirectToAction(nameof(Index), new { courseId, chapterId });
     }
 
@@ -56,39 +57,51 @@ public sealed class LessonsController : Controller
     public async Task<IActionResult> Delete(Guid courseId, Guid chapterId, Guid id, CancellationToken token)
     {
         try
-        { await _service.DeleteAsync(courseId, chapterId, id, token); TempData["Success"] = "Leçon supprimée.";
+        {
+            await _service.DeleteAsync(courseId, chapterId, id, token); TempData["Success"] = "Leçon supprimée.";
         }
-        catch (KeyNotFoundException) { return NotFound();
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
         }
         return RedirectToAction(nameof(Index), new { courseId, chapterId });
     }
 
     private async Task<IActionResult> Save(Guid courseId, Guid chapterId, LessonEditViewModel model, CancellationToken token)
-    { model.CourseId = courseId; model.ChapterId = chapterId; Validate(model.French, "French"); Validate(model.English, "English");
+    {
+        model.CourseId = courseId; model.ChapterId = chapterId; Validate(model.French, "French"); Validate(model.English, "English");
         if (!string.IsNullOrWhiteSpace(model.French.Slug) && await _service.SlugExistsAsync("fr", model.French.Slug, model.Id, token)) ModelState.AddModelError("French.Slug", "Ce slug existe déjà en français.");
         if (!string.IsNullOrWhiteSpace(model.English.Slug) && await _service.SlugExistsAsync("en", model.English.Slug, model.Id, token)) ModelState.AddModelError("English.Slug", "Ce slug existe déjà en anglais.");
         if (!ModelState.IsValid) return View("Edit", model);
-        try {
-        var lessonId = await _service.SaveAsync(model, token);
-        model.Id = lessonId;
-        ModelState.Remove(nameof(model.Id));
-        if (model.LessonImage is not null) {
-        var url = await _service.UploadImageAsync(lessonId, model.LessonImage, token);
-        var encoder = System.Text.Encodings.Web.HtmlEncoder.Default;
-        var alt = System.IO.Path.GetFileNameWithoutExtension(model.LessonImage.FileName);
-        model.French.ContentHtml += $"<figure><img src=\"{encoder.Encode(url)}\" alt=\"{encoder.Encode(alt)}\"><figcaption></figcaption></figure>";
-        await _service.SaveAsync(model, token);
-    } TempData["Success"] = "Leçon enregistrée.";
-        if (Request.Form["continueEditing"] == "true")
-            return RedirectToAction(nameof(Edit), new { courseId, chapterId, id = lessonId });
-        return RedirectToAction(nameof(Index), new { courseId, chapterId });
+        try
+        {
+            var lessonId = await _service.SaveAsync(model, token);
+            model.Id = lessonId;
+            ModelState.Remove(nameof(model.Id));
+            if (model.LessonImage is not null)
+            {
+                var url = await _service.UploadImageAsync(lessonId, model.LessonImage, token);
+                var encoder = System.Text.Encodings.Web.HtmlEncoder.Default;
+                var alt = System.IO.Path.GetFileNameWithoutExtension(model.LessonImage.FileName);
+                model.French.ContentHtml += $"<figure><img src=\"{encoder.Encode(url)}\" alt=\"{encoder.Encode(alt)}\"><figcaption></figcaption></figure>";
+                await _service.SaveAsync(model, token);
+            }
+            TempData["Success"] = "Leçon enregistrée.";
+            if (Request.Form["continueEditing"] == "true")
+                return RedirectToAction(nameof(Edit), new { courseId, chapterId, id = lessonId });
+            return RedirectToAction(nameof(Index), new { courseId, chapterId });
         }
-        catch (InvalidDataException ex) { ModelState.AddModelError(nameof(model.LessonImage), ex.Message);
-        return View("Edit", model);
+        catch (InvalidDataException ex)
+        {
+            ModelState.AddModelError(nameof(model.LessonImage), ex.Message);
+            return View("Edit", model);
         }
-        catch (InvalidOperationException ex) { ModelState.AddModelError("", ex.Message);
-        return View("Edit", model);
-    } }
+        catch (InvalidOperationException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+            return View("Edit", model);
+        }
+    }
 
     private void Validate(LessonTranslationInput input, string key)
     {
@@ -126,5 +139,3 @@ public sealed class LessonsController : Controller
         return Ok();
     }
 }
-
-

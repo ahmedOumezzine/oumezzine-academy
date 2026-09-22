@@ -1,5 +1,7 @@
+using AhmedOumezzine.EFCore.Repository.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using OumezzineAcademy.Application.Abstractions;
+using OumezzineAcademy.Infrastructure.Data;
 using OumezzineAcademy.Infrastructure.Media;
 using OumezzineAcademy.Infrastructure.Persistence;
 
@@ -9,6 +11,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, string webRootPath)
     {
+        services.AddGenericRepository<ApplicationDbContext>();
         services.AddScoped<IMediaStorage>(_ => new FileSystemMediaStorage(webRootPath));
         services.AddScoped<ISitemapQueries, EfSitemapQueries>();
         services.AddScoped<IDashboardQueries, EfDashboardQueries>();
@@ -46,12 +49,3 @@ public static class DependencyInjection
         return services;
     }
 }
-
- 
-
-
-
-
-
-
-

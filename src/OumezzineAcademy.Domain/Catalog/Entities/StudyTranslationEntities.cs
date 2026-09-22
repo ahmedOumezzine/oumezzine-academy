@@ -107,4 +107,3 @@ public class CoursePrerequisite
     public Guid PrerequisiteCourseId { get; set; }
     public Course PrerequisiteCourse { get; set; } = null!;
 }
-

@@ -6,9 +6,13 @@ public sealed class FileSystemMediaStorage(string webRootPath) : IMediaStorage
 {
     private const long MaxImageBytes = 5 * 1024 * 1024;
     private static readonly HashSet<string> Extensions = new(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".webp" };
+
     private static readonly Dictionary<string, byte[]> Signatures = new(StringComparer.OrdinalIgnoreCase)
     {
-        [".jpg"] = [0xFF, 0xD8, 0xFF], [".jpeg"] = [0xFF, 0xD8, 0xFF], [".png"] = [0x89, 0x50, 0x4E, 0x47], [".webp"] = [0x52, 0x49, 0x46, 0x46]
+        [".jpg"] = [0xFF, 0xD8, 0xFF],
+        [".jpeg"] = [0xFF, 0xD8, 0xFF],
+        [".png"] = [0x89, 0x50, 0x4E, 0x47],
+        [".webp"] = [0x52, 0x49, 0x46, 0x46]
     };
 
     public async Task<string> SaveImageAsync(MediaUpload upload, string area, Guid entityId, CancellationToken cancellationToken = default)
@@ -45,4 +49,3 @@ public sealed class FileSystemMediaStorage(string webRootPath) : IMediaStorage
         return Path.Combine(webRootPath, "uploads", area, entityId.ToString("D"));
     }
 }
-

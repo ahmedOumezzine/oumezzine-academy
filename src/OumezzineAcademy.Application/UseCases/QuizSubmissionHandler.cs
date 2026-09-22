@@ -23,4 +23,3 @@ public sealed class QuizSubmissionHandler(IQuizQueries quizzes) : IQuizSubmissio
         return new QuizResultDto(quiz.Title, quiz.Slug, quiz.CourseSlug, results.Count(result => result.IsCorrect), results.Count, results);
     }
 }
-

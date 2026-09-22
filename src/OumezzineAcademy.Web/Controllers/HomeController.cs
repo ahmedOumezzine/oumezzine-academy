@@ -1,6 +1,6 @@
-using OumezzineAcademy.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
+using OumezzineAcademy.Web.Services;
 
 namespace OumezzineAcademy.Controllers;
 
@@ -25,4 +25,3 @@ public class HomeController : Controller
         return View();
     }
 }
-

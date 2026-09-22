@@ -1,5 +1,5 @@
-using OumezzineAcademy.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using OumezzineAcademy.Infrastructure.Data;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -32,4 +32,3 @@ public sealed class DbContextModelTests
         Assert.Contains("LearningPathCourse", entityNames);
     }
 }
-

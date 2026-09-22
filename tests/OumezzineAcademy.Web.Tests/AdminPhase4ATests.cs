@@ -1,5 +1,5 @@
-using Xunit;
 using System.Text.RegularExpressions;
+using Xunit;
 
 namespace OumezzineAcademy.Tests;
 
@@ -221,4 +221,3 @@ public sealed class AdminPhase4ATests
         Assert.Contains("data-add-answer", questionForm);
     }
 }
-

@@ -1,10 +1,8 @@
-using System.Globalization;
+using Microsoft.EntityFrameworkCore;
 using OumezzineAcademy.Infrastructure.Data;
 using OumezzineAcademy.Infrastructure.Persistence;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Models.Catalog;
 using OumezzineAcademy.Web.Services;
-using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -106,4 +104,3 @@ public sealed class CourseCatalogTranslationTests
 
     private static void SetCulture(string name) => CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(name);
 }
-
