@@ -53,3 +53,10 @@ src/OumezzineAcademy.Web/wwwroot/uploads/*
 
 # NuGet validation state
 .nuget-validation-state/
+
+# Local developer configuration
+**/appsettings.Local.json
+**/appsettings.Development.json
+
+**/launchSettings.json
+
