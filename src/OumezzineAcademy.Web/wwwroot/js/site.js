@@ -1,6 +1,9 @@
 (function () {
     'use strict';
 
+    const iconStylesheet = document.getElementById('bootstrap-icons');
+    if (iconStylesheet) iconStylesheet.media = 'all';
+
     const toggle = document.querySelector('.nav-toggle');
     const nav = document.getElementById('mainNav');
 

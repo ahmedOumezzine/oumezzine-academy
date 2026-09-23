@@ -60,3 +60,5 @@ src/OumezzineAcademy.Web/wwwroot/uploads/*
 
 **/launchSettings.json
 
+**/appsettings.Testing.json
+

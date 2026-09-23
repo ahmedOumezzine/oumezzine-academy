@@ -15,11 +15,13 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
     <link rel="icon" type="image/png" href="~/images/brand/icon.png" />
     <link rel="apple-touch-icon" href="~/images/brand/icon.png" />
     <partial name="_SeoMeta" model="seo" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link id="bootstrap-icons" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" media="print" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @await RenderSectionAsync("Head", required: false)
 </head>
@@ -28,7 +30,7 @@
     @{ var currentController = ViewContext.RouteData.Values["controller"]?.ToString(); }
     <header class="site-header">
         <nav class="nav-shell" aria-label="@L["Common_Navigation"]">
-            <a class="brand" href="@navigation.Home" aria-label="@L["Accessibility_HomeBrand"]"><picture><source type="image/webp" srcset="@(Url.Content("~/images/brand/logo-primary-400-v1.webp")) 400w, @(Url.Content("~/images/brand/logo-primary-600-v1.webp")) 600w" sizes="(max-width: 600px) 150px, 190px" /><img class="brand-logo" src="~/images/brand/logo-primary.png" width="2172" height="724" alt="Oumezzine Academy" /></picture></a>
+            <a class="brand" href="@navigation.Home" aria-label="@L["Accessibility_HomeBrand"]"><picture><source type="image/webp" srcset="@(Url.Content("~/images/brand/logo-primary-400-v1.webp")) 400w, @(Url.Content("~/images/brand/logo-primary-600-v1.webp")) 600w" sizes="(max-width: 600px) 150px, 190px" /><img class="brand-logo" src="~/images/brand/logo-primary.png" width="2172" height="724" fetchpriority="high" decoding="async" alt="Oumezzine Academy" /></picture></a>
             <button class="nav-toggle" type="button" aria-controls="mainNav" aria-expanded="false" aria-label="@L["Common_OpenMenu"]">
                 <span></span><span></span><span></span>
             </button>
@@ -68,9 +70,9 @@
         <div class="footer-bottom"><span>&copy; @DateTime.UtcNow.Year Oumezzine Academy</span><span>@L["Footer_Description"]</span></div>
     </footer>
 
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/site-navigation-progress.js" asp-append-version="true"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="~/js/site.js" asp-append-version="true" defer></script>
+    <script src="~/js/site-navigation-progress.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
