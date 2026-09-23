@@ -79,5 +79,8 @@ public class SeoController : Controller
         return Content(xml.ToString(), "application/xml", Encoding.UTF8);
     }
 
-    private static bool HasSlug(string? slug) => !string.IsNullOrWhiteSpace(slug);
+    private static bool HasSlug(string? slug) =>
+        !string.IsNullOrWhiteSpace(slug)
+        && slug == slug.Trim()
+        && slug.All(character => char.IsLetterOrDigit(character) || character == '-');
 }

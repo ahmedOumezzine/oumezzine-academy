@@ -1,8 +1,36 @@
 @model OumezzineAcademy.Models.Catalog.HomeViewModel
 @using OumezzineAcademy.Models.Catalog
+@using System.Text.Json
 @{
     ViewData["Seo"] = new SeoViewModel($"{L["Home_Hero_Title"].Value} - Oumezzine Academy", L["Home_Hero_Description"].Value);
+    var siteUrl = $"https://{Context.Request.Host}";
+    var homeUrl = $"{siteUrl}{Context.Request.Path}";
+    var logoUrl = $"{siteUrl}/images/brand/logo-primary.png";
+    var jsonLd = JsonSerializer.Serialize(new
+    {
+        @context = "https://schema.org",
+        @graph = new object[]
+        {
+            new
+            {
+                @type = "Organization",
+                name = "Oumezzine Academy",
+                url = siteUrl,
+                logo = logoUrl
+            },
+            new
+            {
+                @type = "WebSite",
+                name = "Oumezzine Academy",
+                url = siteUrl,
+                inLanguage = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName
+            }
+        }
+    });
 }
+
+@{ var cspNonce = Context.Items["CspNonce"]?.ToString(); }
+@section Head { <script type="application/ld+json" nonce="@cspNonce">@Html.Raw(jsonLd)</script> }
 
 <section class="hero">
     <div class="hero-copy">

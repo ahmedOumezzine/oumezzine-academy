@@ -1,7 +1,7 @@
 @model OumezzineAcademy.Models.Catalog.QuizAttemptViewModel
 @using OumezzineAcademy.Models.Catalog
 @{
-    ViewData["Seo"] = new SeoViewModel(string.IsNullOrWhiteSpace(Model.MetaTitle) ? $"{Model.Title} | Oumezzine Academy" : Model.MetaTitle!, Model.MetaDescription ?? Model.Summary ?? Model.Title, Robots: "index, follow");
+    ViewData["Seo"] = new SeoViewModel(string.IsNullOrWhiteSpace(Model.MetaTitle) ? $"{Model.Title} | Oumezzine Academy" : Model.MetaTitle!, Model.MetaDescription ?? Model.Summary ?? Model.Title, Robots: "noindex, follow");
 }
 
 <div class="quiz-page page">
