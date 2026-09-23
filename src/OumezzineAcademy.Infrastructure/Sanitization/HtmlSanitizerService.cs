@@ -1,5 +1,4 @@
 using Ganss.Xss;
-using OumezzineAcademy.Application.Abstractions;
 
 namespace OumezzineAcademy.Infrastructure.Sanitization;
 

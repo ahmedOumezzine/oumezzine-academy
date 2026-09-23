@@ -1,3 +1,4 @@
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Domain.Catalog;
@@ -5,20 +6,135 @@ using OumezzineAcademy.Infrastructure.Data;
 
 namespace OumezzineAcademy.Infrastructure.Persistence;
 
-public sealed class EfAdminCourseCoreCommands(ApplicationDbContext db) : IAdminCourseCoreCommands
+public sealed class EfAdminCourseCoreCommands(
+    IRepository repository) : IAdminCourseCoreCommands
 {
-    public Task<bool> SlugExistsAsync(string languageCode, string slug, Guid excludingId, CancellationToken token = default) => db.StudyCourseTranslations.AnyAsync(x => x.LanguageCode == languageCode && x.Slug == slug && x.CourseId != excludingId, token);
-
-    public async Task<(bool Success, Guid CourseId, string? ErrorKey, string? ErrorMessage)> SaveAsync(AdminCourseCoreSaveCommand command, CancellationToken token = default)
+    public async Task<bool> SlugExistsAsync(
+        string languageCode,
+        string slug,
+        Guid excludingId,
+        CancellationToken cancellationToken = default)
     {
-        if (!await db.StudyCourseCategories.AnyAsync(x => x.Id == command.CategoryId, token)) return (false, command.Id ?? Guid.Empty, "CategoryId", "La catégorie sélectionnée est invalide.");
-        if (await SlugExistsAsync("fr", command.French.Slug ?? "", command.Id ?? Guid.Empty, token) || await SlugExistsAsync("en", command.English.Slug ?? "", command.Id ?? Guid.Empty, token)) return (false, command.Id ?? Guid.Empty, "Slug", "Ce slug existe déjà.");
-        var entity = !command.Id.HasValue || command.Id.Value == Guid.Empty ? new Course { Id = Guid.NewGuid(), CreatedOnUtc = DateTime.UtcNow } : await db.StudyCourses.Include(x => x.Translations).SingleOrDefaultAsync(x => x.Id == command.Id.Value, token) ?? null!;
-        if (entity is null) return (false, command.Id!.Value, null, "Cours introuvable.");
-        entity.CourseCategoryId = command.CategoryId; entity.Level = command.Level; entity.Thumbnail = command.Thumbnail ?? entity.Thumbnail; entity.Status = command.French.PublicationStatus; if (!command.Id.HasValue || command.Id.Value == Guid.Empty) db.StudyCourses.Add(entity);
-        Upsert(entity, "fr", command.French); Upsert(entity, "en", command.English); db.Entry(entity).Property<bool>("IsDeleted").CurrentValue = false; await db.SaveChangesAsync(token); return (true, entity.Id, null, null);
+        var courses = await repository.GetListAsync<Course>(
+            query => query.Include(course => course.Translations),
+            cancellationToken);
+
+        return courses.SelectMany(course => course.Translations).Any(translation =>
+            translation.LanguageCode == languageCode
+            && translation.Slug == slug
+            && translation.CourseId != excludingId);
     }
 
-    private void Upsert(Course entity, string language, AdminCourseTranslationDto input)
-    { if (string.IsNullOrWhiteSpace(input.Title) && string.IsNullOrWhiteSpace(input.Slug)) return; var t = entity.Translations.FirstOrDefault(x => x.LanguageCode == language); if (t is null) { t = new CourseTranslation { Id = Guid.NewGuid(), CourseId = entity.Id, LanguageCode = language }; entity.Translations.Add(t); } t.Title = input.Title?.Trim() ?? ""; t.Slug = input.Slug?.Trim() ?? ""; t.Summary = input.Summary; t.Overview = input.Overview; t.WhatYouLearn = input.WhatYouLearn; t.Requirements = input.Requirements; t.Audience = input.Audience; t.MetaTitle = input.MetaTitle; t.MetaDescription = input.MetaDescription; t.PublicationStatus = input.PublicationStatus; }
+    public async Task<(bool Success, Guid CourseId, string? ErrorKey, string? ErrorMessage)> SaveAsync(
+        AdminCourseCoreSaveCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var categoryExists = await repository.ExistsAsync<CourseCategory>(
+            category => category.Id == command.CategoryId,
+            cancellationToken);
+
+        if (!categoryExists)
+        {
+            return (
+                false,
+                command.Id ?? Guid.Empty,
+                "CategoryId",
+                "La catégorie sélectionnée est invalide.");
+        }
+
+        var frenchSlugExists = await SlugExistsAsync(
+            "fr",
+            command.French.Slug ?? "",
+            command.Id ?? Guid.Empty,
+            cancellationToken);
+        var englishSlugExists = await SlugExistsAsync(
+            "en",
+            command.English.Slug ?? "",
+            command.Id ?? Guid.Empty,
+            cancellationToken);
+
+        if (frenchSlugExists || englishSlugExists)
+        {
+            return (
+                false,
+                command.Id ?? Guid.Empty,
+                "Slug",
+                "Ce slug existe déjà.");
+        }
+
+        var isNew = !command.Id.HasValue || command.Id.Value == Guid.Empty;
+        var course = isNew
+            ? new Course
+            {
+                Id = Guid.NewGuid(),
+                CreatedOnUtc = DateTime.UtcNow
+            }
+            : await repository.GetByIdAsync<Course>(
+                command.Id!.Value,
+                query => query.Include(entity => entity.Translations),
+                cancellationToken)
+                ?? null!;
+
+        if (course is null)
+        {
+            return (false, command.Id.GetValueOrDefault(), null, "Cours introuvable.");
+        }
+
+        course.CourseCategoryId = command.CategoryId;
+        course.Level = command.Level;
+        course.Thumbnail = command.Thumbnail ?? course.Thumbnail;
+        course.Status = command.French.PublicationStatus;
+
+        UpsertTranslation(course, "fr", command.French);
+        UpsertTranslation(course, "en", command.English);
+
+        if (isNew)
+        {
+            await repository.InsertAsync(course, cancellationToken);
+        }
+        else
+        {
+            await repository.UpdateAsync(course, cancellationToken);
+        }
+
+        return (true, course.Id, null, null);
+    }
+
+    private static void UpsertTranslation(
+        Course course,
+        string languageCode,
+        AdminCourseTranslationDto input)
+    {
+        if (string.IsNullOrWhiteSpace(input.Title)
+            && string.IsNullOrWhiteSpace(input.Slug))
+        {
+            return;
+        }
+
+        var translation = course.Translations.FirstOrDefault(
+            item => item.LanguageCode == languageCode);
+
+        if (translation is null)
+        {
+            translation = new CourseTranslation
+            {
+                Id = Guid.NewGuid(),
+                CourseId = course.Id,
+                LanguageCode = languageCode
+            };
+
+            course.Translations.Add(translation);
+        }
+
+        translation.Title = input.Title?.Trim() ?? "";
+        translation.Slug = input.Slug?.Trim() ?? "";
+        translation.Summary = input.Summary;
+        translation.Overview = input.Overview;
+        translation.WhatYouLearn = input.WhatYouLearn;
+        translation.Requirements = input.Requirements;
+        translation.Audience = input.Audience;
+        translation.MetaTitle = input.MetaTitle;
+        translation.MetaDescription = input.MetaDescription;
+        translation.PublicationStatus = input.PublicationStatus;
+    }
 }

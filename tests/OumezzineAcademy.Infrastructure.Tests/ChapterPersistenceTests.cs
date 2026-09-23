@@ -1,4 +1,7 @@
+using AhmedOumezzine.EFCore.Repository.Extensions;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Infrastructure.Data;
 using OumezzineAcademy.Infrastructure.Persistence;
@@ -13,7 +16,7 @@ public sealed class ChapterPersistenceTests
     public async Task Saves_new_chapter_and_normalizes_order()
     {
         await using var db = CreateDb(out var courseId);
-        var persistence = new EfAdminChapterPersistence(db, new HtmlSanitizerService());
+        var persistence = new EfAdminChapterPersistence(new HtmlSanitizerService(), CreateRepository(db));
 
         var result = await persistence.SaveAsync(Command(null, courseId, 9));
 
@@ -26,7 +29,7 @@ public sealed class ChapterPersistenceTests
     public async Task Returns_error_for_unknown_course_and_chapter()
     {
         await using var db = CreateDb(out var courseId);
-        var persistence = new EfAdminChapterPersistence(db, new HtmlSanitizerService());
+        var persistence = new EfAdminChapterPersistence(new HtmlSanitizerService(), CreateRepository(db));
         var missingCourse = await persistence.SaveAsync(Command(null, Guid.NewGuid(), 1));
         var missingChapter = await persistence.SaveAsync(Command(Guid.NewGuid(), courseId, 1));
 
@@ -41,7 +44,7 @@ public sealed class ChapterPersistenceTests
         var chapter = new CourseContent { Id = Guid.NewGuid(), CourseId = courseId, Title = "Chapter", Order = 1 };
         db.CourseContents.Add(chapter);
         await db.SaveChangesAsync();
-        var persistence = new EfAdminChapterPersistence(db, new HtmlSanitizerService());
+        var persistence = new EfAdminChapterPersistence(new HtmlSanitizerService(), CreateRepository(db));
 
         var deleted = await persistence.DeleteAsync(courseId, chapter.Id);
         Assert.True(deleted.Success);
@@ -53,6 +56,14 @@ public sealed class ChapterPersistenceTests
         var rejected = await persistence.DeleteAsync(courseId, blocked.Id);
         Assert.False(rejected.Success);
         Assert.Contains("leçons", rejected.Message);
+    }
+
+    private static IRepository CreateRepository(ApplicationDbContext db)
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => db);
+        services.AddGenericRepository<ApplicationDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IRepository>();
     }
 
     private static ApplicationDbContext CreateDb(out Guid courseId)

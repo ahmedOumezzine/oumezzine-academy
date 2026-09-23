@@ -1,4 +1,7 @@
+using AhmedOumezzine.EFCore.Repository.Extensions;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Areas.Admin.Models;
 using OumezzineAcademy.Infrastructure.Data;
@@ -17,7 +20,7 @@ public sealed class AdminContentServiceTests
     {
         await using var db = CreateDatabase();
         var (courseId, _) = await SeedCourseAsync(db);
-        var service = new AdminChapterService(new EfAdminChapterQueries(db), new EfAdminChapterPersistence(db, new HtmlSanitizerService()), new NullStudyLmsCacheInvalidator(), new EfAdminChapterMediaCommands(db, new FileSystemMediaStorage(".")));
+        var service = new AdminChapterService(new EfAdminChapterQueries(CreateRepository(db)), new EfAdminChapterPersistence(new HtmlSanitizerService(), CreateRepository(db)), new NullStudyLmsCacheInvalidator(), new EfAdminChapterMediaCommands(CreateRepository(db), new FileSystemMediaStorage(".")));
 
         await service.SaveAsync(new ChapterEditViewModel
         {
@@ -42,7 +45,7 @@ public sealed class AdminContentServiceTests
         db.StudyCourseContents.AddRange(first, second);
         db.StudyCourseLessons.Add(new CourseLesson { Id = Guid.NewGuid(), CourseContentId = second.Id, Order = 1, Title = "Lesson", CreatedOnUtc = DateTime.UtcNow });
         await db.SaveChangesAsync();
-        var service = new AdminChapterService(new EfAdminChapterQueries(db), new EfAdminChapterPersistence(db, new HtmlSanitizerService()), new NullStudyLmsCacheInvalidator(), new EfAdminChapterMediaCommands(db, new FileSystemMediaStorage(".")));
+        var service = new AdminChapterService(new EfAdminChapterQueries(CreateRepository(db)), new EfAdminChapterPersistence(new HtmlSanitizerService(), CreateRepository(db)), new NullStudyLmsCacheInvalidator(), new EfAdminChapterMediaCommands(CreateRepository(db), new FileSystemMediaStorage(".")));
 
         await service.MoveAsync(courseId, second.Id, -1, CancellationToken.None);
         var ordered = await db.StudyCourseContents.Where(x => x.CourseId == courseId).OrderBy(x => x.Order).ToListAsync();
@@ -60,7 +63,7 @@ public sealed class AdminContentServiceTests
         var chapter = new CourseContent { Id = Guid.NewGuid(), CourseId = courseId, Order = 1, Title = "Chapter", CreatedOnUtc = DateTime.UtcNow };
         db.StudyCourseContents.Add(chapter);
         await db.SaveChangesAsync();
-        var service = new AdminLessonService(new EfAdminLessonQueries(db), new EfAdminLessonCoreCommands(db, new HtmlSanitizerService()), new EfAdminLessonMediaCommands(db, new FileSystemMediaStorage(".")), new EfAdminLessonDeleteCommands(db), new NullStudyLmsCacheInvalidator());
+        var service = new AdminLessonService(new EfAdminLessonQueries(CreateRepository(db)), new EfAdminLessonCoreCommands(db, new HtmlSanitizerService(), CreateRepository(db)), new EfAdminLessonMediaCommands(CreateRepository(db), new FileSystemMediaStorage(".")), new EfAdminLessonDeleteCommands(CreateRepository(db)), new NullStudyLmsCacheInvalidator());
 
         await service.SaveAsync(new LessonEditViewModel
         {
@@ -92,7 +95,7 @@ public sealed class AdminContentServiceTests
         db.StudyCourseContents.Add(chapter); db.StudyCourseLessons.AddRange(first, second);
         db.StudyCourseLessonTranslations.Add(new CourseLessonTranslation { Id = Guid.NewGuid(), CourseLessonId = first.Id, LanguageCode = "fr", Slug = "same", Title = "A" });
         await db.SaveChangesAsync();
-        var service = new AdminLessonService(new EfAdminLessonQueries(db), new EfAdminLessonCoreCommands(db, new HtmlSanitizerService()), new EfAdminLessonMediaCommands(db, new FileSystemMediaStorage(".")), new EfAdminLessonDeleteCommands(db), new NullStudyLmsCacheInvalidator());
+        var service = new AdminLessonService(new EfAdminLessonQueries(CreateRepository(db)), new EfAdminLessonCoreCommands(db, new HtmlSanitizerService(), CreateRepository(db)), new EfAdminLessonMediaCommands(CreateRepository(db), new FileSystemMediaStorage(".")), new EfAdminLessonDeleteCommands(CreateRepository(db)), new NullStudyLmsCacheInvalidator());
 
         Assert.True(await service.SlugExistsAsync("fr", "same", second.Id, CancellationToken.None));
         await service.MoveAsync(courseId, chapter.Id, second.Id, -1, CancellationToken.None);
@@ -104,6 +107,14 @@ public sealed class AdminContentServiceTests
     private static ApplicationDbContext CreateDatabase()
     {
         return new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+    }
+
+    private static IRepository CreateRepository(ApplicationDbContext db)
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => db);
+        services.AddGenericRepository<ApplicationDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IRepository>();
     }
 
     private static async Task<(Guid CourseId, Guid CategoryId)> SeedCourseAsync(ApplicationDbContext db)

@@ -1,4 +1,7 @@
+using AhmedOumezzine.EFCore.Repository.Extensions;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Infrastructure.Data;
 using OumezzineAcademy.Infrastructure.Persistence;
@@ -12,7 +15,7 @@ public sealed class CoursePersistenceTests
     public async Task Saves_course_with_translations_and_rejects_duplicate_slug()
     {
         await using var db = CreateDb(out var categoryId);
-        var commands = new EfAdminCourseCoreCommands(db);
+        var commands = new EfAdminCourseCoreCommands(CreateRepository(db));
         var result = await commands.SaveAsync(Command(null, categoryId, "course"));
         Assert.True(result.Success);
         Assert.Equal(2, await db.CourseTranslations.CountAsync());
@@ -26,7 +29,7 @@ public sealed class CoursePersistenceTests
     public async Task Rejects_invalid_category_and_missing_course_edit()
     {
         await using var db = CreateDb(out var categoryId);
-        var commands = new EfAdminCourseCoreCommands(db);
+        var commands = new EfAdminCourseCoreCommands(CreateRepository(db));
         var invalidCategory = await commands.SaveAsync(Command(null, Guid.NewGuid(), "invalid"));
         var missingCourse = await commands.SaveAsync(Command(Guid.NewGuid(), categoryId, "missing"));
         Assert.Equal("CategoryId", invalidCategory.ErrorKey);
@@ -40,7 +43,7 @@ public sealed class CoursePersistenceTests
         var course = new Course { Id = Guid.NewGuid(), CourseCategoryId = categoryId, Title = "Other" };
         db.Courses.Add(course);
         await db.SaveChangesAsync();
-        var commands = new EfAdminCoursePrerequisiteCommands(db, new Validator(false));
+        var commands = new EfAdminCoursePrerequisiteCommands(new Validator(false), CreateRepository(db));
         var owner = (await db.Courses.Select(x => x.Id).ToListAsync()).First();
         var result = await commands.SynchronizeAsync(owner, new[] { course.Id, course.Id });
         Assert.True(result.Success);
@@ -57,6 +60,14 @@ public sealed class CoursePersistenceTests
         db.Courses.Add(new Course { Id = Guid.NewGuid(), CourseCategoryId = categoryId, Title = "Owner" });
         db.SaveChanges();
         return db;
+    }
+
+    private static IRepository CreateRepository(ApplicationDbContext db)
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => db);
+        services.AddGenericRepository<ApplicationDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IRepository>();
     }
 
     private static AdminCourseCoreSaveCommand Command(Guid? id, Guid categoryId, string slug)

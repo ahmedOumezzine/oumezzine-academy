@@ -1,4 +1,7 @@
+using AhmedOumezzine.EFCore.Repository.Extensions;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Infrastructure.Data;
 using OumezzineAcademy.Infrastructure.Persistence;
@@ -13,7 +16,7 @@ public sealed class LessonCorePersistenceTests
     public async Task Saves_new_lesson_and_sanitizes_content()
     {
         await using var db = CreateDb(out var courseId, out var chapterId);
-        var commands = new EfAdminLessonCoreCommands(db, new HtmlSanitizerService());
+        var commands = new EfAdminLessonCoreCommands(db, new HtmlSanitizerService(), CreateRepository(db));
 
         var result = await commands.SaveAsync(Command(null, courseId, chapterId, 5, "<p>ok</p><script>bad()</script>"));
 
@@ -27,7 +30,7 @@ public sealed class LessonCorePersistenceTests
     public async Task Returns_errors_for_missing_chapter_and_lesson()
     {
         await using var db = CreateDb(out var courseId, out var chapterId);
-        var commands = new EfAdminLessonCoreCommands(db, new HtmlSanitizerService());
+        var commands = new EfAdminLessonCoreCommands(db, new HtmlSanitizerService(), CreateRepository(db));
         var missingChapter = await commands.SaveAsync(Command(null, courseId, Guid.NewGuid(), 1, null));
         var missingLesson = await commands.SaveAsync(Command(Guid.NewGuid(), courseId, chapterId, 1, null));
 
@@ -43,7 +46,7 @@ public sealed class LessonCorePersistenceTests
         var second = new CourseLesson { Id = Guid.NewGuid(), CourseContentId = chapterId, Title = "Second", Slug = "second", Order = 2 };
         db.CourseLessons.AddRange(first, second);
         await db.SaveChangesAsync();
-        await new EfAdminLessonCoreCommands(db, new HtmlSanitizerService()).MoveAsync(courseId, chapterId, second.Id, -1);
+        await new EfAdminLessonCoreCommands(db, new HtmlSanitizerService(), CreateRepository(db)).MoveAsync(courseId, chapterId, second.Id, -1);
         db.ChangeTracker.Clear();
 
         var orders = await db.CourseLessons.OrderBy(x => x.Order).Select(x => x.Id).ToListAsync();
@@ -60,6 +63,14 @@ public sealed class LessonCorePersistenceTests
         db.CourseContents.Add(new CourseContent { Id = chapterId, CourseId = courseId, Title = "Chapter", Order = 1 });
         db.SaveChanges();
         return db;
+    }
+
+    private static IRepository CreateRepository(ApplicationDbContext db)
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => db);
+        services.AddGenericRepository<ApplicationDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IRepository>();
     }
 
     private static AdminLessonSaveCommand Command(Guid? id, Guid courseId, Guid chapterId, int order, string? html)

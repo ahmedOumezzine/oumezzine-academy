@@ -1,3 +1,5 @@
+using AhmedOumezzine.EFCore.Repository.Interface;
+using AhmedOumezzine.EFCore.Repository.Specification;
 using Microsoft.EntityFrameworkCore;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Domain.Catalog;
@@ -5,11 +7,80 @@ using OumezzineAcademy.Infrastructure.Data;
 
 namespace OumezzineAcademy.Infrastructure.Persistence;
 
-public sealed class EfAdminLearningPathCategoryQueries(ApplicationDbContext db) : IAdminLearningPathCategoryQueries
+public sealed class EfAdminLearningPathCategoryQueries(
+    IRepository repository)
+    : IAdminLearningPathCategoryQueries
 {
-    public async Task<IReadOnlyList<AdminLearningPathCategoryListDto>> ListAsync(CancellationToken t = default) => await db.StudyLearningPathCategories.AsNoTracking().OrderBy(x => x.Slug).Select(x => new AdminLearningPathCategoryListDto(x.Id, x.Translations.Where(t => t.LanguageCode == "fr").Select(t => t.Title).FirstOrDefault() ?? x.Title, x.Translations.Where(t => t.LanguageCode == "en").Select(t => t.Title).FirstOrDefault() ?? "Missing", x.LearningPaths.Count, x.Translations.Where(t => t.LanguageCode == "fr").Select(t => (StudyStatus?)t.PublicationStatus).FirstOrDefault(), x.Translations.Where(t => t.LanguageCode == "en").Select(t => (StudyStatus?)t.PublicationStatus).FirstOrDefault())).ToListAsync(t);
+    public async Task<IReadOnlyList<AdminLearningPathCategoryListDto>> ListAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var specification = new Specification<LearningPathCategory>
+        {
+            OrderBy = query => query.OrderBy(category => category.Slug)
+        };
 
-    public async Task<AdminLearningPathCategoryEditDto?> GetForEditAsync(Guid id, CancellationToken t = default) => await db.StudyLearningPathCategories.AsNoTracking().Where(x => x.Id == id).Select(x => new AdminLearningPathCategoryEditDto(x.Id, x.Title, x.Slug, x.Status, x.Translations.Select(y => new AdminLearningPathCategoryTranslationDto(y.LanguageCode, y.Title, y.Slug, y.Summary, y.MetaTitle, y.MetaDescription, y.PublicationStatus)).ToList(), x.LearningPaths.Count)).FirstOrDefaultAsync(t);
+        return await repository.GetListAsync<LearningPathCategory, AdminLearningPathCategoryListDto>(
+            specification,
+            category => new AdminLearningPathCategoryListDto(
+                category.Id,
+                category.Translations
+                    .Where(translation => translation.LanguageCode == "fr")
+                    .Select(translation => translation.Title)
+                    .FirstOrDefault()
+                    ?? category.Title,
+                category.Translations
+                    .Where(translation => translation.LanguageCode == "en")
+                    .Select(translation => translation.Title)
+                    .FirstOrDefault()
+                    ?? "Missing",
+                category.LearningPaths.Count,
+                category.Translations
+                    .Where(translation => translation.LanguageCode == "fr")
+                    .Select(translation => (StudyStatus?)translation.PublicationStatus)
+                    .FirstOrDefault(),
+                category.Translations
+                    .Where(translation => translation.LanguageCode == "en")
+                    .Select(translation => (StudyStatus?)translation.PublicationStatus)
+                    .FirstOrDefault()),
+            cancellationToken);
+    }
 
-    public Task<bool> SlugExistsAsync(string languageCode, string slug, Guid excludingId, CancellationToken t = default) => db.StudyLearningPathCategoryTranslations.AsNoTracking().AnyAsync(x => x.LanguageCode == languageCode && x.Slug == slug && x.LearningPathCategoryId != excludingId, t);
+    public async Task<AdminLearningPathCategoryEditDto?> GetForEditAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+        => await repository.GetAsync<LearningPathCategory, AdminLearningPathCategoryEditDto>(
+            category => category.Id == id,
+            category => new AdminLearningPathCategoryEditDto(
+                category.Id,
+                category.Title,
+                category.Slug,
+                category.Status,
+                category.Translations
+                    .Select(translation => new AdminLearningPathCategoryTranslationDto(
+                        translation.LanguageCode,
+                        translation.Title,
+                        translation.Slug,
+                        translation.Summary,
+                        translation.MetaTitle,
+                        translation.MetaDescription,
+                        translation.PublicationStatus))
+                    .ToList(),
+                category.LearningPaths.Count),
+            cancellationToken);
+
+    public async Task<bool> SlugExistsAsync(
+        string languageCode,
+        string slug,
+        Guid excludingId,
+        CancellationToken cancellationToken = default)
+    {
+        var categories = await repository.GetListAsync<LearningPathCategory>(
+            query => query.Include(category => category.Translations),
+            cancellationToken);
+
+        return categories.Any(category => category.Id != excludingId
+            && category.Translations.Any(translation =>
+                translation.LanguageCode == languageCode
+                && translation.Slug == slug));
+    }
 }

@@ -1,6 +1,9 @@
+using AhmedOumezzine.EFCore.Repository.Extensions;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using OumezzineAcademy.Infrastructure.Data;
 using OumezzineAcademy.Infrastructure.Persistence;
 using OumezzineAcademy.Web.Services;
@@ -45,14 +48,14 @@ public sealed class CourseVisibilityTests
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var rows = await new EfAdminCourseQueries(db).ListAsync(null, null, null, null, null, null, 1, 10, default);
+        var rows = await new EfAdminCourseQueries(CreateRepository(db)).ListAsync(null, null, null, null, null, null, 1, 10, default);
         var item = Assert.Single(rows.Items);
         var visibility = CourseVisibilityPolicy.Evaluate(item.CourseStatus, language == "fr" ? item.FrenchStatus : item.EnglishStatus, language);
         Assert.Equal(translationStatus, language == "fr" ? item.FrenchStatus : item.EnglishStatus);
         Assert.Equal(expectedVisible, visibility.IsVisible);
         Assert.Equal(expectedVisible, visibility.Reasons.Count == 0);
 
-        var catalogue = new CourseCatalogService(new EfCourseCatalogQueries(db), new FixedLanguage(language));
+        var catalogue = new CourseCatalogService(new EfCourseCatalogQueries(CreateRepository(db)), new FixedLanguage(language));
         var search = await catalogue.SearchCoursesAsync(null, null, null, null, null, 1, 9);
         var detail = await catalogue.GetCourseAsync($"{language}-{course.Id:N}");
         var home = await catalogue.GetHomeAsync();
@@ -87,7 +90,7 @@ public sealed class CourseVisibilityTests
     }
 
     [Fact]
-    public async Task List_uses_two_queries_for_both_one_and_fifty_courses()
+    public async Task List_uses_one_repository_query_for_both_one_and_fifty_courses()
     {
         using var connection = new SqliteConnection("Data Source=:memory:");
         await connection.OpenAsync();
@@ -106,11 +109,11 @@ public sealed class CourseVisibilityTests
         foreach (var pageSize in new[] { 1, 50 })
         {
             counter.Count = 0;
-            var result = await new EfAdminCourseQueries(db).ListAsync(null, null, null, null, null, null, 1, pageSize, default);
+            var result = await new EfAdminCourseQueries(CreateRepository(db)).ListAsync(null, null, null, null, null, null, 1, pageSize, default);
             Assert.Equal(pageSize, result.Items.Count);
             Assert.Equal(50, result.TotalCount);
             Assert.All(result.Items, item => { Assert.True(CourseVisibilityPolicy.Evaluate(item.CourseStatus, item.FrenchStatus, "fr").IsVisible); Assert.False(CourseVisibilityPolicy.Evaluate(item.CourseStatus, item.EnglishStatus, "en").IsVisible); });
-            Assert.Equal(2, counter.Count);
+            Assert.Equal(1, counter.Count);
         }
     }
 
@@ -129,7 +132,7 @@ public sealed class CourseVisibilityTests
         var missing = CreateCourse(StudyStatus.Draft);
         db.AddRange(french, english, missing);
         await db.SaveChangesAsync();
-        var queries = new EfAdminCourseQueries(db);
+        var queries = new EfAdminCourseQueries(CreateRepository(db));
         var all = await queries.ListAsync(null, null, null, null, null, null, 1, 10, default);
         Assert.Equal("Titre français", all.Items.Single(x => x.Id == french.Id).DisplayTitle);
         Assert.Equal("English title", all.Items.Single(x => x.Id == english.Id).DisplayTitle);
@@ -187,6 +190,14 @@ public sealed class CourseVisibilityTests
         Title = language == "fr" ? "Titre français" : "English title",
         Slug = $"{language}-{course.Id:N}"
     });
+
+    private static IRepository CreateRepository(ApplicationDbContext db)
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => db);
+        services.AddGenericRepository<ApplicationDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IRepository>();
+    }
 
     private sealed class FixedLanguage(string code) : ICurrentLanguageService
     { public string LanguageCode => code; }

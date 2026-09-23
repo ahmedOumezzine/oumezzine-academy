@@ -1,16 +1,32 @@
-using Microsoft.EntityFrameworkCore;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using OumezzineAcademy.Application.Abstractions;
-using OumezzineAcademy.Infrastructure.Data;
+using OumezzineAcademy.Domain.Catalog;
 
 namespace OumezzineAcademy.Infrastructure.Persistence;
 
-public sealed class EfAdminChapterMediaCommands(ApplicationDbContext db, IMediaStorage media) : IAdminChapterMediaCommands
+public sealed class EfAdminChapterMediaCommands(
+    IRepository repository,
+    IMediaStorage media) : IAdminChapterMediaCommands
 {
-    public async Task<string?> UploadAsync(Guid courseId, Guid chapterId, MediaUpload upload, CancellationToken cancellationToken = default)
+    public async Task<string?> UploadAsync(
+        Guid courseId,
+        Guid chapterId,
+        MediaUpload upload,
+        CancellationToken cancellationToken = default)
     {
-        if (!await db.StudyCourseContents.AnyAsync(x => x.Id == chapterId && x.CourseId == courseId, cancellationToken))
-            return null;
+        var chapterExists = await repository.ExistsAsync<CourseContent>(
+            chapter => chapter.Id == chapterId && chapter.CourseId == courseId,
+            cancellationToken);
 
-        return await media.SaveImageAsync(upload, "chapters", chapterId, cancellationToken);
+        if (!chapterExists)
+        {
+            return null;
+        }
+
+        return await media.SaveImageAsync(
+            upload,
+            "chapters",
+            chapterId,
+            cancellationToken);
     }
 }

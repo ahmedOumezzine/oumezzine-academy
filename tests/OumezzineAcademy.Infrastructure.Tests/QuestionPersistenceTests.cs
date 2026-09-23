@@ -1,4 +1,7 @@
+using AhmedOumezzine.EFCore.Repository.Extensions;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Infrastructure.Data;
 using OumezzineAcademy.Infrastructure.Persistence;
@@ -12,7 +15,7 @@ public sealed class QuestionPersistenceTests
     public async Task Saves_question_with_two_answers_and_one_correct_answer()
     {
         await using var db = CreateDb(out var courseId, out var chapterId, out var quizId);
-        var command = new EfAdminQuestionCommands(db);
+        var command = new EfAdminQuestionCommands(db, CreateRepository(db));
         var result = await command.SaveAsync(Save(null, courseId, chapterId, quizId, Answers()));
         var saved = await db.QuizQuestions.Include(x => x.Answers).SingleAsync();
 
@@ -25,7 +28,7 @@ public sealed class QuestionPersistenceTests
     public async Task Rejects_missing_quiz_and_invalid_answer_sets()
     {
         await using var db = CreateDb(out var courseId, out var chapterId, out var quizId);
-        var command = new EfAdminQuestionCommands(db);
+        var command = new EfAdminQuestionCommands(db, CreateRepository(db));
         await Assert.ThrowsAsync<InvalidOperationException>(() => command.SaveAsync(Save(null, courseId, chapterId, Guid.NewGuid(), Answers())));
         await Assert.ThrowsAsync<InvalidOperationException>(() => command.SaveAsync(Save(null, courseId, chapterId, quizId, [new(Guid.Empty, "Only", null, true)])));
         await Assert.ThrowsAsync<InvalidOperationException>(() => command.SaveAsync(Save(null, courseId, chapterId, quizId, [new(Guid.Empty, "A", null, true), new(Guid.Empty, "B", null, true)])));
@@ -38,7 +41,7 @@ public sealed class QuestionPersistenceTests
         var question = new QuizQuestion { Id = Guid.NewGuid(), CourseQuizId = quizId, Text = "Question", Order = 1 };
         db.QuizQuestions.Add(question);
         await db.SaveChangesAsync();
-        var command = new EfAdminQuestionCommands(db);
+        var command = new EfAdminQuestionCommands(db, CreateRepository(db));
         Assert.Equal(AdminQuestionDeleteStatus.Deleted, await command.DeleteAsync(courseId, chapterId, quizId, question.Id));
         Assert.Equal(AdminQuestionDeleteStatus.NotFound, await command.DeleteAsync(courseId, chapterId, quizId, Guid.NewGuid()));
     }
@@ -48,6 +51,14 @@ public sealed class QuestionPersistenceTests
 
     private static IReadOnlyList<AdminAnswerDto> Answers()
         => [new(Guid.Empty, "Oui", "Yes", true), new(Guid.Empty, "Non", "No", false)];
+
+    private static IRepository CreateRepository(ApplicationDbContext db)
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => db);
+        services.AddGenericRepository<ApplicationDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IRepository>();
+    }
 
     private static ApplicationDbContext CreateDb(out Guid courseId, out Guid chapterId, out Guid quizId)
     {

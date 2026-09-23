@@ -8,8 +8,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Domain.Catalog;
 using OumezzineAcademy.Infrastructure.Data;
+using OumezzineAcademy.Infrastructure.Media;
 using System.Security.Claims;
 
 namespace OumezzineAcademy.Tests;
@@ -23,9 +25,14 @@ public sealed class AdminWebApplicationFactory : WebApplicationFactory<Program>
     public static readonly Guid ChapterId = Guid.Parse("20000000-0000-0000-0000-000000000001");
     public static readonly Guid QuizId = Guid.Parse("30000000-0000-0000-0000-000000000001");
     private readonly AdminTestProfile _profile;
+    private readonly string? _mediaRootPath;
     private readonly SqliteConnection _connection = new("Data Source=:memory:");
 
-    public AdminWebApplicationFactory(AdminTestProfile profile) => _profile = profile;
+    public AdminWebApplicationFactory(AdminTestProfile profile, string? mediaRootPath = null)
+    {
+        _profile = profile;
+        _mediaRootPath = mediaRootPath;
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -42,6 +49,11 @@ public sealed class AdminWebApplicationFactory : WebApplicationFactory<Program>
             services.AddDataProtection().UseEphemeralDataProtectionProvider();
             services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(_connection));
+            if (_mediaRootPath is not null)
+            {
+                services.RemoveAll<IMediaStorage>();
+                services.AddSingleton<IMediaStorage>(new FileSystemMediaStorage(_mediaRootPath));
+            }
             using var db = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite(_connection).Options);
             db.Database.EnsureCreated();
             SeedFixture(db);

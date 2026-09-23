@@ -1,4 +1,6 @@
+using AhmedOumezzine.EFCore.Repository.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OumezzineAcademy.Infrastructure.Data;
 using OumezzineAcademy.Infrastructure.Persistence;
 using OumezzineAcademy.Web.Services;
@@ -100,7 +102,15 @@ public sealed class CourseCatalogTranslationTests
         return course.Id;
     }
 
-    private static CourseCatalogService CreateService(ApplicationDbContext db) => new(new EfCourseCatalogQueries(db), new CurrentLanguageService());
+    private static CourseCatalogService CreateService(ApplicationDbContext db) => new(new EfCourseCatalogQueries(CreateRepository(db)), new CurrentLanguageService());
+
+    private static AhmedOumezzine.EFCore.Repository.Interface.IRepository CreateRepository(ApplicationDbContext db)
+    {
+        var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+        services.AddScoped(_ => db);
+        services.AddGenericRepository<ApplicationDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<AhmedOumezzine.EFCore.Repository.Interface.IRepository>();
+    }
 
     private static void SetCulture(string name) => CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(name);
 }

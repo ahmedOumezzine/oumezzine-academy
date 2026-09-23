@@ -1,10 +1,22 @@
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using OumezzineAcademy.Application.Abstractions;
-using OumezzineAcademy.Infrastructure.Data;
+using OumezzineAcademy.Domain.Catalog;
 
 namespace OumezzineAcademy.Infrastructure.Persistence;
 
-public sealed class EfCoursePrerequisiteEdges(ApplicationDbContext db) : ICoursePrerequisiteEdges
+public sealed class EfCoursePrerequisiteEdges(IRepository repository) : ICoursePrerequisiteEdges
+{
+    public async Task<IReadOnlyList<CoursePrerequisiteEdge>> GetAllAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var courses = await repository.GetListAsync<Course>(
+            query => query.Include(course => course.Prerequisites),
+            cancellationToken);
 
-
-{ public async Task<IReadOnlyList<CoursePrerequisiteEdge>> GetAllAsync(CancellationToken token = default) => await db.StudyCoursePrerequisites.AsNoTracking().Select(e => new CoursePrerequisiteEdge(e.CourseId, e.PrerequisiteCourseId)).ToListAsync(token); }
+        return courses
+            .SelectMany(course => course.Prerequisites.Select(edge =>
+                new CoursePrerequisiteEdge(course.Id, edge.PrerequisiteCourseId)))
+            .ToList();
+    }
+}

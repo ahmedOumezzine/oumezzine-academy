@@ -1,3 +1,4 @@
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Domain.Catalog;
@@ -5,17 +6,71 @@ using OumezzineAcademy.Infrastructure.Data;
 
 namespace OumezzineAcademy.Infrastructure.Persistence;
 
-public sealed class EfAdminCoursePrerequisiteCommands(ApplicationDbContext db, ICoursePrerequisiteValidator validator) : IAdminCoursePrerequisiteCommands
+public sealed class EfAdminCoursePrerequisiteCommands(
+    ICoursePrerequisiteValidator validator,
+    IRepository repository) : IAdminCoursePrerequisiteCommands
 {
-    public async Task<AdminCoursePrerequisiteSyncResult> SynchronizeAsync(Guid courseId, IReadOnlyList<Guid> ids, CancellationToken token = default)
+    public async Task<AdminCoursePrerequisiteSyncResult> SynchronizeAsync(
+        Guid courseId,
+        IReadOnlyList<Guid> ids,
+        CancellationToken cancellationToken = default)
     {
-        var selected = ids.Where(x => x != Guid.Empty).Distinct().ToHashSet();
-        if (selected.Contains(courseId)) return new(false, ["A course cannot be its own prerequisite."]);
-        if (await db.StudyCourses.CountAsync(x => selected.Contains(x.Id), token) != selected.Count) return new(false, ["Les prérequis sélectionnés sont invalides."]);
-        if (await validator.WouldCreateCycleAsync(courseId, selected, token)) return new(false, ["Ce prérequis créerait une dépendance cyclique entre les cours."]);
-        var existing = await db.StudyCoursePrerequisites.Where(x => x.CourseId == courseId).ToListAsync(token);
-        db.StudyCoursePrerequisites.RemoveRange(existing.Where(x => !selected.Contains(x.PrerequisiteCourseId)));
-        foreach (var id in selected.Where(x => existing.All(e => e.PrerequisiteCourseId != x))) db.StudyCoursePrerequisites.Add(new CoursePrerequisite { CourseId = courseId, PrerequisiteCourseId = id });
-        await db.SaveChangesAsync(token); return new(true, []);
+        var selectedCourseIds = ids
+            .Where(id => id != Guid.Empty)
+            .Distinct()
+            .ToHashSet();
+
+        if (selectedCourseIds.Contains(courseId))
+        {
+            return new(false, ["A course cannot be its own prerequisite."]);
+        }
+
+        var selectedCourseCount = await repository.CountAsync<Course>(
+                course => selectedCourseIds.Contains(course.Id),
+                cancellationToken);
+
+        if (selectedCourseCount != selectedCourseIds.Count)
+        {
+            return new(false, ["Les prérequis sélectionnés sont invalides."]);
+        }
+
+        if (await validator.WouldCreateCycleAsync(
+                courseId,
+                selectedCourseIds,
+                cancellationToken))
+        {
+            return new(
+                false,
+                ["Ce prérequis créerait une dépendance cyclique entre les cours."]);
+        }
+
+        var course = await repository.GetByIdAsync<Course>(
+            courseId,
+            query => query.Include(entity => entity.Prerequisites),
+            cancellationToken);
+
+        if (course is null)
+        {
+            return new(false, ["Le cours est introuvable."]);
+        }
+
+        course.Prerequisites.RemoveAll(prerequisite =>
+            !selectedCourseIds.Contains(prerequisite.PrerequisiteCourseId));
+
+        foreach (var prerequisiteCourseId in selectedCourseIds
+                     .Where(prerequisiteCourseId => course.Prerequisites.All(
+                         existing => existing.PrerequisiteCourseId != prerequisiteCourseId)))
+        {
+            course.Prerequisites.Add(
+                new CoursePrerequisite
+                {
+                    CourseId = courseId,
+                    PrerequisiteCourseId = prerequisiteCourseId
+                });
+        }
+
+        await repository.UpdateAsync(course, cancellationToken);
+
+        return new(true, []);
     }
 }

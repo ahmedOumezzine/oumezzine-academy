@@ -1,52 +1,89 @@
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Infrastructure.Data;
 
 namespace OumezzineAcademy.Infrastructure.Persistence;
 
-public sealed class EfLocalizedSlugQueries(ApplicationDbContext db) : ILocalizedSlugQueries
+public sealed class EfLocalizedSlugQueries(IRepository repository) : ILocalizedSlugQueries
 {
-    public async Task<LocalizedSlugSet?> FindAsync(string entityType, string slug, string languageCode, CancellationToken cancellationToken = default)
-    {
-        return entityType switch
+    public Task<LocalizedSlugSet?> FindAsync(string entityType, string slug, string languageCode, CancellationToken cancellationToken = default)
+        => entityType switch
         {
-            "course" => await CourseAsync(slug, languageCode, cancellationToken),
-            "category" => await CategoryAsync(slug, languageCode, cancellationToken),
-            "path" => await PathAsync(slug, languageCode, cancellationToken),
-            "lesson" => await LessonAsync(slug, languageCode, cancellationToken),
-            "quiz" => await QuizAsync(slug, languageCode, cancellationToken),
+            "course" => FindCourseAsync(slug, languageCode, cancellationToken),
+            "category" => FindCategoryAsync(slug, languageCode, cancellationToken),
+            "path" => FindPathAsync(slug, languageCode, cancellationToken),
+            "lesson" => FindLessonAsync(slug, languageCode, cancellationToken),
+            "quiz" => FindQuizAsync(slug, languageCode, cancellationToken),
+            _ => Task.FromResult<LocalizedSlugSet?>(null)
+        };
+
+    private async Task<LocalizedSlugSet?> FindCourseAsync(string slug, string languageCode, CancellationToken cancellationToken)
+    {
+        var entities = await repository.GetListAsync<Course>(query => query.Include(entity => entity.Translations), cancellationToken);
+        var entity = entities.FirstOrDefault(item => item.Status == StudyStatus.Published && HasSlug(item.Translations, slug, languageCode));
+        return entity is null ? null : Create(entity.Id, entity.Translations);
+    }
+
+    private async Task<LocalizedSlugSet?> FindCategoryAsync(string slug, string languageCode, CancellationToken cancellationToken)
+    {
+        var entities = await repository.GetListAsync<CourseCategory>(query => query.Include(entity => entity.Translations), cancellationToken);
+        var entity = entities.FirstOrDefault(item => item.Status == StudyStatus.Published && HasSlug(item.Translations, slug, languageCode));
+        return entity is null ? null : Create(entity.Id, entity.Translations);
+    }
+
+    private async Task<LocalizedSlugSet?> FindPathAsync(string slug, string languageCode, CancellationToken cancellationToken)
+    {
+        var entities = await repository.GetListAsync<LearningPath>(query => query.Include(entity => entity.Translations), cancellationToken);
+        var entity = entities.FirstOrDefault(item => item.Status == StudyStatus.Published && HasSlug(item.Translations, slug, languageCode));
+        return entity is null ? null : Create(entity.Id, entity.Translations);
+    }
+
+    private async Task<LocalizedSlugSet?> FindLessonAsync(string slug, string languageCode, CancellationToken cancellationToken)
+    {
+        var entities = await repository.GetListAsync<CourseLesson>(query => query
+            .Include(entity => entity.Translations)
+            .Include(entity => entity.CourseContent)
+            .ThenInclude(content => content.Course), cancellationToken);
+        var entity = entities.FirstOrDefault(item => item.Status == StudyStatus.Published
+            && item.CourseContent.Course.Status == StudyStatus.Published
+            && HasSlug(item.Translations, slug, languageCode));
+        return entity is null ? null : Create(entity.Id, entity.Translations);
+    }
+
+    private async Task<LocalizedSlugSet?> FindQuizAsync(string slug, string languageCode, CancellationToken cancellationToken)
+    {
+        var entities = await repository.GetListAsync<CourseQuiz>(query => query
+            .Include(entity => entity.Translations)
+            .Include(entity => entity.CourseContent)
+            .ThenInclude(content => content.Course), cancellationToken);
+        var entity = entities.FirstOrDefault(item => item.Status == StudyStatus.Published
+            && item.CourseContent.Course.Status == StudyStatus.Published
+            && HasSlug(item.Translations, slug, languageCode));
+        return entity is null ? null : Create(entity.Id, entity.Translations);
+    }
+
+    private static bool HasSlug<TTranslation>(IEnumerable<TTranslation> translations, string slug, string languageCode)
+        => translations.Any(translation =>
+            TranslationValues(translation) is { } value
+            && value.LanguageCode == languageCode
+            && value.Slug == slug);
+
+    private static LocalizedSlugSet Create<TTranslation>(Guid id, IEnumerable<TTranslation> translations)
+        => new(id, translations
+            .Select(TranslationValues)
+            .Where(value => value is not null)
+            .Select(value => value!.Value)
+            .ToDictionary(value => value.LanguageCode, value => value.Slug));
+
+    private static (string LanguageCode, string Slug)? TranslationValues<TTranslation>(TTranslation translation)
+        => translation switch
+        {
+            CourseTranslation value when value.PublicationStatus == StudyStatus.Published => (value.LanguageCode, value.Slug),
+            CourseCategoryTranslation value when value.PublicationStatus == StudyStatus.Published => (value.LanguageCode, value.Slug),
+            LearningPathTranslation value when value.PublicationStatus == StudyStatus.Published => (value.LanguageCode, value.Slug),
+            CourseLessonTranslation value when value.PublicationStatus == StudyStatus.Published => (value.LanguageCode, value.Slug),
+            CourseQuizTranslation value when value.PublicationStatus == StudyStatus.Published => (value.LanguageCode, value.Slug),
             _ => null
         };
-    }
-
-    private async Task<LocalizedSlugSet?> CourseAsync(string slug, string language, CancellationToken token)
-    {
-        var id = await db.StudyCourseTranslations.AsNoTracking().Where(t => t.LanguageCode == language && t.PublicationStatus == StudyStatus.Published && t.Slug == slug && t.Course.Status == StudyStatus.Published).Select(t => (Guid?)t.CourseId).FirstOrDefaultAsync(token);
-        return id is null ? null : new(id.Value, await db.StudyCourseTranslations.AsNoTracking().Where(t => t.CourseId == id && t.PublicationStatus == StudyStatus.Published).ToDictionaryAsync(t => t.LanguageCode, t => t.Slug, token));
-    }
-
-    private async Task<LocalizedSlugSet?> CategoryAsync(string slug, string language, CancellationToken token)
-    {
-        var id = await db.StudyCourseCategoryTranslations.AsNoTracking().Where(t => t.LanguageCode == language && t.PublicationStatus == StudyStatus.Published && t.Slug == slug && t.CourseCategory.Status == StudyStatus.Published).Select(t => (Guid?)t.CourseCategoryId).FirstOrDefaultAsync(token);
-        return id is null ? null : new(id.Value, await db.StudyCourseCategoryTranslations.AsNoTracking().Where(t => t.CourseCategoryId == id && t.PublicationStatus == StudyStatus.Published).ToDictionaryAsync(t => t.LanguageCode, t => t.Slug, token));
-    }
-
-    private async Task<LocalizedSlugSet?> PathAsync(string slug, string language, CancellationToken token)
-    {
-        var id = await db.StudyLearningPathTranslations.AsNoTracking().Where(t => t.LanguageCode == language && t.PublicationStatus == StudyStatus.Published && t.Slug == slug && t.LearningPath.Status == StudyStatus.Published).Select(t => (Guid?)t.LearningPathId).FirstOrDefaultAsync(token);
-        return id is null ? null : new(id.Value, await db.StudyLearningPathTranslations.AsNoTracking().Where(t => t.LearningPathId == id && t.PublicationStatus == StudyStatus.Published).ToDictionaryAsync(t => t.LanguageCode, t => t.Slug, token));
-    }
-
-    private async Task<LocalizedSlugSet?> LessonAsync(string slug, string language, CancellationToken token)
-    {
-        var id = await db.StudyCourseLessonTranslations.AsNoTracking().Where(t => t.LanguageCode == language && t.PublicationStatus == StudyStatus.Published && t.Slug == slug && t.CourseLesson.Status == StudyStatus.Published && t.CourseLesson.CourseContent.Course.Status == StudyStatus.Published).Select(t => (Guid?)t.CourseLessonId).FirstOrDefaultAsync(token);
-        return id is null ? null : new(id.Value, await db.StudyCourseLessonTranslations.AsNoTracking().Where(t => t.CourseLessonId == id && t.PublicationStatus == StudyStatus.Published).ToDictionaryAsync(t => t.LanguageCode, t => t.Slug, token));
-    }
-
-    private async Task<LocalizedSlugSet?> QuizAsync(string slug, string language, CancellationToken token)
-    {
-        var id = await db.StudyCourseQuizTranslations.AsNoTracking().Where(t => t.LanguageCode == language && t.PublicationStatus == StudyStatus.Published && t.Slug == slug && t.CourseQuiz.Status == StudyStatus.Published && t.CourseQuiz.CourseContent.Course.Status == StudyStatus.Published).Select(t => (Guid?)t.CourseQuizId).FirstOrDefaultAsync(token);
-        return id is null ? null : new(id.Value, await db.StudyCourseQuizTranslations.AsNoTracking().Where(t => t.CourseQuizId == id && t.PublicationStatus == StudyStatus.Published).ToDictionaryAsync(t => t.LanguageCode, t => t.Slug, token));
-    }
 }

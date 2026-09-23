@@ -24,7 +24,7 @@ public sealed class AdminLearningPathTests
         db.StudyLearningPathCategories.Add(category);
         db.Entry(category).Property<bool>("IsDeleted").CurrentValue = false;
         await db.SaveChangesAsync();
-        var service = new AdminLearningPathService(new EfAdminLearningPathMediaCommands(db, new FileSystemMediaStorage(".")), new EfAdminLearningPathQueries(db), new EfAdminLearningPathCoreCommands(db, new HtmlSanitizerService()), new EfAdminLearningPathCommands(db, CreateRepository(db)));
+        var service = new AdminLearningPathService(new EfAdminLearningPathMediaCommands(CreateRepository(db), new FileSystemMediaStorage(".")), new EfAdminLearningPathQueries(CreateRepository(db)), new EfAdminLearningPathCoreCommands(new HtmlSanitizerService(), CreateRepository(db)), new EfAdminLearningPathCommands(CreateRepository(db)));
         var model = new LearningPathEditViewModel
         {
             CategoryId = category.Id,
@@ -59,7 +59,7 @@ public sealed class AdminLearningPathTests
         db.StudyLearningPaths.Add(path);
         await db.SaveChangesAsync();
 
-        var service = new AdminLearningPathService(new EfAdminLearningPathMediaCommands(db, new FileSystemMediaStorage(".")), new EfAdminLearningPathQueries(db), new EfAdminLearningPathCoreCommands(db, new HtmlSanitizerService()), new EfAdminLearningPathCommands(db, CreateRepository(db)));
+        var service = new AdminLearningPathService(new EfAdminLearningPathMediaCommands(CreateRepository(db), new FileSystemMediaStorage(".")), new EfAdminLearningPathQueries(CreateRepository(db)), new EfAdminLearningPathCoreCommands(new HtmlSanitizerService(), CreateRepository(db)), new EfAdminLearningPathCommands(CreateRepository(db)));
         var viewModel = await service.CoursesAsync(path.Id, default);
 
         Assert.NotNull(viewModel);
@@ -78,7 +78,7 @@ public sealed class AdminLearningPathTests
     {
         await using var db = CreateDatabase();
         var a = await AddCourseAsync(db, "A");
-        var service = new CoursePrerequisiteValidationService(new CoursePrerequisiteValidator(new EfCoursePrerequisiteEdges(db)));
+        var service = new CoursePrerequisiteValidationService(new CoursePrerequisiteValidator(new EfCoursePrerequisiteEdges(CreateRepository(db))));
 
         Assert.True(await service.WouldCreateCycleAsync(a, [a], CancellationToken.None));
     }
@@ -93,7 +93,7 @@ public sealed class AdminLearningPathTests
         var d = await AddCourseAsync(db, "D");
         db.StudyCoursePrerequisites.AddRange(new CoursePrerequisite { CourseId = b, PrerequisiteCourseId = a }, new CoursePrerequisite { CourseId = c, PrerequisiteCourseId = b }, new CoursePrerequisite { CourseId = d, PrerequisiteCourseId = c });
         await db.SaveChangesAsync();
-        var service = new CoursePrerequisiteValidationService(new CoursePrerequisiteValidator(new EfCoursePrerequisiteEdges(db)));
+        var service = new CoursePrerequisiteValidationService(new CoursePrerequisiteValidator(new EfCoursePrerequisiteEdges(CreateRepository(db))));
 
         Assert.True(await service.WouldCreateCycleAsync(a, [b], CancellationToken.None));
         Assert.True(await service.WouldCreateCycleAsync(a, [d], CancellationToken.None));
@@ -109,7 +109,7 @@ public sealed class AdminLearningPathTests
         db.StudyCoursePrerequisites.Add(new CoursePrerequisite { CourseId = b, PrerequisiteCourseId = a });
         await db.SaveChangesAsync();
 
-        Assert.False(await new CoursePrerequisiteValidationService(new CoursePrerequisiteValidator(new EfCoursePrerequisiteEdges(db))).WouldCreateCycleAsync(c, [b], CancellationToken.None));
+        Assert.False(await new CoursePrerequisiteValidationService(new CoursePrerequisiteValidator(new EfCoursePrerequisiteEdges(CreateRepository(db)))).WouldCreateCycleAsync(c, [b], CancellationToken.None));
     }
 
     private static ApplicationDbContext CreateDatabase() => new(new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);

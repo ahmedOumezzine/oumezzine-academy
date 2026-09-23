@@ -1,4 +1,7 @@
+using AhmedOumezzine.EFCore.Repository.Extensions;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OumezzineAcademy.Infrastructure.Persistence;
 using OumezzineAcademy.Web.Services;
 using System.Globalization;
@@ -8,6 +11,14 @@ namespace OumezzineAcademy.Tests;
 
 public sealed class CurrentLanguageServiceTests
 {
+    private static IRepository CreateRepository(OumezzineAcademy.Infrastructure.Data.ApplicationDbContext db)
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => db);
+        services.AddGenericRepository<OumezzineAcademy.Infrastructure.Data.ApplicationDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IRepository>();
+    }
+
     [Theory]
     [InlineData("fr-FR", "fr")]
     [InlineData("en-US", "en")]
@@ -36,7 +47,7 @@ public sealed class CurrentLanguageServiceTests
         {
             CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(cultureName);
             using var db = new OumezzineAcademy.Infrastructure.Data.ApplicationDbContext(new DbContextOptionsBuilder<OumezzineAcademy.Infrastructure.Data.ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
-            var navigation = new LocalizedUrlService(new EfLocalizedSlugQueries(db)).GetPublicNavigation();
+            var navigation = new LocalizedUrlService(new EfLocalizedSlugQueries(CreateRepository(db))).GetPublicNavigation();
             Assert.Equal(home, navigation.Home);
             Assert.Equal(courses, navigation.Courses);
             Assert.Equal(categories, navigation.Categories);

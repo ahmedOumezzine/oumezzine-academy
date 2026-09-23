@@ -1,3 +1,5 @@
+using AhmedOumezzine.EFCore.Repository.Interface;
+using AhmedOumezzine.EFCore.Repository.Specification;
 using Microsoft.EntityFrameworkCore;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Domain.Catalog;
@@ -5,24 +7,293 @@ using OumezzineAcademy.Infrastructure.Data;
 
 namespace OumezzineAcademy.Infrastructure.Persistence;
 
-public sealed class EfAdminLearningPathQueries(ApplicationDbContext db) : IAdminLearningPathQueries
+public sealed class EfAdminLearningPathQueries(
+    IRepository repository) : IAdminLearningPathQueries
 {
-    public async Task<IReadOnlyList<AdminLearningPathListDto>> ListAsync(CancellationToken t = default) => await db.StudyLearningPaths.AsNoTracking().OrderBy(x => x.Slug).Select(x => new AdminLearningPathListDto(x.Id, x.Translations.Where(t => t.LanguageCode == "fr").Select(t => t.Title).FirstOrDefault() ?? x.Translations.Where(t => t.LanguageCode == "en").Select(t => t.Title).FirstOrDefault() ?? "Parcours sans traduction", x.LearningPathCategory.Title, x.Level, x.Translations.Where(t => t.LanguageCode == "fr").Select(t => (StudyStatus?)t.PublicationStatus).FirstOrDefault(), x.Translations.Where(t => t.LanguageCode == "en").Select(t => (StudyStatus?)t.PublicationStatus).FirstOrDefault(), x.LearningPathCourses.Count)).ToListAsync(t);
+    public async Task<IReadOnlyList<AdminLearningPathListDto>> ListAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var specification = new Specification<LearningPath>
+        {
+            OrderBy = query => query.OrderBy(path => path.Slug)
+        };
 
-    public async Task<AdminLearningPathEditDto?> GetForEditAsync(Guid? id, CancellationToken t = default)
-    { var cats = await db.StudyLearningPathCategories.AsNoTracking().OrderBy(x => x.Title).Select(x => new AdminLearningPathCategoryOptionDto(x.Id, x.Title)).ToListAsync(t); var e = id.HasValue ? await db.StudyLearningPaths.AsNoTracking().Include(x => x.Translations).FirstOrDefaultAsync(x => x.Id == id, t) : null; AdminLearningPathTranslationDto M(string l) { var x = e?.Translations.FirstOrDefault(x => x.LanguageCode == l); return new(x?.Title, x?.Slug, x?.Summary, x?.MetaTitle, x?.MetaDescription, x?.PublicationStatus ?? StudyStatus.Draft); } return new(e?.Id ?? Guid.Empty, e?.LearningPathCategoryId ?? Guid.Empty, e?.Level ?? StudyLevel.Beginner, e?.Thumbnail, cats.FirstOrDefault(x => x.Id == (e?.LearningPathCategoryId ?? Guid.Empty))?.Title ?? "Catégorie", M("fr"), M("en"), cats); }
+        return await repository.GetListAsync<LearningPath, AdminLearningPathListDto>(
+            specification,
+            path => new AdminLearningPathListDto(
+                path.Id,
+                path.Translations
+                    .Where(translation => translation.LanguageCode == "fr")
+                    .Select(translation => translation.Title)
+                    .FirstOrDefault()
+                    ?? path.Translations
+                        .Where(translation => translation.LanguageCode == "en")
+                        .Select(translation => translation.Title)
+                        .FirstOrDefault()
+                    ?? "Parcours sans traduction",
+                path.LearningPathCategory.Title,
+                path.Level,
+                path.Translations
+                    .Where(translation => translation.LanguageCode == "fr")
+                    .Select(translation => (StudyStatus?)translation.PublicationStatus)
+                    .FirstOrDefault(),
+                path.Translations
+                    .Where(translation => translation.LanguageCode == "en")
+                    .Select(translation => (StudyStatus?)translation.PublicationStatus)
+                    .FirstOrDefault(),
+                path.LearningPathCourses.Count),
+            cancellationToken);
+    }
 
-    public Task<bool> SlugExistsAsync(string l, string s, Guid id, CancellationToken t = default) => db.StudyLearningPathTranslations.AnyAsync(x => x.LanguageCode == l && x.Slug == s && x.LearningPathId != id, t);
+    public async Task<AdminLearningPathEditDto?> GetForEditAsync(
+        Guid? id,
+        CancellationToken cancellationToken = default)
+    {
+        var categorySpecification = new Specification<LearningPathCategory>
+        {
+            OrderBy = query => query.OrderBy(category => category.Title)
+        };
 
-    public async Task<AdminLearningPathCompositionDto?> GetCompositionAsync(Guid id, CancellationToken t = default)
-    { var p = await db.StudyLearningPaths.AsNoTracking().Where(x => x.Id == id).Select(x => new { x.Id, Title = x.Translations.Where(t => t.LanguageCode == "fr").Select(t => t.Title).FirstOrDefault() ?? x.Title }).FirstOrDefaultAsync(t); if (p is null) return null; var selected = await db.StudyLearningPathCourses.AsNoTracking().Where(x => x.LearningPathId == id).OrderBy(x => x.Order).Select(x => new AdminLearningPathCourseOptionDto(x.Id, x.CourseId, x.Order, x.Course.Translations.Where(t => t.LanguageCode == "fr").Select(t => t.Title).FirstOrDefault() ?? x.Course.Title, x.Course.Slug, x.Course.Level, x.Course.CourseCategory.Title, x.Course.Translations.Where(t => t.LanguageCode == "fr").Select(t => (StudyStatus?)t.PublicationStatus).FirstOrDefault(), x.Course.Translations.Where(t => t.LanguageCode == "en").Select(t => (StudyStatus?)t.PublicationStatus).FirstOrDefault(), true)).ToListAsync(t); var ids = selected.Select(x => x.CourseId).ToHashSet(); var available = await db.StudyCourses.AsNoTracking().Where(x => !ids.Contains(x.Id)).OrderBy(x => x.Title).Select(x => new AdminLearningPathCourseOptionDto(Guid.Empty, x.Id, 0, x.Title, x.Slug, x.Level, x.CourseCategory.Title, x.Translations.Where(t => t.LanguageCode == "fr").Select(t => (StudyStatus?)t.PublicationStatus).FirstOrDefault(), x.Translations.Where(t => t.LanguageCode == "en").Select(t => (StudyStatus?)t.PublicationStatus).FirstOrDefault(), false)).ToListAsync(t); return new(p.Id, p.Title, selected, available); }
+        var categories = await repository.GetListAsync<
+            LearningPathCategory,
+            AdminLearningPathCategoryOptionDto>(
+            categorySpecification,
+            category => new AdminLearningPathCategoryOptionDto(
+                category.Id,
+                category.Title),
+            cancellationToken);
+
+        var learningPath = id.HasValue
+            ? await repository.GetByIdAsync<LearningPath>(
+                id.Value,
+                query => query.Include(path => path.Translations),
+                cancellationToken)
+            : null;
+
+        AdminLearningPathTranslationDto Translation(string languageCode)
+        {
+            var translation = learningPath?.Translations.FirstOrDefault(
+                item => item.LanguageCode == languageCode);
+
+            return new(
+                translation?.Title,
+                translation?.Slug,
+                translation?.Summary,
+                translation?.MetaTitle,
+                translation?.MetaDescription,
+                translation?.PublicationStatus ?? StudyStatus.Draft);
+        }
+
+        var categoryId = learningPath?.LearningPathCategoryId ?? Guid.Empty;
+
+        return new(
+            learningPath?.Id ?? Guid.Empty,
+            categoryId,
+            learningPath?.Level ?? StudyLevel.Beginner,
+            learningPath?.Thumbnail,
+            categories.FirstOrDefault(category => category.Id == categoryId)?.Title
+                ?? "Catégorie",
+            Translation("fr"),
+            Translation("en"),
+            categories);
+    }
+
+    public async Task<bool> SlugExistsAsync(
+        string languageCode,
+        string slug,
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var paths = await repository.GetListAsync<LearningPath>(
+            query => query.Include(path => path.Translations),
+            cancellationToken);
+
+        return paths.SelectMany(path => path.Translations).Any(translation =>
+            translation.LanguageCode == languageCode
+            && translation.Slug == slug
+            && translation.LearningPathId != id);
+    }
+
+    public async Task<AdminLearningPathCompositionDto?> GetCompositionAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var path = await repository.GetByIdAsync<LearningPath>(
+            id,
+            query => query.Include(learningPath => learningPath.Translations),
+            cancellationToken);
+
+        if (path is null)
+        {
+            return null;
+        }
+
+        var selectedLinks = await repository.GetListAsync<LearningPathCourse>(
+            query => query
+                .Include(link => link.Course)
+                .ThenInclude(course => course.Translations)
+                .Include(link => link.Course)
+                .ThenInclude(course => course.CourseCategory),
+            cancellationToken);
+
+        var selectedCourses = selectedLinks
+            .Where(link => link.LearningPathId == id)
+            .OrderBy(link => link.Order)
+            .Select(link => CourseOption(link, true))
+            .ToList();
+
+        var selectedCourseIds = selectedCourses
+            .Select(course => course.CourseId)
+            .ToHashSet();
+
+        var courses = await repository.GetListAsync<Course>(
+            query => query
+                .Include(course => course.Translations)
+                .Include(course => course.CourseCategory),
+            cancellationToken);
+
+        var availableCourses = courses
+            .Where(course => !selectedCourseIds.Contains(course.Id))
+            .OrderBy(course => course.Title)
+            .Select(course => new AdminLearningPathCourseOptionDto(
+                Guid.Empty,
+                course.Id,
+                0,
+                course.Title,
+                course.Slug,
+                course.Level,
+                course.CourseCategory.Title,
+                course.Translations.FirstOrDefault(translation => translation.LanguageCode == "fr")?.PublicationStatus,
+                course.Translations.FirstOrDefault(translation => translation.LanguageCode == "en")?.PublicationStatus,
+                false))
+            .ToList();
+
+        return new(
+            path.Id,
+            path.Translations
+                .Where(translation => translation.LanguageCode == "fr")
+                .Select(translation => translation.Title)
+                .FirstOrDefault()
+                ?? path.Title,
+            selectedCourses,
+            availableCourses);
+    }
+
+    private static AdminLearningPathCourseOptionDto CourseOption(
+        LearningPathCourse link,
+        bool selected)
+    {
+        var course = link.Course;
+
+        return new(
+            selected ? link.Id : Guid.Empty,
+            course.Id,
+            selected ? link.Order : 0,
+            course.Translations.FirstOrDefault(translation => translation.LanguageCode == "fr")?.Title
+                ?? course.Title,
+            course.Slug,
+            course.Level,
+            course.CourseCategory.Title,
+            course.Translations.FirstOrDefault(translation => translation.LanguageCode == "fr")?.PublicationStatus,
+            course.Translations.FirstOrDefault(translation => translation.LanguageCode == "en")?.PublicationStatus,
+            selected);
+    }
 }
 
-public sealed class EfAdminLearningPathCoreCommands(ApplicationDbContext db, IHtmlSanitizer sanitizer) : IAdminLearningPathCoreCommands
+public sealed class EfAdminLearningPathCoreCommands(
+    IHtmlSanitizer sanitizer,
+    IRepository repository) : IAdminLearningPathCoreCommands
 {
-    public async Task<(bool Success, Guid LearningPathId, string? Error)> SaveAsync(AdminLearningPathSaveCommand m, CancellationToken t = default)
-    { if (!await db.StudyLearningPathCategories.AnyAsync(x => x.Id == m.CategoryId, t)) return (false, Guid.Empty, "Category not found."); var e = m.Id.HasValue && m.Id.Value != Guid.Empty ? await db.StudyLearningPaths.Include(x => x.Translations).FirstOrDefaultAsync(x => x.Id == m.Id, t) : new LearningPath { Id = Guid.NewGuid(), CreatedOnUtc = DateTime.UtcNow }; if (e is null) return (false, Guid.Empty, "Learning path not found."); e.LearningPathCategoryId = m.CategoryId; e.Level = m.Level; e.Title = m.French.Title ?? m.English.Title ?? "Learning path"; e.Slug = m.French.Slug ?? m.English.Slug ?? $"path-{e.Id:N}"; e.Summary = sanitizer.Sanitize(m.French.Summary); e.Status = m.French.PublicationStatus; if (m.Thumbnail is not null) e.Thumbnail = m.Thumbnail; db.Entry(e).Property<bool>("IsDeleted").CurrentValue = false; Upsert(e, "fr", m.French); Upsert(e, "en", m.English); if (m.Id is null || m.Id == Guid.Empty) db.StudyLearningPaths.Add(e); await db.SaveChangesAsync(t); return (true, e.Id, null); }
+    public async Task<(bool Success, Guid LearningPathId, string? Error)> SaveAsync(
+        AdminLearningPathSaveCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var categoryExists = await repository.ExistsAsync<LearningPathCategory>(
+                category => category.Id == command.CategoryId,
+                cancellationToken);
 
-    private void Upsert(LearningPath e, string l, AdminLearningPathTranslationDto i)
-    { if (string.IsNullOrWhiteSpace(i.Title) && string.IsNullOrWhiteSpace(i.Slug)) return; var x = e.Translations.FirstOrDefault(x => x.LanguageCode == l); if (x is null) { x = new LearningPathTranslation { Id = Guid.NewGuid(), LearningPathId = e.Id }; e.Translations.Add(x); } x.LanguageCode = l; x.Title = i.Title?.Trim() ?? ""; x.Slug = i.Slug?.Trim() ?? ""; x.Summary = sanitizer.Sanitize(i.Summary); x.MetaTitle = i.MetaTitle; x.MetaDescription = i.MetaDescription; x.PublicationStatus = i.PublicationStatus; }
+        if (!categoryExists)
+        {
+            return (false, Guid.Empty, "Category not found.");
+        }
+
+        var isNew = !command.Id.HasValue || command.Id.Value == Guid.Empty;
+        var learningPath = isNew
+            ? new LearningPath
+            {
+                Id = Guid.NewGuid(),
+                CreatedOnUtc = DateTime.UtcNow
+            }
+            : await repository.GetByIdAsync<LearningPath>(
+                command.Id!.Value,
+                query => query.Include(path => path.Translations),
+                cancellationToken);
+
+        if (learningPath is null)
+        {
+            return (false, Guid.Empty, "Learning path not found.");
+        }
+
+        learningPath.LearningPathCategoryId = command.CategoryId;
+        learningPath.Level = command.Level;
+        learningPath.Title = command.French.Title
+            ?? command.English.Title
+            ?? "Learning path";
+        learningPath.Slug = command.French.Slug
+            ?? command.English.Slug
+            ?? $"path-{learningPath.Id:N}";
+        learningPath.Summary = sanitizer.Sanitize(command.French.Summary);
+        learningPath.Status = command.French.PublicationStatus;
+
+        if (command.Thumbnail is not null)
+        {
+            learningPath.Thumbnail = command.Thumbnail;
+        }
+
+        UpsertTranslation(learningPath, "fr", command.French);
+        UpsertTranslation(learningPath, "en", command.English);
+
+        if (isNew)
+        {
+            await repository.InsertAsync(learningPath, cancellationToken);
+        }
+
+        await repository.SaveChangesAsync(cancellationToken);
+
+        return (true, learningPath.Id, null);
+    }
+
+    private void UpsertTranslation(
+        LearningPath learningPath,
+        string languageCode,
+        AdminLearningPathTranslationDto input)
+    {
+        if (string.IsNullOrWhiteSpace(input.Title)
+            && string.IsNullOrWhiteSpace(input.Slug))
+        {
+            return;
+        }
+
+        var translation = learningPath.Translations.FirstOrDefault(
+            item => item.LanguageCode == languageCode);
+
+        if (translation is null)
+        {
+            translation = new LearningPathTranslation
+            {
+                Id = Guid.NewGuid(),
+                LearningPathId = learningPath.Id
+            };
+
+            learningPath.Translations.Add(translation);
+        }
+
+        translation.LanguageCode = languageCode;
+        translation.Title = input.Title?.Trim() ?? "";
+        translation.Slug = input.Slug?.Trim() ?? "";
+        translation.Summary = sanitizer.Sanitize(input.Summary);
+        translation.MetaTitle = input.MetaTitle;
+        translation.MetaDescription = input.MetaDescription;
+        translation.PublicationStatus = input.PublicationStatus;
+    }
 }

@@ -1,4 +1,5 @@
 using AhmedOumezzine.EFCore.Repository.Interface;
+using AhmedOumezzine.EFCore.Repository.Specification;
 using Microsoft.EntityFrameworkCore;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Domain.Catalog;
@@ -6,47 +7,209 @@ using OumezzineAcademy.Infrastructure.Data;
 
 namespace OumezzineAcademy.Infrastructure.Persistence;
 
-public sealed class EfAdminCategoryPersistence(ApplicationDbContext db, IRepository repository) : IAdminCategoryQueries, IAdminCategoryPersistence
+public sealed class EfAdminCategoryPersistence(
+    IRepository repository) : IAdminCategoryQueries, IAdminCategoryPersistence
 {
-    public async Task<IReadOnlyList<AdminCategoryListDto>> ListAsync(CancellationToken token = default) => await db.StudyCourseCategories.AsNoTracking().OrderBy(x => x.Slug).Select(x => new AdminCategoryListDto(x.Id,
-        x.Translations.Where(t => t.LanguageCode == "fr").Select(t => t.Title).FirstOrDefault() ?? "Non traduit",
-        x.Translations.Where(t => t.LanguageCode == "en").Select(t => t.Title).FirstOrDefault() ?? "Non traduit", x.Courses.Count,
-        x.Translations.Where(t => t.LanguageCode == "fr").Select(t => (StudyStatus?)t.PublicationStatus).FirstOrDefault(),
-        x.Translations.Where(t => t.LanguageCode == "en").Select(t => (StudyStatus?)t.PublicationStatus).FirstOrDefault())).ToListAsync(token);
-
-    public async Task<AdminCategoryEditDto?> GetForEditAsync(Guid id, CancellationToken token = default)
+    public async Task<IReadOnlyList<AdminCategoryListDto>> ListAsync(
+        CancellationToken cancellationToken = default)
     {
-        var x = await db.StudyCourseCategories.AsNoTracking().Where(c => c.Id == id).Select(c => new AdminCategoryEditDto(c.Id, c.Courses.Count, c.CreatedOnUtc, c.LastModifiedOnUtc,
-            new AdminCategoryTranslationDto(c.Translations.Where(t => t.LanguageCode == "fr").Select(t => t.Title).FirstOrDefault(), c.Translations.Where(t => t.LanguageCode == "fr").Select(t => t.Slug).FirstOrDefault(), c.Translations.Where(t => t.LanguageCode == "fr").Select(t => t.Summary).FirstOrDefault(), c.Translations.Where(t => t.LanguageCode == "fr").Select(t => t.MetaTitle).FirstOrDefault(), c.Translations.Where(t => t.LanguageCode == "fr").Select(t => t.MetaDescription).FirstOrDefault(), c.Translations.Where(t => t.LanguageCode == "fr").Select(t => t.PublicationStatus).FirstOrDefault()),
-            new AdminCategoryTranslationDto(c.Translations.Where(t => t.LanguageCode == "en").Select(t => t.Title).FirstOrDefault(), c.Translations.Where(t => t.LanguageCode == "en").Select(t => t.Slug).FirstOrDefault(), c.Translations.Where(t => t.LanguageCode == "en").Select(t => t.Summary).FirstOrDefault(), c.Translations.Where(t => t.LanguageCode == "en").Select(t => t.MetaTitle).FirstOrDefault(), c.Translations.Where(t => t.LanguageCode == "en").Select(t => t.MetaDescription).FirstOrDefault(), c.Translations.Where(t => t.LanguageCode == "en").Select(t => t.PublicationStatus).FirstOrDefault()))).FirstOrDefaultAsync(token);
-        return x;
+        var specification = new Specification<CourseCategory>
+        {
+            OrderBy = query => query.OrderBy(category => category.Slug)
+        };
+
+        return await repository.GetListAsync<CourseCategory, AdminCategoryListDto>(
+            specification,
+            category => new AdminCategoryListDto(
+                category.Id,
+                category.Translations
+                    .Where(translation => translation.LanguageCode == "fr")
+                    .Select(translation => translation.Title)
+                    .FirstOrDefault()
+                    ?? "Non traduit",
+                category.Translations
+                    .Where(translation => translation.LanguageCode == "en")
+                    .Select(translation => translation.Title)
+                    .FirstOrDefault()
+                    ?? "Non traduit",
+                category.Courses.Count,
+                category.Translations
+                    .Where(translation => translation.LanguageCode == "fr")
+                    .Select(translation => (StudyStatus?)translation.PublicationStatus)
+                    .FirstOrDefault(),
+                category.Translations
+                    .Where(translation => translation.LanguageCode == "en")
+                    .Select(translation => (StudyStatus?)translation.PublicationStatus)
+                    .FirstOrDefault()),
+            cancellationToken);
     }
 
-    public Task<bool> SlugExistsAsync(string languageCode, string slug, Guid excludingId, CancellationToken token = default) => db.StudyCourseCategoryTranslations.AnyAsync(x => x.LanguageCode == languageCode && x.Slug == slug && x.CourseCategoryId != excludingId, token);
-
-    public async Task SaveAsync(AdminCategorySaveCommand command, CancellationToken token = default)
+    public async Task<AdminCategoryEditDto?> GetForEditAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
     {
-        var entity = !command.Id.HasValue || command.Id.Value == Guid.Empty ? new CourseCategory { Id = Guid.NewGuid(), CreatedOnUtc = DateTime.UtcNow } : await db.StudyCourseCategories.Include(x => x.Translations).SingleOrDefaultAsync(x => x.Id == command.Id, token) ?? throw new InvalidOperationException("Category not found.");
-        if (!command.Id.HasValue || command.Id.Value == Guid.Empty) db.StudyCourseCategories.Add(entity);
-        Upsert(entity, "fr", command.French); Upsert(entity, "en", command.English);
-        entity.Title = command.French.Title ?? command.English.Title ?? "Category"; entity.Slug = command.French.Slug ?? command.English.Slug ?? "category"; entity.Status = command.French.PublicationStatus;
-        db.Entry(entity).Property<bool>("IsDeleted").CurrentValue = false;
-        await db.SaveChangesAsync(token);
+        var category = await repository.GetByIdAsync<CourseCategory>(
+            id,
+            query => query.Include(entity => entity.Translations),
+            cancellationToken);
+
+        if (category is null)
+        {
+            return null;
+        }
+
+        var courseCount = await repository.CountAsync<Course>(
+            course => course.CourseCategoryId == id,
+            cancellationToken);
+
+        return new(
+            category.Id,
+            courseCount,
+            category.CreatedOnUtc,
+            category.LastModifiedOnUtc,
+            Translation(category, "fr"),
+            Translation(category, "en"));
     }
 
-    public async Task<AdminCategoryDeleteStatus> DeleteAsync(Guid id, CancellationToken token = default)
+    public async Task<bool> SlugExistsAsync(
+        string languageCode,
+        string slug,
+        Guid excludingId,
+        CancellationToken cancellationToken = default)
     {
-        var entity = await db.StudyCourseCategories.SingleOrDefaultAsync(x => x.Id == id, token);
-        if (entity is null) return AdminCategoryDeleteStatus.NotFound;
-        if (await db.StudyCourses.AnyAsync(x => x.CourseCategoryId == id, token)) return AdminCategoryDeleteStatus.InUse;
-        await repository.HardDeleteAsync(entity, token); return AdminCategoryDeleteStatus.Deleted;
+        var categories = await repository.GetListAsync<CourseCategory>(
+            query => query.Include(category => category.Translations),
+            cancellationToken);
+
+        return categories.SelectMany(category => category.Translations).Any(translation =>
+            translation.LanguageCode == languageCode
+            && translation.Slug == slug
+            && translation.CourseCategoryId != excludingId);
     }
 
-    private void Upsert(CourseCategory entity, string language, AdminCategoryTranslationDto input)
+    public async Task SaveAsync(
+        AdminCategorySaveCommand command,
+        CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(input.Title) && string.IsNullOrWhiteSpace(input.Slug)) return;
-        var t = entity.Translations.FirstOrDefault(x => x.LanguageCode == language);
-        if (t is null) { t = new CourseCategoryTranslation { Id = Guid.NewGuid(), CourseCategoryId = entity.Id, LanguageCode = language }; entity.Translations.Add(t); }
-        t.Title = input.Title?.Trim() ?? ""; t.Slug = input.Slug?.Trim() ?? ""; t.Summary = input.Summary; t.MetaTitle = input.MetaTitle; t.MetaDescription = input.MetaDescription; t.PublicationStatus = input.PublicationStatus;
+        var isNew = !command.Id.HasValue || command.Id.Value == Guid.Empty;
+        var category = isNew
+            ? new CourseCategory
+            {
+                Id = Guid.NewGuid(),
+                CreatedOnUtc = DateTime.UtcNow
+            }
+            : await repository.GetByIdAsync<CourseCategory>(
+                command.Id!.Value,
+                query => query.Include(entity => entity.Translations),
+                cancellationToken)
+                ?? throw new InvalidOperationException("Category not found.");
+
+        UpsertTranslation(category, "fr", command.French);
+        UpsertTranslation(category, "en", command.English);
+
+        category.Title = command.French.Title
+            ?? command.English.Title
+            ?? "Category";
+        category.Slug = command.French.Slug
+            ?? command.English.Slug
+            ?? "category";
+        category.Status = command.French.PublicationStatus;
+
+        if (isNew)
+        {
+            await repository.InsertAsync(category, cancellationToken);
+        }
+        else
+        {
+            await repository.UpdateAsync(category, cancellationToken);
+        }
+    }
+
+    public async Task<AdminCategoryDeleteStatus> DeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var category = await repository.GetByIdAsync<CourseCategory>(
+            id,
+            cancellationToken);
+
+        if (category is null)
+        {
+            return AdminCategoryDeleteStatus.NotFound;
+        }
+
+        if (await repository.ExistsAsync<Course>(
+                course => course.CourseCategoryId == id,
+                cancellationToken))
+        {
+            return AdminCategoryDeleteStatus.InUse;
+        }
+
+        await repository.HardDeleteAsync(category, cancellationToken);
+
+        return AdminCategoryDeleteStatus.Deleted;
+    }
+
+    private static AdminCategoryTranslationDto Translation(
+        CourseCategory category,
+        string languageCode)
+        => new(
+            category.Translations
+                .Where(translation => translation.LanguageCode == languageCode)
+                .Select(translation => translation.Title)
+                .FirstOrDefault(),
+            category.Translations
+                .Where(translation => translation.LanguageCode == languageCode)
+                .Select(translation => translation.Slug)
+                .FirstOrDefault(),
+            category.Translations
+                .Where(translation => translation.LanguageCode == languageCode)
+                .Select(translation => translation.Summary)
+                .FirstOrDefault(),
+            category.Translations
+                .Where(translation => translation.LanguageCode == languageCode)
+                .Select(translation => translation.MetaTitle)
+                .FirstOrDefault(),
+            category.Translations
+                .Where(translation => translation.LanguageCode == languageCode)
+                .Select(translation => translation.MetaDescription)
+                .FirstOrDefault(),
+            category.Translations
+                .Where(translation => translation.LanguageCode == languageCode)
+                .Select(translation => translation.PublicationStatus)
+                .FirstOrDefault());
+
+    private static void UpsertTranslation(
+        CourseCategory category,
+        string languageCode,
+        AdminCategoryTranslationDto input)
+    {
+        if (string.IsNullOrWhiteSpace(input.Title)
+            && string.IsNullOrWhiteSpace(input.Slug))
+        {
+            return;
+        }
+
+        var translation = category.Translations.FirstOrDefault(
+            item => item.LanguageCode == languageCode);
+
+        if (translation is null)
+        {
+            translation = new CourseCategoryTranslation
+            {
+                Id = Guid.NewGuid(),
+                CourseCategoryId = category.Id,
+                LanguageCode = languageCode
+            };
+
+            category.Translations.Add(translation);
+        }
+
+        translation.Title = input.Title?.Trim() ?? "";
+        translation.Slug = input.Slug?.Trim() ?? "";
+        translation.Summary = input.Summary;
+        translation.MetaTitle = input.MetaTitle;
+        translation.MetaDescription = input.MetaDescription;
+        translation.PublicationStatus = input.PublicationStatus;
     }
 }

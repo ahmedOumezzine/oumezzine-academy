@@ -1,10 +1,10 @@
-using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Domain.Catalog;
-using OumezzineAcademy.Models.Catalog;
-using OumezzineAcademy.Web.Services;
-using OumezzineAcademy.Infrastructure.Persistence;
-using OumezzineAcademy.Application.Abstractions;
+using AhmedOumezzine.EFCore.Repository.Extensions;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using OumezzineAcademy.Application.Abstractions;
+using OumezzineAcademy.Infrastructure.Data;
+using OumezzineAcademy.Infrastructure.Persistence;
 using Xunit;
 
 namespace OumezzineAcademy.Tests;
@@ -19,20 +19,28 @@ public sealed class AdminCourseCategoryOptionTests
         var category = Category("backend");
         var course = new Course
         {
-            Id = Guid.NewGuid(), CourseCategoryId = category.Id, CourseCategory = category,
-            Title = "Course", Slug = "course", CreatedOnUtc = DateTime.UtcNow,
+            Id = Guid.NewGuid(),
+            CourseCategoryId = category.Id,
+            CourseCategory = category,
+            Title = "Course",
+            Slug = "course",
+            CreatedOnUtc = DateTime.UtcNow,
             Status = StudyStatus.Draft
         };
         course.Translations.Add(new CourseTranslation
         {
-            Id = Guid.NewGuid(), CourseId = course.Id, LanguageCode = "fr",
-            Title = "Course", Slug = "course", PublicationStatus = StudyStatus.Draft
+            Id = Guid.NewGuid(),
+            CourseId = course.Id,
+            LanguageCode = "fr",
+            Title = "Course",
+            Slug = "course",
+            PublicationStatus = StudyStatus.Draft
         });
         db.StudyCourseCategories.Add(category);
         db.StudyCourses.Add(course);
         await db.SaveChangesAsync();
 
-        var save = await new EfAdminCourseCoreCommands(db).SaveAsync(new AdminCourseCoreSaveCommand(course.Id, category.Id, StudyLevel.Beginner, null,
+        var save = await new EfAdminCourseCoreCommands(CreateRepository(db)).SaveAsync(new AdminCourseCoreSaveCommand(course.Id, category.Id, StudyLevel.Beginner, null,
             new("Course publiée", "course-publiee", null, null, null, null, null, null, null, StudyStatus.Published),
             new(null, null, null, null, null, null, null, null, null, StudyStatus.Draft)), CancellationToken.None);
         Assert.True(save.Success);
@@ -54,7 +62,7 @@ public sealed class AdminCourseCategoryOptionTests
         db.StudyCourseCategories.AddRange(french, englishOnly, missing);
         await db.SaveChangesAsync();
 
-        var options = await new EfAdminCourseQueries(db).GetCategoryOptionsAsync(CancellationToken.None);
+        var options = await new EfAdminCourseQueries(CreateRepository(db)).GetCategoryOptionsAsync(CancellationToken.None);
 
         Assert.Equal(["Backend", "Catégorie sans traduction", "Data"], options.Select(x => x.DisplayName));
         Assert.Equal(englishOnly.Id, options[2].Id);
@@ -69,6 +77,14 @@ public sealed class AdminCourseCategoryOptionTests
         CreatedOnUtc = DateTime.UtcNow
     };
 
+    private static IRepository CreateRepository(ApplicationDbContext db)
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => db);
+        services.AddGenericRepository<ApplicationDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IRepository>();
+    }
+
     private static CourseCategoryTranslation Translation(Guid categoryId, string language, string title) => new()
     {
         Id = Guid.NewGuid(),
@@ -78,4 +94,3 @@ public sealed class AdminCourseCategoryOptionTests
         Slug = title.ToLowerInvariant()
     };
 }
-

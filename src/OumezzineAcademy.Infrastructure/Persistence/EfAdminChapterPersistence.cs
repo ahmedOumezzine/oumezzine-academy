@@ -1,3 +1,4 @@
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Domain.Catalog;
@@ -5,39 +6,316 @@ using OumezzineAcademy.Infrastructure.Data;
 
 namespace OumezzineAcademy.Infrastructure.Persistence;
 
-public sealed class EfAdminChapterQueries(ApplicationDbContext db) : IAdminChapterQueries
+public sealed class EfAdminChapterQueries(
+    IRepository repository) : IAdminChapterQueries
 {
-    public async Task<(AdminChapterCourseDto Course, IReadOnlyList<AdminChapterListDto> Chapters)?> ListAsync(Guid courseId, CancellationToken token = default)
+    public async Task<(AdminChapterCourseDto Course, IReadOnlyList<AdminChapterListDto> Chapters)?> ListAsync(
+        Guid courseId,
+        CancellationToken cancellationToken = default)
     {
-        var course = await db.StudyCourses.AsNoTracking().Where(x => x.Id == courseId).Select(x => new AdminChapterCourseDto(x.Id, x.Translations.Where(t => t.LanguageCode == "fr").Select(t => t.Title).FirstOrDefault() ?? x.Translations.Where(t => t.LanguageCode == "en").Select(t => t.Title).FirstOrDefault() ?? "Cours sans traduction", x.Thumbnail, x.Level, x.CourseCategory.Title, x.Translations.Where(t => t.LanguageCode == "fr").Select(t => (StudyStatus?)t.PublicationStatus).FirstOrDefault(), x.Translations.Where(t => t.LanguageCode == "en").Select(t => (StudyStatus?)t.PublicationStatus).FirstOrDefault())).FirstOrDefaultAsync(token);
-        if (course is null) return null;
-        var chapters = await db.StudyCourseContents.AsNoTracking().Where(x => x.CourseId == courseId).OrderBy(x => x.Order).ThenBy(x => x.Id).Select(x => new AdminChapterListDto(x.Id, x.Order, x.Translations.Where(t => t.LanguageCode == "fr").Select(t => t.Title).FirstOrDefault() ?? x.Title, x.Translations.Where(t => t.LanguageCode == "en").Select(t => t.Title).FirstOrDefault() ?? "Missing", x.Translations.Where(t => t.LanguageCode == "fr").Select(t => (StudyStatus?)t.PublicationStatus).FirstOrDefault(), x.Translations.Where(t => t.LanguageCode == "en").Select(t => (StudyStatus?)t.PublicationStatus).FirstOrDefault(), x.CourseLessons.Count, x.CourseQuizzes.Count)).ToListAsync(token);
-        return (course, chapters);
+        var courseEntity = await repository.GetByIdAsync<Course>(
+            courseId,
+            query => query
+                .Include(course => course.Translations)
+                .Include(course => course.CourseCategory),
+            cancellationToken);
+
+        var course = courseEntity is null
+            ? null
+            : new AdminChapterCourseDto(
+                courseEntity.Id,
+                courseEntity.Translations.FirstOrDefault(translation => translation.LanguageCode == "fr")?.Title
+                    ?? courseEntity.Translations.FirstOrDefault(translation => translation.LanguageCode == "en")?.Title
+                    ?? "Cours sans traduction",
+                courseEntity.Thumbnail,
+                courseEntity.Level,
+                courseEntity.CourseCategory.Title,
+                courseEntity.Translations.FirstOrDefault(translation => translation.LanguageCode == "fr")?.PublicationStatus,
+                courseEntity.Translations.FirstOrDefault(translation => translation.LanguageCode == "en")?.PublicationStatus);
+
+        if (course is null)
+        {
+            return null;
+        }
+
+        var chapters = await repository.GetListAsync<CourseContent>(
+            query => query
+                .Include(item => item.Translations)
+                .Include(item => item.CourseLessons)
+                .Include(item => item.CourseQuizzes),
+            cancellationToken);
+
+        var chapterItems = chapters
+            .Where(item => item.CourseId == courseId)
+            .OrderBy(item => item.Order)
+            .ThenBy(item => item.Id)
+            .Select(item => new AdminChapterListDto(
+                item.Id,
+                item.Order,
+                item.Translations.Where(translation => translation.LanguageCode == "fr").Select(translation => translation.Title).FirstOrDefault() ?? item.Title,
+                item.Translations.Where(translation => translation.LanguageCode == "en").Select(translation => translation.Title).FirstOrDefault() ?? "Missing",
+                item.Translations.Where(translation => translation.LanguageCode == "fr").Select(translation => (StudyStatus?)translation.PublicationStatus).FirstOrDefault(),
+                item.Translations.Where(translation => translation.LanguageCode == "en").Select(translation => (StudyStatus?)translation.PublicationStatus).FirstOrDefault(),
+                item.CourseLessons.Count,
+                item.CourseQuizzes.Count))
+            .ToList();
+
+        return (course, chapterItems);
     }
 
-    public async Task<AdminChapterEditDto?> GetForEditAsync(Guid courseId, Guid? chapterId, CancellationToken token = default)
+    public async Task<AdminChapterEditDto?> GetForEditAsync(
+        Guid courseId,
+        Guid? chapterId,
+        CancellationToken cancellationToken = default)
     {
-        var course = await db.StudyCourses.AsNoTracking().Where(x => x.Id == courseId).Select(x => new { x.Translations, x.Title }).FirstOrDefaultAsync(token); if (course is null) return null;
-        var c = chapterId.HasValue ? await db.StudyCourseContents.AsNoTracking().Include(x => x.Translations).FirstOrDefaultAsync(x => x.Id == chapterId && x.CourseId == courseId, token) : null;
-        AdminChapterTranslationDto T(string l) => new(c?.Translations.FirstOrDefault(x => x.LanguageCode == l)?.Title, c?.Translations.FirstOrDefault(x => x.LanguageCode == l)?.Summary, c?.Translations.FirstOrDefault(x => x.LanguageCode == l)?.PublicationStatus ?? StudyStatus.Draft);
-        return new(chapterId.HasValue ? (c?.Id ?? Guid.Empty) : Guid.Empty, courseId, c?.Order ?? (await db.StudyCourseContents.CountAsync(x => x.CourseId == courseId, token) + 1), course.Translations.FirstOrDefault(x => x.LanguageCode == "fr")?.Title ?? course.Title, course.Translations.FirstOrDefault(x => x.LanguageCode == "en")?.Title ?? "Missing", T("fr"), T("en"));
+        var course = await repository.GetByIdAsync<Course>(
+            courseId,
+            query => query.Include(item => item.Translations),
+            cancellationToken);
+
+        if (course is null)
+        {
+            return null;
+        }
+
+        var chapter = chapterId.HasValue
+            ? await repository.GetByIdAsync<CourseContent>(
+                chapterId.Value,
+                query => query.Include(item => item.Translations),
+                cancellationToken)
+            : null;
+
+        if (chapter?.CourseId != courseId)
+        {
+            chapter = null;
+        }
+
+        var order = chapter?.Order
+            ?? await repository.CountAsync<CourseContent>(
+                item => item.CourseId == courseId,
+                cancellationToken) + 1;
+
+        return new AdminChapterEditDto(
+            chapter?.Id ?? Guid.Empty,
+            courseId,
+            order,
+            course.Translations.FirstOrDefault(item => item.LanguageCode == "fr")?.Title ?? course.Title,
+            course.Translations.FirstOrDefault(item => item.LanguageCode == "en")?.Title ?? "Missing",
+            Translation(chapter, "fr"),
+            Translation(chapter, "en"));
+    }
+
+    private static AdminChapterTranslationDto Translation(
+        CourseContent? chapter,
+        string languageCode)
+    {
+        var translation = chapter?.Translations.FirstOrDefault(
+            item => item.LanguageCode == languageCode);
+
+        return new AdminChapterTranslationDto(
+            translation?.Title,
+            translation?.Summary,
+            translation?.PublicationStatus ?? StudyStatus.Draft);
     }
 }
 
-public sealed class EfAdminChapterPersistence(ApplicationDbContext db, IHtmlSanitizer sanitizer) : IAdminChapterPersistence
+public sealed class EfAdminChapterPersistence(
+    IHtmlSanitizer sanitizer,
+    IRepository repository) : IAdminChapterPersistence
 {
-    public async Task<(bool Success, Guid ChapterId, string? Error)> SaveAsync(AdminChapterSaveCommand m, CancellationToken t = default)
-    { var course = await db.StudyCourses.AnyAsync(x => x.Id == m.CourseId, t); if (!course) return (false, Guid.Empty, "Course not found."); var isNew = !m.Id.HasValue || m.Id.Value == Guid.Empty; var e = isNew ? new CourseContent { Id = Guid.NewGuid(), CourseId = m.CourseId, CreatedOnUtc = DateTime.UtcNow } : await db.StudyCourseContents.Include(x => x.Translations).FirstOrDefaultAsync(x => x.Id == m.Id && x.CourseId == m.CourseId, t); if (e is null) return (false, Guid.Empty, "Chapter not found."); e.Order = Math.Max(1, m.Order); e.Title = m.French.Title ?? m.English.Title ?? "Chapter"; e.Summary = sanitizer.Sanitize(m.French.Summary); e.Status = m.French.PublicationStatus; if (e.Translations is null) { } Upsert(e, "fr", m.French); Upsert(e, "en", m.English); if (isNew) db.StudyCourseContents.Add(e); await NormalizeAsync(m.CourseId, isNew ? e : null, null, t); await db.SaveChangesAsync(t); return (true, e.Id, null); }
+    public async Task<(bool Success, Guid ChapterId, string? Error)> SaveAsync(
+        AdminChapterSaveCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var courseExists = await repository.ExistsAsync<Course>(
+            item => item.Id == command.CourseId,
+            cancellationToken);
 
-    public async Task MoveAsync(Guid courseId, Guid chapterId, int direction, CancellationToken t = default)
-    { var a = await db.StudyCourseContents.Where(x => x.CourseId == courseId).OrderBy(x => x.Order).ThenBy(x => x.Id).ToListAsync(t); var i = a.FindIndex(x => x.Id == chapterId); var j = i + direction; if (i < 0 || j < 0 || j >= a.Count) return; (a[i].Order, a[j].Order) = (a[j].Order, a[i].Order); await NormalizeAsync(courseId, null, null, t); await db.SaveChangesAsync(t); }
+        if (!courseExists)
+        {
+            return (false, Guid.Empty, "Course not found.");
+        }
 
-    public async Task<AdminChapterDeleteResult> DeleteAsync(Guid courseId, Guid chapterId, CancellationToken t = default)
-    { var e = await db.StudyCourseContents.Include(x => x.CourseLessons).Include(x => x.CourseQuizzes).FirstOrDefaultAsync(x => x.Id == chapterId && x.CourseId == courseId, t); if (e is null) return new(false, true, "Chapitre introuvable."); if (e.CourseLessons.Count > 0 || e.CourseQuizzes.Count > 0) return new(false, false, "Ce chapitre contient des leçons ou des quiz et ne peut pas être supprimé."); db.StudyCourseContents.Remove(e); await NormalizeAsync(courseId, null, chapterId, t); await db.SaveChangesAsync(t); return new(true, false, "Le chapitre a été supprimé."); }
+        var isNew = !command.Id.HasValue || command.Id.Value == Guid.Empty;
+        var chapter = isNew
+            ? new CourseContent
+            {
+                Id = Guid.NewGuid(),
+                CourseId = command.CourseId,
+                CreatedOnUtc = DateTime.UtcNow
+            }
+            : await repository.GetByIdAsync<CourseContent>(
+                command.Id!.Value,
+                query => query.Include(item => item.Translations),
+                cancellationToken);
 
-    private void Upsert(CourseContent e, string l, AdminChapterTranslationDto i)
-    { if (string.IsNullOrWhiteSpace(i.Title) && string.IsNullOrWhiteSpace(i.Summary)) return; var x = e.Translations.FirstOrDefault(x => x.LanguageCode == l); if (x is null) { x = new CourseContentTranslation { Id = Guid.NewGuid(), CourseContentId = e.Id }; e.Translations.Add(x); } x.LanguageCode = l; x.Title = i.Title?.Trim() ?? ""; x.Summary = sanitizer.Sanitize(i.Summary); x.PublicationStatus = i.PublicationStatus; }
+        if (!isNew && chapter?.CourseId != command.CourseId)
+        {
+            chapter = null;
+        }
 
-    private async Task NormalizeAsync(Guid id, CourseContent? pending, Guid? excludedId, CancellationToken t)
-    { var a = await db.StudyCourseContents.Where(x => x.CourseId == id && (!excludedId.HasValue || x.Id != excludedId.Value)).OrderBy(x => x.Order).ThenBy(x => x.Id).ToListAsync(t); if (pending is not null && !a.Any(x => x.Id == pending.Id)) a.Add(pending); a = a.OrderBy(x => x.Order).ThenBy(x => x.Id).ToList(); for (var i = 0; i < a.Count; i++) a[i].Order = i + 1; }
+        if (chapter is null)
+        {
+            return (false, Guid.Empty, "Chapter not found.");
+        }
+
+        chapter.Order = Math.Max(1, command.Order);
+        chapter.Title = command.French.Title ?? command.English.Title ?? "Chapter";
+        chapter.Summary = sanitizer.Sanitize(command.French.Summary);
+        chapter.Status = command.French.PublicationStatus;
+
+        UpsertTranslation(chapter, "fr", command.French);
+        UpsertTranslation(chapter, "en", command.English);
+
+        await NormalizeAsync(
+            command.CourseId,
+            isNew ? chapter : null,
+            null,
+            cancellationToken);
+
+        if (isNew)
+        {
+            await repository.InsertAsync(chapter, cancellationToken);
+        }
+        else
+        {
+            await repository.SaveChangesAsync(cancellationToken);
+        }
+
+        return (true, chapter.Id, null);
+    }
+
+    public async Task MoveAsync(
+        Guid courseId,
+        Guid chapterId,
+        int direction,
+        CancellationToken cancellationToken = default)
+    {
+        var chapters = await repository.GetListAsync<CourseContent>(cancellationToken);
+        chapters = chapters
+            .Where(item => item.CourseId == courseId)
+            .OrderBy(item => item.Order)
+            .ThenBy(item => item.Id)
+            .ToList();
+
+        var currentIndex = chapters.FindIndex(item => item.Id == chapterId);
+        var targetIndex = currentIndex + direction;
+
+        if (currentIndex < 0 || targetIndex < 0 || targetIndex >= chapters.Count)
+        {
+            return;
+        }
+
+        (chapters[currentIndex].Order, chapters[targetIndex].Order) =
+            (chapters[targetIndex].Order, chapters[currentIndex].Order);
+
+        await NormalizeAsync(
+            courseId,
+            null,
+            null,
+            cancellationToken);
+
+        await repository.UpdateAsync(chapters, cancellationToken);
+    }
+
+    public async Task<AdminChapterDeleteResult> DeleteAsync(
+        Guid courseId,
+        Guid chapterId,
+        CancellationToken cancellationToken = default)
+    {
+        var chapter = await repository.GetByIdAsync<CourseContent>(
+            chapterId,
+            query => query
+                .Include(item => item.CourseLessons)
+                .Include(item => item.CourseQuizzes),
+            cancellationToken);
+
+        if (chapter?.CourseId != courseId)
+        {
+            chapter = null;
+        }
+
+        if (chapter is null)
+        {
+            return new(false, true, "Chapitre introuvable.");
+        }
+
+        if (chapter.CourseLessons.Count > 0 || chapter.CourseQuizzes.Count > 0)
+        {
+            return new(false, false, "Ce chapitre contient des leçons ou des quiz et ne peut pas être supprimé.");
+        }
+
+        await NormalizeAsync(
+            courseId,
+            null,
+            chapterId,
+            cancellationToken);
+
+        await repository.HardDeleteAsync(chapter, cancellationToken);
+
+        return new(true, false, "Le chapitre a été supprimé.");
+    }
+
+    private void UpsertTranslation(
+        CourseContent chapter,
+        string languageCode,
+        AdminChapterTranslationDto input)
+    {
+        if (string.IsNullOrWhiteSpace(input.Title)
+            && string.IsNullOrWhiteSpace(input.Summary))
+        {
+            return;
+        }
+
+        var translation = chapter.Translations.FirstOrDefault(
+            item => item.LanguageCode == languageCode);
+
+        if (translation is null)
+        {
+            translation = new CourseContentTranslation
+            {
+                Id = Guid.NewGuid(),
+                CourseContentId = chapter.Id
+            };
+
+            chapter.Translations.Add(translation);
+        }
+
+        translation.LanguageCode = languageCode;
+        translation.Title = input.Title?.Trim() ?? "";
+        translation.Summary = sanitizer.Sanitize(input.Summary);
+        translation.PublicationStatus = input.PublicationStatus;
+    }
+
+    private async Task NormalizeAsync(
+        Guid courseId,
+        CourseContent? pendingChapter,
+        Guid? excludedChapterId,
+        CancellationToken cancellationToken)
+    {
+        var chapters = await repository.GetListAsync<CourseContent>(cancellationToken);
+        chapters = chapters
+            .Where(item => item.CourseId == courseId
+                && (!excludedChapterId.HasValue
+                    || item.Id != excludedChapterId.Value))
+            .OrderBy(item => item.Order)
+            .ThenBy(item => item.Id)
+            .ToList();
+
+        if (pendingChapter is not null
+            && !chapters.Any(item => item.Id == pendingChapter.Id))
+        {
+            chapters.Add(pendingChapter);
+        }
+
+        chapters = chapters
+            .OrderBy(item => item.Order)
+            .ThenBy(item => item.Id)
+            .ToList();
+
+        for (var index = 0; index < chapters.Count; index++)
+        {
+            chapters[index].Order = index + 1;
+        }
+    }
 }

@@ -3,10 +3,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Infrastructure.Media;
 using OumezzineAcademy.Infrastructure.Sanitization;
 using OumezzineAcademy.Web.Services;
 using System.Net;
@@ -124,13 +122,8 @@ public sealed class LessonEditorHttpTests
         var root = Path.Combine(Path.GetTempPath(), "LearnEditorPhotos", Guid.NewGuid().ToString("N"));
         try
         {
-            using var factory = new AdminWebApplicationFactory(AdminTestProfile.Admin);
-            using var configured = factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
-            {
-                services.RemoveAll<IMediaStorage>();
-                services.AddSingleton<IMediaStorage>(new FileSystemMediaStorage(root));
-            }));
-            using var client = configured.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+            using var factory = new AdminWebApplicationFactory(AdminTestProfile.Admin, root);
+            using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
             const string id = "50000000-0000-0000-0000-000000000001";
             var edit = await client.GetStringAsync($"{Lessons}/{id}/edit");
             var document = new HtmlParser().ParseDocument(edit);
@@ -161,7 +154,7 @@ public sealed class LessonEditorHttpTests
             Assert.Contains(url, reloaded.QuerySelector("#French-ContentHtml")!.TextContent);
             Assert.Contains("<figcaption>Légende</figcaption>", reloaded.QuerySelector("#French-ContentHtml")!.TextContent);
             Assert.Equal("<p>English remains separate</p>", reloaded.QuerySelector("#English-ContentHtml")!.TextContent);
-            using (var scope = configured.Services.CreateScope())
+            using (var scope = factory.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 db.StudyCourseTranslations.Add(new OumezzineAcademy.Domain.Catalog.CourseTranslation
@@ -171,6 +164,24 @@ public sealed class LessonEditorHttpTests
                     LanguageCode = "fr",
                     Title = "Cours illustré",
                     Slug = "cours-illustre",
+                    PublicationStatus = OumezzineAcademy.Domain.Catalog.StudyStatus.Published
+                });
+                db.StudyCourseCategoryTranslations.Add(new OumezzineAcademy.Domain.Catalog.CourseCategoryTranslation
+                {
+                    Id = Guid.NewGuid(),
+                    CourseCategoryId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                    LanguageCode = "fr",
+                    Title = "Catégorie de test",
+                    Slug = "test-category",
+                    PublicationStatus = OumezzineAcademy.Domain.Catalog.StudyStatus.Published
+                });
+                db.StudyCourseContentTranslations.Add(new OumezzineAcademy.Domain.Catalog.CourseContentTranslation
+                {
+                    Id = Guid.NewGuid(),
+                    CourseContentId = AdminWebApplicationFactory.ChapterId,
+                    LanguageCode = "fr",
+                    Title = "Chapitre de test",
+                    Summary = "Résumé du chapitre",
                     PublicationStatus = OumezzineAcademy.Domain.Catalog.StudyStatus.Published
                 });
                 await db.SaveChangesAsync();

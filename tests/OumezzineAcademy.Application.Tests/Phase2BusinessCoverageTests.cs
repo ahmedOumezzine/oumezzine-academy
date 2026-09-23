@@ -1,5 +1,8 @@
+using AhmedOumezzine.EFCore.Repository.Extensions;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OumezzineAcademy.Application.UseCases;
 using OumezzineAcademy.Infrastructure.Data;
 using OumezzineAcademy.Infrastructure.Persistence;
@@ -51,7 +54,7 @@ public sealed class Phase2BusinessCoverageTests
         await db.SaveChangesAsync();
         SetCulture("en-US");
 
-        var result = await new LearningPathCatalogService(new EfLearningPathQueries(db), new CurrentLanguageService()).GetPathAsync("path-en");
+        var result = await new LearningPathCatalogService(new EfLearningPathQueries(CreateRepository(db)), new CurrentLanguageService()).GetPathAsync("path-en");
 
         Assert.NotNull(result);
         Assert.Single(result!.Courses);
@@ -71,7 +74,7 @@ public sealed class Phase2BusinessCoverageTests
         await db.SaveChangesAsync();
         SetCulture("fr-FR");
 
-        var result = await new LearningPathCatalogService(new EfLearningPathQueries(db), new CurrentLanguageService()).GetPathAsync("path-fr");
+        var result = await new LearningPathCatalogService(new EfLearningPathQueries(CreateRepository(db)), new CurrentLanguageService()).GetPathAsync("path-fr");
 
         Assert.NotNull(result);
         Assert.Single(result!.Courses);
@@ -102,7 +105,7 @@ public sealed class Phase2BusinessCoverageTests
         var graph = SeedGraph(db, includeEnglish: true, includeEnglishAnswer: false);
         SetCulture("en-US");
 
-        Assert.Null(await new QuizService(new EfQuizQueries(db), new QuizSubmissionHandler(new EfQuizQueries(db)), new CurrentLanguageService()).GetQuizAsync("quiz-en"));
+        Assert.Null(await new QuizService(new EfQuizQueries(CreateRepository(db)), new QuizSubmissionHandler(new EfQuizQueries(CreateRepository(db))), new CurrentLanguageService()).GetQuizAsync("quiz-en"));
         Assert.False(db.StudyQuizAnswerTranslations.Any(t => t.QuizAnswerId == graph.Answer.Id && t.LanguageCode == "en"));
         Assert.Contains(db.StudyQuizAnswers, a => a.IsCorrect);
     }
@@ -114,7 +117,7 @@ public sealed class Phase2BusinessCoverageTests
         var graph = SeedGraph(db, includeEnglish: true);
         SetCulture("en-US");
 
-        var quiz = await new QuizService(new EfQuizQueries(db), new QuizSubmissionHandler(new EfQuizQueries(db)), new CurrentLanguageService()).GetQuizAsync("quiz-en");
+        var quiz = await new QuizService(new EfQuizQueries(CreateRepository(db)), new QuizSubmissionHandler(new EfQuizQueries(CreateRepository(db))), new CurrentLanguageService()).GetQuizAsync("quiz-en");
 
         Assert.NotNull(quiz);
         Assert.Single(quiz!.Questions);
@@ -136,7 +139,7 @@ public sealed class Phase2BusinessCoverageTests
             [$"question_{question.Id}"] = answer.Id.ToString()
         });
 
-        var result = await new QuizService(new EfQuizQueries(db), new QuizSubmissionHandler(new EfQuizQueries(db)), new CurrentLanguageService()).GradeAsync(quiz.Id, form);
+        var result = await new QuizService(new EfQuizQueries(CreateRepository(db)), new QuizSubmissionHandler(new EfQuizQueries(CreateRepository(db))), new CurrentLanguageService()).GradeAsync(quiz.Id, form);
 
         Assert.NotNull(result);
         Assert.Equal("quiz-en", result!.QuizSlug);
@@ -152,7 +155,7 @@ public sealed class Phase2BusinessCoverageTests
         await db.SaveChangesAsync();
         SetCulture("en-US");
 
-        Assert.Null(await new QuizService(new EfQuizQueries(db), new QuizSubmissionHandler(new EfQuizQueries(db)), new CurrentLanguageService()).GetQuizAsync("quiz-en"));
+        Assert.Null(await new QuizService(new EfQuizQueries(CreateRepository(db)), new QuizSubmissionHandler(new EfQuizQueries(CreateRepository(db))), new CurrentLanguageService()).GetQuizAsync("quiz-en"));
         _ = graph;
     }
 
@@ -178,7 +181,7 @@ public sealed class Phase2BusinessCoverageTests
     {
         await using var db = Database();
         SeedGraph(db, includeEnglish: true);
-        var service = new LocalizedUrlService(new EfLocalizedSlugQueries(db));
+        var service = new LocalizedUrlService(new EfLocalizedSlugQueries(CreateRepository(db)));
         var context = new DefaultHttpContext();
         context.Request.Path = "/fr/cours/course-fr";
         context.Request.RouteValues["slug"] = "course-fr";
@@ -197,7 +200,7 @@ public sealed class Phase2BusinessCoverageTests
     public async Task GeneralLocalizedUrlsPairFrenchAndEnglish(string french, string english)
     {
         await using var db = Database();
-        var service = new LocalizedUrlService(new EfLocalizedSlugQueries(db));
+        var service = new LocalizedUrlService(new EfLocalizedSlugQueries(CreateRepository(db)));
         var context = new DefaultHttpContext();
         context.Request.Path = french;
 
@@ -209,7 +212,15 @@ public sealed class Phase2BusinessCoverageTests
 
     private static ApplicationDbContext Database() => new(new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
-    private static CourseCatalogService Catalog(ApplicationDbContext db) => new(new EfCourseCatalogQueries(db), new CurrentLanguageService());
+    private static IRepository CreateRepository(ApplicationDbContext db)
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => db);
+        services.AddGenericRepository<ApplicationDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IRepository>();
+    }
+
+    private static CourseCatalogService Catalog(ApplicationDbContext db) => new(new EfCourseCatalogQueries(CreateRepository(db)), new CurrentLanguageService());
 
     private static void SetCulture(string name) => CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(name);
 

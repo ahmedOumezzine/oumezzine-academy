@@ -18,11 +18,11 @@ public sealed class InfrastructureEmptyStoreTests
     public async Task Public_catalog_and_navigation_queries_handle_empty_store()
     {
         await using var db = CreateDb();
-        var catalog = new EfCourseCatalogQueries(db);
-        var paths = new EfLearningPathQueries(db);
-        var quizzes = new EfQuizQueries(db);
-        var slugs = new EfLocalizedSlugQueries(db);
-        var prerequisites = new EfCoursePrerequisiteEdges(db);
+        var catalog = new EfCourseCatalogQueries(CreateRepository(db));
+        var paths = new EfLearningPathQueries(CreateRepository(db));
+        var quizzes = new EfQuizQueries(CreateRepository(db));
+        var slugs = new EfLocalizedSlugQueries(CreateRepository(db));
+        var prerequisites = new EfCoursePrerequisiteEdges(CreateRepository(db));
 
         Assert.Empty((await catalog.GetHomeAsync("fr")).LatestCourses);
         Assert.Null(await catalog.GetCourseAsync("missing", "fr"));
@@ -88,50 +88,50 @@ public sealed class InfrastructureEmptyStoreTests
         await using var db = CreateDb();
         var id = Guid.NewGuid();
 
-        var categories = new EfAdminCategoryPersistence(db, CreateRepository(db));
+        var categories = new EfAdminCategoryPersistence(CreateRepository(db));
         Assert.Empty(await categories.ListAsync());
         Assert.Null(await categories.GetForEditAsync(id));
         Assert.False(await categories.SlugExistsAsync("fr", "missing", id));
 
-        var courses = new EfAdminCourseQueries(db);
+        var courses = new EfAdminCourseQueries(CreateRepository(db));
         Assert.Empty((await courses.ListAsync(null, null, null, null, null, null, 1, 10)).Items);
         Assert.Null(await courses.GetForEditAsync(id));
         Assert.Empty(await courses.GetCategoryOptionsAsync());
         Assert.Empty(await courses.GetPrerequisiteOptionsAsync());
         Assert.Null(await courses.GetThumbnailAsync(id));
 
-        var chapters = new EfAdminChapterQueries(db);
+        var chapters = new EfAdminChapterQueries(CreateRepository(db));
         Assert.Null(await chapters.ListAsync(id));
         Assert.Null(await chapters.GetForEditAsync(id, null));
 
-        var lessons = new EfAdminLessonQueries(db);
+        var lessons = new EfAdminLessonQueries(CreateRepository(db));
         Assert.Null(await lessons.ListAsync(id, id));
         Assert.Null(await lessons.GetForEditAsync(id, id, null));
         Assert.False(await lessons.SlugExistsAsync("fr", "missing", id));
 
-        var quizzes = new EfAdminQuizQueries(db);
+        var quizzes = new EfAdminQuizQueries(CreateRepository(db));
         Assert.Null(await quizzes.ListAsync(id, id));
         Assert.Null(await quizzes.GetForEditAsync(id, id, null));
         Assert.False(await quizzes.SlugExistsAsync("fr", "missing", id));
 
-        var questions = new EfAdminQuestionQueries(db);
+        var questions = new EfAdminQuestionQueries(CreateRepository(db));
         Assert.Null(await questions.ListAsync(id, id, id));
         Assert.Null(await questions.GetFormAsync(id, id, id, null));
 
-        var pathCategories = new EfAdminLearningPathCategoryQueries(db);
+        var pathCategories = new EfAdminLearningPathCategoryQueries(CreateRepository(db));
         Assert.Empty(await pathCategories.ListAsync());
         Assert.Null(await pathCategories.GetForEditAsync(id));
         Assert.False(await pathCategories.SlugExistsAsync("fr", "missing", id));
 
-        var pathQueries = new EfAdminLearningPathQueries(db);
+        var pathQueries = new EfAdminLearningPathQueries(CreateRepository(db));
         Assert.Empty(await pathQueries.ListAsync());
         Assert.NotNull(await pathQueries.GetForEditAsync(null));
         Assert.False(await pathQueries.SlugExistsAsync("fr", "missing", id));
         Assert.Null(await pathQueries.GetCompositionAsync(id));
 
-        var sitemap = new EfSitemapQueries(db);
+        var sitemap = new EfSitemapQueries(CreateRepository(db));
         Assert.Empty((await sitemap.GetSlugsAsync("fr")).Courses);
-        var dashboard = new EfDashboardQueries(db);
+        var dashboard = new EfDashboardQueries(CreateRepository(db));
         Assert.Empty((await dashboard.GetSummaryAsync()).RecentItems);
     }
 
@@ -143,15 +143,15 @@ public sealed class InfrastructureEmptyStoreTests
         var media = new MediaSpy();
         var upload = new MediaUpload("image.png", "image/png", 0, new MemoryStream());
 
-        Assert.Null(await new EfAdminChapterMediaCommands(db, media).UploadAsync(id, id, upload));
-        Assert.Equal(new(false, null), await new EfAdminLessonMediaCommands(db, media).UploadAsync(id, upload));
-        Assert.Null(await new EfAdminLearningPathMediaCommands(db, media).UploadAsync(id, upload));
-        Assert.Equal(new(false, null), await new EfAdminCourseMediaCommands(db, media).UploadAsync(id, upload));
-        Assert.False(await new EfAdminCourseMediaCommands(db, media).RemoveAsync(id));
-        Assert.True((await new EfAdminCourseDeleteCommands(db, media, CreateRepository(db)).DeleteAsync(id)).NotFound);
-        Assert.True((await new EfAdminLessonDeleteCommands(db).DeleteAsync(id, id, id)).NotFound);
-        Assert.Equal(AdminLearningPathCategoryDeleteStatus.NotFound, await new EfAdminLearningPathCategoryCommands(db, CreateRepository(db)).DeleteAsync(id));
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => new EfAdminLearningPathCommands(db, CreateRepository(db)).DeleteAsync(id));
+        Assert.Null(await new EfAdminChapterMediaCommands(CreateRepository(db), media).UploadAsync(id, id, upload));
+        Assert.Equal(new(false, null), await new EfAdminLessonMediaCommands(CreateRepository(db), media).UploadAsync(id, upload));
+        Assert.Null(await new EfAdminLearningPathMediaCommands(CreateRepository(db), media).UploadAsync(id, upload));
+        Assert.Equal(new(false, null), await new EfAdminCourseMediaCommands(CreateRepository(db), media).UploadAsync(id, upload));
+        Assert.False(await new EfAdminCourseMediaCommands(CreateRepository(db), media).RemoveAsync(id));
+        Assert.True((await new EfAdminCourseDeleteCommands(media, CreateRepository(db)).DeleteAsync(id)).NotFound);
+        Assert.True((await new EfAdminLessonDeleteCommands(CreateRepository(db)).DeleteAsync(id, id, id)).NotFound);
+        Assert.Equal(AdminLearningPathCategoryDeleteStatus.NotFound, await new EfAdminLearningPathCategoryCommands(CreateRepository(db)).DeleteAsync(id));
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => new EfAdminLearningPathCommands(CreateRepository(db)).DeleteAsync(id));
     }
 
     [Fact]
@@ -170,7 +170,7 @@ public sealed class InfrastructureEmptyStoreTests
         var media = new MediaSpy();
         var upload = new MediaUpload("image.png", "image/png", 0, new MemoryStream());
 
-        var courseMedia = new EfAdminCourseMediaCommands(db, media);
+        var courseMedia = new EfAdminCourseMediaCommands(CreateRepository(db), media);
         var uploaded = await courseMedia.UploadAsync(course.Id, upload);
         Assert.True(uploaded.Found);
         Assert.Equal(uploaded.StoredPath, (await db.Courses.FindAsync(course.Id))!.Thumbnail);
@@ -182,7 +182,7 @@ public sealed class InfrastructureEmptyStoreTests
         await courseMedia.UploadAsync(course.Id, upload);
 
         media.ThrowOnDelete = false;
-        var lessonMedia = new EfAdminLessonMediaCommands(db, media);
+        var lessonMedia = new EfAdminLessonMediaCommands(CreateRepository(db), media);
         var lessonUpload = await lessonMedia.UploadAsync(lesson.Id, upload);
         Assert.True(lessonUpload.Found);
         await lessonMedia.RemoveAsync(lesson.Id, lessonUpload.StoredPath!);
@@ -190,7 +190,7 @@ public sealed class InfrastructureEmptyStoreTests
         await Assert.ThrowsAsync<ArgumentException>(() => lessonMedia.RemoveAsync(lesson.Id, "/uploads/lessons/unsafe.png"));
 
         media.ThrowOnDelete = false;
-        var chapterMedia = new EfAdminChapterMediaCommands(db, media);
+        var chapterMedia = new EfAdminChapterMediaCommands(CreateRepository(db), media);
         Assert.NotNull(await chapterMedia.UploadAsync(course.Id, chapter.Id, upload));
     }
 
@@ -203,7 +203,7 @@ public sealed class InfrastructureEmptyStoreTests
         db.CourseCategories.Add(category);
         db.Courses.Add(course);
         await db.SaveChangesAsync();
-        var commands = new EfAdminCourseDeleteCommands(db, new MediaSpy(), CreateRepository(db));
+        var commands = new EfAdminCourseDeleteCommands(new MediaSpy(), CreateRepository(db));
 
         Assert.True((await commands.DeleteAsync(Guid.Empty)).NotFound);
         var chapter = new CourseContent { Id = Guid.NewGuid(), CourseId = course.Id, Title = "Chapter" };
@@ -219,7 +219,7 @@ public sealed class InfrastructureEmptyStoreTests
     public async Task Course_category_persistence_supports_save_edit_and_delete_rules()
     {
         await using var db = CreateDb();
-        var persistence = new EfAdminCategoryPersistence(db, CreateRepository(db));
+        var persistence = new EfAdminCategoryPersistence(CreateRepository(db));
         var command = new AdminCategorySaveCommand(null,
             new(" French ", " french ", "Summary", "Meta", "Description", StudyStatus.Published),
             new(" English ", " english ", null, null, null, StudyStatus.Draft));
@@ -251,7 +251,7 @@ public sealed class InfrastructureEmptyStoreTests
         db.LearningPaths.Add(path);
         db.Courses.AddRange(course1, course2);
         await db.SaveChangesAsync();
-        var commands = new EfAdminLearningPathCommands(db, CreateRepository(db));
+        var commands = new EfAdminLearningPathCommands(CreateRepository(db));
 
         await commands.AddCourseAsync(path.Id, course1.Id);
         await Assert.ThrowsAsync<InvalidOperationException>(() => commands.AddCourseAsync(path.Id, course1.Id));
@@ -291,7 +291,7 @@ public sealed class InfrastructureEmptyStoreTests
         db.LearningPaths.Add(path);
         await db.SaveChangesAsync();
 
-        var catalog = new EfCourseCatalogQueries(db);
+        var catalog = new EfCourseCatalogQueries(CreateRepository(db));
         var home = await catalog.GetHomeAsync("fr");
         Assert.Single(home.LatestCourses);
         Assert.Single(home.TopCategories);
@@ -303,7 +303,7 @@ public sealed class InfrastructureEmptyStoreTests
         Assert.Single((await catalog.SearchCoursesAsync(new("avancé", "categorie", StudyLevel.Advanced, "az", 0, 100, "fr"))).Items);
         Assert.Single((await catalog.SearchCoursesAsync(new(null, null, StudyLevel.All, "level", 1, 6, "fr"))).Items);
 
-        var paths = new EfLearningPathQueries(db);
+        var paths = new EfLearningPathQueries(CreateRepository(db));
         Assert.Single(await paths.GetPathsAsync("parcours", StudyLevel.Advanced, "fr"));
         var details = await paths.GetPathAsync("parcours-avance", "fr");
         Assert.NotNull(details);
@@ -319,11 +319,11 @@ public sealed class InfrastructureEmptyStoreTests
         var french = new AdminLessonTranslationDto("Lesson", "lesson", null, null, null, null, null, null, StudyStatus.Draft);
         var english = new AdminLessonTranslationDto("Lesson", "lesson-en", null, null, null, null, null, null, StudyStatus.Draft);
 
-        Assert.False((await new EfAdminChapterPersistence(db, sanitizer).SaveAsync(new(null, id, 1, new("Chapter", null, StudyStatus.Draft), new("Chapter", null, StudyStatus.Draft)))).Success);
-        Assert.False((await new EfAdminLessonCoreCommands(db, sanitizer).SaveAsync(new(null, id, id, 1, null, french, english))).Success);
-        Assert.False((await new EfAdminQuizPersistence(db).SaveAsync(new(null, id, id, 1, new("Quiz", "quiz", null, StudyStatus.Draft), new("Quiz", "quiz-en", null, StudyStatus.Draft)))).Success);
-        Assert.False((await new EfAdminLearningPathCoreCommands(db, sanitizer).SaveAsync(new(null, id, StudyLevel.Beginner, null, new("Path", "path", null, null, null, StudyStatus.Draft), new("Path", "path-en", null, null, null, StudyStatus.Draft)))).Success);
-        await Assert.ThrowsAsync<InvalidOperationException>(() => new EfAdminQuestionCommands(db).SaveAsync(new(null, id, id, id, 1, null, StudyStatus.Draft, null, StudyStatus.Draft, [])));
+        Assert.False((await new EfAdminChapterPersistence(sanitizer, CreateRepository(db)).SaveAsync(new(null, id, 1, new("Chapter", null, StudyStatus.Draft), new("Chapter", null, StudyStatus.Draft)))).Success);
+        Assert.False((await new EfAdminLessonCoreCommands(db, sanitizer, CreateRepository(db)).SaveAsync(new(null, id, id, 1, null, french, english))).Success);
+        Assert.False((await new EfAdminQuizPersistence(CreateRepository(db)).SaveAsync(new(null, id, id, 1, new("Quiz", "quiz", null, StudyStatus.Draft), new("Quiz", "quiz-en", null, StudyStatus.Draft)))).Success);
+        Assert.False((await new EfAdminLearningPathCoreCommands(sanitizer, CreateRepository(db)).SaveAsync(new(null, id, StudyLevel.Beginner, null, new("Path", "path", null, null, null, StudyStatus.Draft), new("Path", "path-en", null, null, null, StudyStatus.Draft)))).Success);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => new EfAdminQuestionCommands(db, CreateRepository(db)).SaveAsync(new(null, id, id, id, 1, null, StudyStatus.Draft, null, StudyStatus.Draft, [])));
     }
 
     private static ApplicationDbContext CreateDb() => new(new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);

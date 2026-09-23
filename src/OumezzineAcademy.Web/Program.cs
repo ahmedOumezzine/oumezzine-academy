@@ -1,17 +1,17 @@
-using OumezzineAcademy.Application.Admin.Catalog;
-using OumezzineAcademy.Infrastructure.Data;
-using OumezzineAcademy.Web.Services;
-using OumezzineAcademy.Application.Abstractions;
-using OumezzineAcademy.Web.Services.Caching;
-using OumezzineAcademy.Infrastructure;
-using OumezzineAcademy.Infrastructure.Sanitization;
-using OumezzineAcademy.Application.UseCases;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
+using OumezzineAcademy.Application.Abstractions;
+using OumezzineAcademy.Application.Admin.Catalog;
+using OumezzineAcademy.Application.UseCases;
+using OumezzineAcademy.Infrastructure;
+using OumezzineAcademy.Infrastructure.Data;
+using OumezzineAcademy.Infrastructure.Sanitization;
+using OumezzineAcademy.Web.Services;
+using OumezzineAcademy.Web.Services.Caching;
 using System.IO.Compression;
+using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddInfrastructure(Path.Combine(builder.Environment.WebRootPath ?? builder.Environment.ContentRootPath, "wwwroot"));
@@ -63,7 +63,6 @@ builder.Services.AddOutputCache(options =>
     options.AddPolicy("PublicCatalog", policy => policy.Expire(TimeSpan.FromMinutes(10)).Tag(StudyLmsCacheKeys.PublicTag).SetVaryByQuery("*"));
 });
 builder.Services.AddSingleton<IStudyLmsCacheInvalidator, StudyLmsCacheInvalidator>();
-builder.Services.AddSingleton<OumezzineAcademy.Application.Abstractions.IStudyLmsCacheInvalidator>(sp => sp.GetRequiredService<IStudyLmsCacheInvalidator>());
 builder.Services.AddScoped<IHtmlSanitizer, HtmlSanitizerService>();
 builder.Services.AddScoped<ICourseCatalogService, CourseCatalogService>();
 builder.Services.AddScoped<ILearningPathCatalogService, LearningPathCatalogService>();
@@ -78,7 +77,6 @@ builder.Services.AddScoped<AdminQuestionService>();
 builder.Services.AddScoped<AdminLearningPathService>();
 builder.Services.AddScoped<AdminLearningPathCategoryService>();
 builder.Services.AddScoped<CoursePrerequisiteValidationService>();
-
 
 builder.Services.AddResponseCompression(options =>
 {
@@ -105,36 +103,35 @@ var app = builder.Build();
 //}
 
 if (app.Environment.IsDevelopment())
-//{
-//    using var seedScope = app.Services.CreateScope();
-//    await seedScope.ServiceProvider.GetRequiredService<IStudyLmsSeeder>().SeedAsync();
-//}
+    //{
+    //    using var seedScope = app.Services.CreateScope();
+    //    await seedScope.ServiceProvider.GetRequiredService<IStudyLmsSeeder>().SeedAsync();
+    //}
 
-if (!app.Environment.IsEnvironment("DesignTime"))
-{
-using (var scope = app.Services.CreateScope())
-{
-    var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    if (!await roles.RoleExistsAsync("Admin"))
-        await roles.CreateAsync(new IdentityRole("Admin"));
-
-    var email = app.Configuration["Admin:Email"] ?? Environment.GetEnvironmentVariable("LEARNWEBAPP_ADMIN_EMAIL");
-    var password = app.Configuration["Admin:Password"] ?? Environment.GetEnvironmentVariable("LEARNWEBAPP_ADMIN_PASSWORD");
-    if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password))
+    if (!app.Environment.IsEnvironment("DesignTime"))
     {
-        var users = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-        var user = await users.FindByEmailAsync(email);
-        if (user == null)
+        using (var scope = app.Services.CreateScope())
         {
-            user = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
-            var created = await users.CreateAsync(user, password);
-            if (!created.Succeeded) throw new InvalidOperationException(string.Join("; ", created.Errors.Select(error => error.Description)));
-        }
-        if (!await users.IsInRoleAsync(user, "Admin")) await users.AddToRoleAsync(user, "Admin");
-    }
-}
+            var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            if (!await roles.RoleExistsAsync("Admin"))
+                await roles.CreateAsync(new IdentityRole("Admin"));
 
-}
+            var email = app.Configuration["Admin:Email"] ?? Environment.GetEnvironmentVariable("LEARNWEBAPP_ADMIN_EMAIL");
+            var password = app.Configuration["Admin:Password"] ?? Environment.GetEnvironmentVariable("LEARNWEBAPP_ADMIN_PASSWORD");
+            if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password))
+            {
+                var users = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+                var user = await users.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    user = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
+                    var created = await users.CreateAsync(user, password);
+                    if (!created.Succeeded) throw new InvalidOperationException(string.Join("; ", created.Errors.Select(error => error.Description)));
+                }
+                if (!await users.IsInRoleAsync(user, "Admin")) await users.AddToRoleAsync(user, "Admin");
+            }
+        }
+    }
 
 if (app.Environment.IsDevelopment())
 {
@@ -219,7 +216,9 @@ app.Use(async (context, next) =>
 
     var redirects = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
-        ["/courses"] = "/fr/cours", ["/categories"] = "/fr/categories", ["/paths"] = "/fr/parcours",
+        ["/courses"] = "/fr/cours",
+        ["/categories"] = "/fr/categories",
+        ["/paths"] = "/fr/parcours",
         ["/Home/About"] = "/fr/a-propos"
     };
     if (path != null && redirects.TryGetValue(path, out var target))
@@ -232,8 +231,10 @@ app.Use(async (context, next) =>
     {
         var legacyDetails = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            ["/courses/"] = "/fr/cours/", ["/categories/"] = "/fr/categories/",
-            ["/paths/"] = "/fr/parcours/", ["/lessons/"] = "/fr/lecons/",
+            ["/courses/"] = "/fr/cours/",
+            ["/categories/"] = "/fr/categories/",
+            ["/paths/"] = "/fr/parcours/",
+            ["/lessons/"] = "/fr/lecons/",
             ["/quiz/"] = "/fr/quiz/"
         };
 
@@ -285,9 +286,3 @@ app.MapRazorPages();
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 app.Run();
-
-
-
-
-
-

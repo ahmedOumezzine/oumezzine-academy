@@ -1,37 +1,84 @@
-using Microsoft.EntityFrameworkCore;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using OumezzineAcademy.Application.Abstractions;
-using OumezzineAcademy.Infrastructure.Data;
+using OumezzineAcademy.Domain.Catalog;
 
 namespace OumezzineAcademy.Infrastructure.Persistence;
 
-public sealed class EfAdminCourseMediaCommands(ApplicationDbContext db, IMediaStorage media) : IAdminCourseMediaCommands
+public sealed class EfAdminCourseMediaCommands(
+    IRepository repository,
+    IMediaStorage media) : IAdminCourseMediaCommands
 {
-    public async Task<AdminCourseMediaResult> UploadAsync(Guid courseId, MediaUpload upload, CancellationToken token = default)
+    public async Task<AdminCourseMediaResult> UploadAsync(
+        Guid courseId,
+        MediaUpload upload,
+        CancellationToken cancellationToken = default)
     {
-        var course = await db.StudyCourses.SingleOrDefaultAsync(x => x.Id == courseId, token);
-        if (course is null) return new(false, null);
-        var previous = course.Thumbnail;
-        course.Thumbnail = await media.SaveImageAsync(upload, "courses", courseId, token);
-        await db.SaveChangesAsync(token);
-        await RemovePreviousAsync(previous, courseId, token);
+        var course = await repository.GetByIdAsync<Course>(
+            courseId,
+            cancellationToken);
+
+        if (course is null)
+        {
+            return new(false, null);
+        }
+
+        var previousThumbnail = course.Thumbnail;
+        course.Thumbnail = await media.SaveImageAsync(
+            upload,
+            "courses",
+            courseId,
+            cancellationToken);
+
+        await repository.UpdateAsync(course, cancellationToken);
+        await RemovePreviousAsync(previousThumbnail, courseId, cancellationToken);
+
         return new(true, course.Thumbnail);
     }
 
-    public async Task<bool> RemoveAsync(Guid courseId, CancellationToken token = default)
+    public async Task<bool> RemoveAsync(
+        Guid courseId,
+        CancellationToken cancellationToken = default)
     {
-        var course = await db.StudyCourses.SingleOrDefaultAsync(x => x.Id == courseId, token);
-        if (course is null) return false;
-        var previous = course.Thumbnail;
+        var course = await repository.GetByIdAsync<Course>(
+            courseId,
+            cancellationToken);
+
+        if (course is null)
+        {
+            return false;
+        }
+
+        var previousThumbnail = course.Thumbnail;
         course.Thumbnail = null;
-        await db.SaveChangesAsync(token);
-        await RemovePreviousAsync(previous, courseId, token);
+
+        await repository.UpdateAsync(course, cancellationToken);
+        await RemovePreviousAsync(previousThumbnail, courseId, cancellationToken);
+
         return true;
     }
 
-    private async Task RemovePreviousAsync(string? previous, Guid courseId, CancellationToken token)
+    private async Task RemovePreviousAsync(
+        string? previousThumbnail,
+        Guid courseId,
+        CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(previous) || await db.StudyCourses.AsNoTracking().AnyAsync(x => x.Thumbnail == previous, token)) return;
-        try { media.DeleteIfSafe(previous, "courses", courseId); }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException) { }
+        if (string.IsNullOrWhiteSpace(previousThumbnail)
+            || await repository.ExistsAsync<Course>(
+                entity => entity.Thumbnail == previousThumbnail,
+                cancellationToken))
+        {
+            return;
+        }
+
+        try
+        {
+            media.DeleteIfSafe(previousThumbnail, "courses", courseId);
+        }
+        catch (Exception exception)
+            when (exception is IOException
+                or UnauthorizedAccessException
+                or ArgumentException)
+        {
+        }
     }
 }

@@ -16,7 +16,7 @@ public sealed class LearningPathPersistenceTests
     public async Task Saves_learning_path_and_translations()
     {
         await using var db = CreateDb(out var categoryId, out _, out _);
-        var result = await new EfAdminLearningPathCoreCommands(db, new HtmlSanitizerService()).SaveAsync(Command(null, categoryId));
+        var result = await new EfAdminLearningPathCoreCommands(new HtmlSanitizerService(), CreateRepository(db)).SaveAsync(Command(null, categoryId));
         Assert.True(result.Success);
         Assert.Equal(2, await db.LearningPathTranslations.CountAsync());
     }
@@ -25,7 +25,7 @@ public sealed class LearningPathPersistenceTests
     public async Task Composes_courses_and_rejects_duplicates_or_missing_items()
     {
         await using var db = CreateDb(out var categoryId, out var pathId, out var courseId);
-        var commands = new EfAdminLearningPathCommands(db, CreateRepository(db));
+        var commands = new EfAdminLearningPathCommands(CreateRepository(db));
         await commands.AddCourseAsync(pathId, courseId);
         await Assert.ThrowsAsync<InvalidOperationException>(() => commands.AddCourseAsync(pathId, courseId));
         await Assert.ThrowsAsync<InvalidOperationException>(() => commands.SynchronizeCoursesAsync(pathId, new[] { Guid.NewGuid() }));
@@ -36,7 +36,7 @@ public sealed class LearningPathPersistenceTests
     public async Task Deletes_learning_path_and_rejects_unknown_path()
     {
         await using var db = CreateDb(out _, out var pathId, out _);
-        var commands = new EfAdminLearningPathCommands(db, CreateRepository(db));
+        var commands = new EfAdminLearningPathCommands(CreateRepository(db));
         await commands.DeleteAsync(pathId);
         Assert.Empty(await db.LearningPaths.ToListAsync());
         await Assert.ThrowsAsync<KeyNotFoundException>(() => commands.DeleteAsync(Guid.NewGuid()));

@@ -1,6 +1,9 @@
+using AhmedOumezzine.EFCore.Repository.Extensions;
+using AhmedOumezzine.EFCore.Repository.Interface;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.Extensions.DependencyInjection;
 using OumezzineAcademy.Application.Abstractions;
 using OumezzineAcademy.Areas.Admin.Models;
 using OumezzineAcademy.Infrastructure.Data;
@@ -14,6 +17,14 @@ namespace OumezzineAcademy.Tests;
 
 public sealed class LessonSoftDeletePersistenceTests
 {
+    private static IRepository CreateRepository(ApplicationDbContext db)
+    {
+        var services = new ServiceCollection();
+        services.AddScoped(_ => db);
+        services.AddGenericRepository<ApplicationDbContext>();
+        return services.BuildServiceProvider().GetRequiredService<IRepository>();
+    }
+
     [Fact]
     public void SqlServer_sends_soft_delete_values_for_all_shared_catalog_tables()
     {
@@ -52,7 +63,7 @@ public sealed class LessonSoftDeletePersistenceTests
         var chapter = new CourseContent { Id = Guid.NewGuid(), Course = course, Title = "Chapter" };
         db.CourseContents.Add(chapter);
         await db.SaveChangesAsync();
-        var service = new AdminLessonService(new EfAdminLessonQueries(db), new EfAdminLessonCoreCommands(db, new HtmlSanitizerService()), new EfAdminLessonMediaCommands(db, new FileSystemMediaStorage(".")), new EfAdminLessonDeleteCommands(db), new NullStudyLmsCacheInvalidator());
+        var service = new AdminLessonService(new EfAdminLessonQueries(CreateRepository(db)), new EfAdminLessonCoreCommands(db, new HtmlSanitizerService(), CreateRepository(db)), new EfAdminLessonMediaCommands(CreateRepository(db), new FileSystemMediaStorage(".")), new EfAdminLessonDeleteCommands(CreateRepository(db)), new NullStudyLmsCacheInvalidator());
         var input = new LessonEditViewModel
         {
             CourseId = course.Id,

@@ -6,14 +6,132 @@ using OumezzineAcademy.Infrastructure.Data;
 
 namespace OumezzineAcademy.Infrastructure.Persistence;
 
-public sealed class EfAdminLearningPathCategoryCommands(ApplicationDbContext db, IRepository repository) : IAdminLearningPathCategoryCommands
+public sealed class EfAdminLearningPathCategoryCommands(
+    IRepository repository) : IAdminLearningPathCategoryCommands
 {
-    public async Task<AdminLearningPathCategorySaveResult> SaveAsync(AdminLearningPathCategorySaveCommand c, CancellationToken t = default)
-    { var e = c.Id.HasValue && c.Id.Value != Guid.Empty ? await db.StudyLearningPathCategories.Include(x => x.Translations).FirstOrDefaultAsync(x => x.Id == c.Id.Value, t) : null; var created = e is null; if (created) e = new LearningPathCategory { Id = Guid.NewGuid(), CreatedOnUtc = DateTime.UtcNow, Title = c.FrenchTitle ?? c.EnglishTitle ?? "Category", Slug = c.FrenchSlug ?? c.EnglishSlug ?? "category", Status = c.FrenchStatus }; else e!.Status = c.FrenchStatus; db.Update(e!); Upsert(e!, "fr", c.FrenchTitle, c.FrenchSlug, c.FrenchSummary, c.FrenchMetaTitle, c.FrenchMetaDescription, c.FrenchStatus); Upsert(e!, "en", c.EnglishTitle, c.EnglishSlug, c.EnglishSummary, c.EnglishMetaTitle, c.EnglishMetaDescription, c.EnglishStatus); await db.SaveChangesAsync(t); return new(e!.Id, created); }
+    public async Task<AdminLearningPathCategorySaveResult> SaveAsync(
+        AdminLearningPathCategorySaveCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var category = command.Id.HasValue && command.Id.Value != Guid.Empty
+            ? await repository.GetByIdAsync<LearningPathCategory>(
+                command.Id.Value,
+                query => query.Include(entity => entity.Translations),
+                cancellationToken)
+            : null;
 
-    private void Upsert(LearningPathCategory e, string l, string? title, string? slug, string? summary, string? mt, string? md, StudyStatus st)
-    { if (string.IsNullOrWhiteSpace(title) && string.IsNullOrWhiteSpace(slug)) return; var x = e.Translations.FirstOrDefault(x => x.LanguageCode == l); if (x is null) { x = new LearningPathCategoryTranslation { Id = Guid.NewGuid(), LearningPathCategoryId = e.Id, LanguageCode = l }; e.Translations.Add(x); } x.Title = title?.Trim() ?? ""; x.Slug = slug?.Trim() ?? ""; x.Summary = summary; x.MetaTitle = mt; x.MetaDescription = md; x.PublicationStatus = st; }
+        var created = category is null;
 
-    public async Task<AdminLearningPathCategoryDeleteStatus> DeleteAsync(Guid id, CancellationToken t = default)
-    { var e = await db.StudyLearningPathCategories.Include(x => x.LearningPaths).FirstOrDefaultAsync(x => x.Id == id, t); if (e is null) return AdminLearningPathCategoryDeleteStatus.NotFound; if (e.LearningPaths.Count > 0) return AdminLearningPathCategoryDeleteStatus.InUse; await repository.HardDeleteAsync(e, t); return AdminLearningPathCategoryDeleteStatus.Deleted; }
+        if (created)
+        {
+            category = new LearningPathCategory
+            {
+                Id = Guid.NewGuid(),
+                CreatedOnUtc = DateTime.UtcNow,
+                Title = command.FrenchTitle
+                    ?? command.EnglishTitle
+                    ?? "Category",
+                Slug = command.FrenchSlug
+                    ?? command.EnglishSlug
+                    ?? "category",
+                Status = command.FrenchStatus
+            };
+        }
+        else
+        {
+            category!.Status = command.FrenchStatus;
+        }
+
+        UpsertTranslation(
+            category!,
+            "fr",
+            command.FrenchTitle,
+            command.FrenchSlug,
+            command.FrenchSummary,
+            command.FrenchMetaTitle,
+            command.FrenchMetaDescription,
+            command.FrenchStatus);
+        UpsertTranslation(
+            category!,
+            "en",
+            command.EnglishTitle,
+            command.EnglishSlug,
+            command.EnglishSummary,
+            command.EnglishMetaTitle,
+            command.EnglishMetaDescription,
+            command.EnglishStatus);
+
+        if (created)
+        {
+            await repository.InsertAsync(category!, cancellationToken);
+        }
+
+        await repository.SaveChangesAsync(cancellationToken);
+
+        return new(category!.Id, created);
+    }
+
+    private static void UpsertTranslation(
+        LearningPathCategory category,
+        string languageCode,
+        string? title,
+        string? slug,
+        string? summary,
+        string? metaTitle,
+        string? metaDescription,
+        StudyStatus publicationStatus)
+    {
+        if (string.IsNullOrWhiteSpace(title)
+            && string.IsNullOrWhiteSpace(slug))
+        {
+            return;
+        }
+
+        var translation = category.Translations.FirstOrDefault(
+            item => item.LanguageCode == languageCode);
+
+        if (translation is null)
+        {
+            translation = new LearningPathCategoryTranslation
+            {
+                Id = Guid.NewGuid(),
+                LearningPathCategoryId = category.Id,
+                LanguageCode = languageCode
+            };
+
+            category.Translations.Add(translation);
+        }
+
+        translation.Title = title?.Trim() ?? "";
+        translation.Slug = slug?.Trim() ?? "";
+        translation.Summary = summary;
+        translation.MetaTitle = metaTitle;
+        translation.MetaDescription = metaDescription;
+        translation.PublicationStatus = publicationStatus;
+    }
+
+    public async Task<AdminLearningPathCategoryDeleteStatus> DeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var category = await repository.GetByIdAsync<LearningPathCategory>(
+            id,
+            cancellationToken);
+
+        if (category is null)
+        {
+            return AdminLearningPathCategoryDeleteStatus.NotFound;
+        }
+
+        if (await repository.ExistsAsync<LearningPath>(
+                path => path.LearningPathCategoryId == id,
+                cancellationToken))
+        {
+            return AdminLearningPathCategoryDeleteStatus.InUse;
+        }
+
+        await repository.HardDeleteAsync(category, cancellationToken);
+
+        return AdminLearningPathCategoryDeleteStatus.Deleted;
+    }
 }
