@@ -3,12 +3,14 @@
 @using OumezzineAcademy.Resources
 @inject Microsoft.Extensions.Localization.IStringLocalizer<SharedResource> L
 @inject OumezzineAcademy.Web.Services.ILocalizedUrlService LocalizedUrls
+@inject IWebHostEnvironment Environment
 @{
     var seo = ViewData["Seo"] as SeoViewModel
         ?? new SeoViewModel($"{ViewData["Title"] ?? "Oumezzine Academy"} - Oumezzine Academy", L["Common_LearningSpace"].Value);
     var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
     var localizedUrls = await LocalizedUrls.ResolveAsync(Context);
     var navigation = LocalizedUrls.GetPublicNavigation();
+    var assetVersion = Environment.IsDevelopment() ? "" : ".min";
 }
 <!DOCTYPE html>
 <html lang="@language">
@@ -20,9 +22,8 @@
     <link rel="icon" type="image/png" href="~/images/brand/icon.png" />
     <link rel="apple-touch-icon" href="~/images/brand/icon.png" />
     <partial name="_SeoMeta" model="seo" />
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link id="bootstrap-icons" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" media="print" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site@(assetVersion).css" asp-append-version="true" />
     @await RenderSectionAsync("Head", required: false)
 </head>
 <body>
@@ -70,9 +71,8 @@
         <div class="footer-bottom"><span>&copy; @DateTime.UtcNow.Year Oumezzine Academy</span><span>@L["Footer_Description"]</span></div>
     </footer>
 
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" defer></script>
-    <script src="~/js/site.js" asp-append-version="true" defer></script>
-    <script src="~/js/site-navigation-progress.js" asp-append-version="true" defer></script>
+    <script src="~/js/site@(assetVersion).js" asp-append-version="true" defer></script>
+    <script src="~/js/site-navigation-progress@(assetVersion).js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
